@@ -270,19 +270,54 @@ document.addEventListener('DOMContentLoaded', function () {
                 body: formData,
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
-                .then(response => {
-                    if (response.redirected) {
-                        window.location.href = response.url;
-                        return null;
-                    }
-                    return response.text();
-                })
-                .catch(error => {
-                    console.error('Ошибка загрузки:', error);
-                    showMessage('Произошла ошибка при загрузке файла', 'error');
-                    updateUploadStatus('Загрузить файл', false);
-                    if (submitBtn) submitBtn.disabled = false;
-                });
+.then(response => {
+    // Сначала проверяем статус ответа
+    if (!response.ok) {
+        return response.json().then(data => {
+            throw new Error(data.error || 'Ошибка сервера');
+        });
+    }
+
+    // Если это редирект
+    if (response.redirected) {
+        window.location.href = response.url;
+        return null;
+    }
+
+    // Если это JSON ответ
+    return response.json();
+})
+    .then(data => {
+        if (data === null) return; // Редирект уже произошел
+
+        if (data.success) {
+            showMessage(data.message, 'success');
+            closeModal();
+            if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+            }
+        } else {
+            showMessage(data.error, 'error');
+            closeModal();
+            if (data.redirect_url) {
+                setTimeout(() => {
+                    window.location.href = data.redirect_url;
+                }, 2000); // Даем время показать сообщение
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка загрузки:', error);
+        showMessage(error.message || 'Произошла ошибка при загрузке файла', 'error');
+        closeModal();
+        setTimeout(() => {
+            window.location.href = '/'; // Переход к списку
+        }, 2000);
+    })
+    .finally(() => {
+        updateUploadStatus('Загрузить файл', false);
+        if (submitBtn) submitBtn.disabled = false;
+    });
         });
     }
 

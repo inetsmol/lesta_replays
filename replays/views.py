@@ -1,17 +1,20 @@
 from __future__ import annotations
 
-import contextlib
 import json
+import logging
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
 
 from django.conf import settings
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
-from django.http import HttpRequest, HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
+from django.urls import reverse
 from django.utils.dateparse import parse_date
+from django.views import View
 from django.views.generic import ListView
 
 from .models import Replay, Tank, Nation
@@ -19,6 +22,251 @@ from .utils import extract_all_json_from_mtreplay
 
 FILES_DIR = Path(settings.MEDIA_ROOT)
 FILES_DIR.mkdir(parents=True, exist_ok=True)
+
+logger = logging.getLogger(__name__)
+
+
+class ReplayUploadView(View):
+    """
+    View для загрузки файлов реплеев World of Tanks.
+    Принимает .mtreplay файлы, извлекает данные и создает объект Replay.
+    """
+
+    def post(self, request):
+        try:
+            # Получаем файл из запроса
+            uploaded_file = request.FILES.get('file')
+            if not uploaded_file:
+                return self._error_response("Файл не выбран")
+
+            # Валидация файла
+            validation_error = self._validate_file(uploaded_file)
+            if validation_error:
+                return validation_error
+
+            # Сохраняем файл и создаем реплей
+            with transaction.atomic():
+                replay = self._process_replay_file(uploaded_file)
+
+            messages.success(request, f"Реплей успешно загружен: {replay.file_name}")
+
+            # Для AJAX запросов возвращаем JSON с редиректом
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': f"Реплей успешно загружен: {replay.file_name}",
+                    'redirect_url': reverse('replay_detail', kwargs={'pk': replay.id})
+                })
+
+            return redirect('replay_detail', pk=replay.id)
+
+        except ValidationError as e:
+            # ValidationError может содержать список ошибок или строку
+            error_message = self._extract_error_message(e)
+            logger.warning(f"Ошибка валидации реплея: {error_message}")
+            return self._error_response(error_message)
+
+        except Exception as e:
+            error_message = "Произошла ошибка при обработке файла"
+            logger.error(f"Ошибка загрузки реплея: {str(e)}")
+            return self._error_response(error_message)
+
+    def _extract_error_message(self, validation_error):
+        """Извлекает читаемое сообщение об ошибке из ValidationError"""
+        if hasattr(validation_error, 'message_dict'):
+            # Ошибки формы
+            messages = []
+            for field, errors in validation_error.message_dict.items():
+                if isinstance(errors, list):
+                    messages.extend(errors)
+                else:
+                    messages.append(str(errors))
+            return '; '.join(messages)
+        elif hasattr(validation_error, 'messages'):
+            # Список сообщений
+            if isinstance(validation_error.messages, list):
+                return '; '.join(validation_error.messages)
+            else:
+                return str(validation_error.messages)
+        else:
+            # Простое сообщение
+            return str(validation_error)
+
+    def _error_response(self, message):
+        """Возвращает ошибку в зависимости от типа запроса"""
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'error': message,
+                'redirect_url': reverse('replay_list')
+            }, status=400)
+        else:
+            messages.error(self.request, message)
+            return redirect('replay_list')
+
+    def _validate_file(self, uploaded_file):
+        """Валидация загружаемого файла"""
+        # Проверка расширения
+        if not uploaded_file.name.lower().endswith('.mtreplay'):
+            return self._error_response("Неподдерживаемый формат файла. Разрешены только .mtreplay файлы")
+
+        # Проверка размера (50MB)
+        max_size = 50 * 1024 * 1024
+        if uploaded_file.size > max_size:
+            return self._error_response("Файл слишком большой. Максимальный размер: 50MB")
+
+        # Проверка уникальности имени файла
+        if Replay.objects.filter(file_name=uploaded_file.name).exists():
+            return self._error_response("Файл с таким именем уже загружен")
+
+        return None
+
+    def _process_replay_file(self, uploaded_file):
+        """
+        Обрабатывает загруженный файл реплея:
+        1. Сохраняет файл в MEDIA_ROOT
+        2. Извлекает JSON данные
+        3. Парсит данные и создает объект Replay
+        """
+        # Сохраняем файл
+        file_path = self._save_file(uploaded_file)
+
+        try:
+            # Извлекаем JSON данные из файла
+            json_str = extract_all_json_from_mtreplay(str(file_path))
+            if not json_str.strip():
+                raise ValueError("Файл не содержит данных реплея")
+
+            payload = json.loads(json_str)
+
+            # Парсим данные для создания реплея
+            replay_data = self._parse_replay_data(payload)
+
+            # Находим или создаем танк
+            tank = self._get_or_create_tank(replay_data['vehicle_id'])
+
+            # Создаем объект реплея
+            replay = Replay.objects.create(
+                file_name=uploaded_file.name,
+                payload=payload,
+                tank=tank,
+                battle_date=replay_data.get('battle_date'),
+                map_name=replay_data.get('map_name'),
+                map_display_name=replay_data.get('map_display_name'),
+                mastery=replay_data.get('mastery'),
+                credits=replay_data.get('credits', 0),
+                xp=replay_data.get('xp', 0),
+                kills=replay_data.get('kills', 0),
+                damage=replay_data.get('damage', 0),
+                assist=replay_data.get('assist', 0),
+                block=replay_data.get('block', 0)
+            )
+
+            logger.info(f"Реплей создан: {replay.id} - {uploaded_file.name}")
+            return replay
+
+        except (json.JSONDecodeError, ValueError) as e:
+            # Удаляем файл при ошибке парсинга
+            file_path.unlink(missing_ok=True)
+            raise ValidationError(f"Ошибка обработки файла реплея: {str(e)}")
+        except Exception as e:
+            # Удаляем файл при любой другой ошибке
+            file_path.unlink(missing_ok=True)
+            raise
+
+    def _save_file(self, uploaded_file):
+        """Сохраняет загруженный файл в MEDIA_ROOT"""
+        from django.conf import settings
+
+        files_dir = Path(settings.MEDIA_ROOT)
+        files_dir.mkdir(parents=True, exist_ok=True)
+
+        file_path = files_dir / uploaded_file.name
+
+        # Проверяем, что файл с таким именем не существует
+        if file_path.exists():
+            raise ValidationError("Файл с таким именем уже существует")
+
+        # Сохраняем файл
+        with open(file_path, 'wb') as f:
+            for chunk in uploaded_file.chunks():
+                f.write(chunk)
+
+        return file_path
+
+    def _parse_replay_data(self, payload):
+        """
+        Парсит JSON данные реплея и извлекает нужные поля.
+        Основано на структуре данных из закомментированной функции _extract_wot_brief_for_list
+        """
+        # Извлекаем ID техники (убираем префикс до '-')
+        player_vehicle = payload.get("playerVehicle", "")
+        if "-" in player_vehicle:
+            vehicle_id = player_vehicle.split("-", 1)[1]
+        else:
+            vehicle_id = player_vehicle
+
+        # Извлекаем статистику из personal секции
+        personal = payload.get("personal", {})
+        vehicle_stats = {}
+
+        # Ищем числовой ключ техники в personal
+        for key, value in personal.items():
+            if isinstance(key, str) and key.isdigit():
+                vehicle_stats = value
+                break
+
+        # Парсим дату боя
+        battle_date = None
+        date_str = payload.get("dateTime")
+        if date_str:
+            try:
+                # Формат: '25.08.2025 15:57:56'
+                battle_date = datetime.strptime(date_str, '%d.%m.%Y %H:%M:%S')
+            except ValueError:
+                logger.warning(f"Не удалось распарсить дату: {date_str}")
+
+        # Собираем ассист из различных компонентов
+        assist = (
+                vehicle_stats.get("damageAssistedTrack", 0) +
+                vehicle_stats.get("damageAssistedRadio", 0) +
+                vehicle_stats.get("damageAssistedStun", 0) +
+                vehicle_stats.get("damageAssistedSmoke", 0) +
+                vehicle_stats.get("damageAssistedInspire", 0)
+        )
+
+        return {
+            'vehicle_id': vehicle_id,
+            'battle_date': battle_date,
+            'map_name': payload.get('mapName'),
+            'map_display_name': payload.get('mapDisplayName'),
+            'mastery': vehicle_stats.get('markOfMastery'),
+            'credits': vehicle_stats.get('credits', 0),
+            'xp': vehicle_stats.get('xp', 0),
+            'kills': vehicle_stats.get('kills', 0),
+            'damage': vehicle_stats.get('damageDealt', 0),
+            'assist': assist,
+            'block': vehicle_stats.get('damageBlockedByArmor', 0)
+        }
+
+    def _get_or_create_tank(self, vehicle_id):
+        """
+        Находит существующий танк или создает заглушку если танк не найден
+        """
+        if not vehicle_id:
+            return None
+
+        try:
+            return Tank.objects.get(vehicleId=vehicle_id)
+        except Tank.DoesNotExist:
+            logger.warning(f"Танк с ID {vehicle_id} не найден в базе, создаем заглушку")
+            # Создаем заглушку для неизвестного танка
+            return Tank.objects.create(
+                vehicleId=vehicle_id,
+                name=f"Неизвестный танк ({vehicle_id})",
+                level=1,
+                type="unknown"
+            )
 
 
 class ReplayListView(ListView):
@@ -150,191 +398,6 @@ class ReplayListView(ListView):
         }
 
 
-# def _extract_wot_brief_for_list(data: dict) -> dict:
-#     # короткий tag техники без префикса до '-'
-#     pv_full = data.get("playerVehicle", "")
-#     player_vehicle = pv_full.split("-", 1)[1] if "-" in pv_full else pv_full
-#
-#     # в personal есть числовой ключ техники (у тебя это "23041")
-#     personal = data.get("personal", {})
-#     veh_keys = [k for k in personal.keys() if isinstance(k, str) and k.isdigit()]
-#     p = personal[veh_keys[0]] if veh_keys else {}
-#
-#     # базовые поля
-#     mastery = p.get("markOfMastery")            # 3
-#     credits = p.get("credits", 0)               # 22541
-#     xp = p.get("xp", 0)                         # 2318
-#     kills = p.get("kills", 0)                   # 6
-#     damage = p.get("damageDealt", 0)            # 2255
-#     block = p.get("damageBlockedByArmor", 0)    # 0
-#
-#     # ассист: суммирую явные компоненты (если нужно по-другому — скажи)
-#     assist = (
-#         p.get("damageAssistedTrack", 0)
-#         + p.get("damageAssistedRadio", 0)
-#         + p.get("damageAssistedStun", 0)
-#         + p.get("damageAssistedSmoke", 0)
-#         + p.get("damageAssistedInspire", 0)
-#     )
-#
-#     tank = Tank.objects.only("level", "type", "nation").get(vehicleId=player_vehicle)
-#
-#     return {
-#         "mastery": mastery,
-#         "level": tank.level,
-#         "type": tank.type,
-#         "nation": tank.get_nation_display(),
-#         "playerVehicle": player_vehicle,  # 'R174_BT-5'
-#         "vehicleName": tank.name,
-#         "date_cont": data.get("dateTime"),      # '25.08.2025 15:57:56'
-#         "mapName": data.get("mapName"),         # '04_himmelsdorf'
-#         "mapDisplayName": data.get("mapDisplayName"),  # 'Химмельсдорф'
-#         "credits": credits,          # 22541
-#         "xp": xp,                    # 2318
-#         "kills": kills,              # 6
-#         "damage": damage,            # 2255
-#         "assist": assist,            # 22
-#         "block": block,              # 0
-#     }
-#
-#
-# def _extract_replay_data(payload: Dict[str, Any]) -> Dict[str, Any]:
-#     """Извлекает и нормализует данные из payload реплея"""
-#     p = payload
-#
-#     # Извлекаем данные с fallback значениями
-#     """
-#       "regionCode": "RU",
-#         "playerName": "unknowns2002",
-#       "mapDisplayName": "Химмельсдорф",
-#         "mapName": "04_himmelsdorf",
-#
-#       mastery
-#         level
-#         type
-#
-#         "playerVehicle": "ussr-R174_BT-5",
-#
-#         title
-#
-#         date-cont
-#
-#
-#         credits
-#         xp
-#         kills
-#         damage
-#         assist
-#         block
-#
-#     """
-#     map_data = {
-#         'mapDisplayName': p.get('mapDisplayName'),
-#         'mapName': p.get('mapName') or "Unknown map"
-#     }
-#
-#     vehicle_data = {
-#         'name': p.get('playerVehicle'),
-#         'vehicleDisplayName': p.get('vehicleDisplayName'),
-#         'level': p.get('level'),
-#         'type': p.get('vehicle', {}).get('type') or p.get('type'),
-#         'tier': p.get('vehicle', {}).get('tier') or p.get('vehicle', {}).get('level'),
-#         'premium': p.get('vehicle', {}).get('premium') or p.get('common', {}).get('premium', False)
-#     }
-#
-#     player_data = {
-#         'name': p.get('player', {}).get('name') or p.get('common', {}).get('playerName') or
-#                 p.get('user', {}).get('name') or "—"
-#     }
-#
-#     battle_data = {
-#         'mode': p.get('battle', {}).get('mode') or p.get('mode') or p.get('common', {}).get('mode'),
-#         'title': p.get('title')
-#     }
-#
-#     stats_data = {
-#         'credits': p.get('player', {}).get('credits') or p.get('stats', {}).get('credits') or p.get('credits') or 0,
-#         'xp': p.get('player', {}).get('xp') or p.get('stats', {}).get('xp') or p.get('xp') or 0,
-#         'kills': p.get('player', {}).get('frags') or p.get('stats', {}).get('kills') or p.get('frags') or 0,
-#         'damage': p.get('player', {}).get('damage') or p.get('stats', {}).get('damage') or p.get('damage') or 0,
-#         'assist': p.get('stats', {}).get('assist') or p.get('assist') or 0,
-#         'block': p.get('stats', {}).get('blocked') or p.get('blocked') or p.get('block') or 0
-#     }
-#
-#     return {
-#         'map': map_data,
-#         'vehicle': vehicle_data,
-#         'player': player_data,
-#         'battle': battle_data,
-#         'stats': stats_data,
-#     }
-#
-#
-# def list_page(request: HttpRequest) -> HttpResponse:
-#     """
-#     Одна страница: GET — показывает список, POST — принимает загрузку реплеев.
-#     """
-#     if request.method == "POST":
-#         files = request.FILES.getlist("files") or request.FILES.getlist("file")
-#         if not files:
-#             messages.error(request, "Выберите файл(ы) .mtreplay")
-#             return redirect("replays_list")
-#
-#         success, skipped, failed = 0, 0, 0
-#         for up in files:
-#             file_name = Path(up.name).name
-#             dest = FILES_DIR / file_name
-#
-#             # если имя занято — пропускаем
-#             if dest.exists() or Replay.objects.filter(file_name=file_name).exists():
-#                 skipped += 1
-#                 continue
-#
-#             # сохраняем файл
-#             with open(dest, "wb") as f:
-#                 for chunk in up.chunks():
-#                     f.write(chunk)
-#
-#             try:
-#                 extracted_str = extract_all_json_from_mtreplay(str(dest))
-#                 payload = json.loads(extracted_str) if extracted_str.strip() else {}
-#             except Exception:
-#                 failed += 1
-#                 with contextlib.suppress(Exception):
-#                     dest.unlink(missing_ok=True)
-#                 continue
-#
-#             with transaction.atomic():
-#                 Replay.objects.create(file_name=file_name, payload=payload)
-#                 success += 1
-#
-#         if success:
-#             messages.success(request, f"Загружено: {success}")
-#         if skipped:
-#             messages.info(request, f"Пропущено (уже есть): {skipped}")
-#         if failed:
-#             messages.error(request, f"Ошибок: {failed}")
-#
-#         return redirect("replays_list")
-#
-#     # GET — последние 60 реплеев с подготовленными данными
-#     items = Replay.objects.order_by("-id")[:60]
-#
-#     # Подготавливаем данные для шаблона
-#     processed_items = []
-#     for item in items:
-#         replay_data = {
-#             'id': item.id,
-#             'file_name': item.file_name,
-#             'created_at': item.created_at,
-#             'data': _extract_wot_brief_for_list(item.payload)
-#         }
-#         processed_items.append(replay_data)
-#         print(processed_items)
-#
-#     return render(request, "replays/list.html", {"items": processed_items, "tiers": range(1, 12)})
-#
-#
 # --- пример, как быстро превратить заглушку в настоящую детальную страницу ---
 def replay_detail(request, pk: int):
     """
