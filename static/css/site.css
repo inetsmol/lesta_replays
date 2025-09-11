@@ -300,3 +300,312 @@ body{
 
 /* футер без внешнего отступа сверху, чтобы реально был "прижат" */
 .site-footer{ margin-top: 0; }
+
+/* === КНОПКА ЗАГРУЗКИ В НАВИГАЦИИ === */
+.upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  margin-right: 16px;
+}
+
+.upload-btn:hover {
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(192, 57, 43, 0.3);
+}
+
+.upload-btn:active {
+  transform: translateY(0);
+}
+
+.upload-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* === МОДАЛЬНОЕ ОКНО === */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.modal.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow: hidden;
+  transform: scale(0.9) translateY(20px);
+  transition: transform 0.3s ease;
+}
+
+.modal.active .modal-content {
+  transform: scale(1) translateY(0);
+}
+
+/* === ЗАГОЛОВОК МОДАЛЬНОГО ОКНА === */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-2);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
+/* === ТЕЛО МОДАЛЬНОГО ОКНА === */
+.modal-body {
+  padding: 24px;
+}
+
+/* === ЗОНА ЗАГРУЗКИ === */
+.upload-area {
+  position: relative;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 48px 24px;
+  text-align: center;
+  background: var(--bg);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.upload-area:hover {
+  border-color: var(--accent);
+  background: rgba(192, 57, 43, 0.05);
+}
+
+.upload-area.dragover {
+  border-color: var(--accent);
+  background: rgba(192, 57, 43, 0.1);
+  transform: scale(1.02);
+}
+
+.upload-icon {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.upload-text {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.upload-text strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.file-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* === СПИСОК ВЫБРАННЫХ ФАЙЛОВ === */
+.selected-files {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--panel-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.selected-files h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  color: var(--text);
+}
+
+#files-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+#files-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 14px;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+
+#files-list li:last-child {
+  border-bottom: none;
+}
+
+#files-list li::before {
+  content: "📄";
+  font-size: 16px;
+}
+
+/* === ПОДВАЛ МОДАЛЬНОГО ОКНА === */
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid var(--border);
+  background: var(--panel-2);
+}
+
+#submit-upload:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#submit-upload:disabled:hover {
+  background: var(--accent);
+  transform: none;
+  box-shadow: none;
+}
+
+.upload-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Спиннер для загрузки */
+.upload-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* === АДАПТИВНОСТЬ === */
+@media (max-width: 768px) {
+  .modal {
+    padding: 8px;
+  }
+
+  .modal-content {
+    max-width: 100%;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .upload-area {
+    padding: 32px 16px;
+  }
+
+  .upload-btn {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+
+  .upload-btn span {
+    display: none;
+  }
+}
+
+/* === АНИМАЦИИ === */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes modalFadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+}

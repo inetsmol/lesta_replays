@@ -150,191 +150,191 @@ class ReplayListView(ListView):
         }
 
 
-def _extract_wot_brief_for_list(data: dict) -> dict:
-    # короткий tag техники без префикса до '-'
-    pv_full = data.get("playerVehicle", "")
-    player_vehicle = pv_full.split("-", 1)[1] if "-" in pv_full else pv_full
-
-    # в personal есть числовой ключ техники (у тебя это "23041")
-    personal = data.get("personal", {})
-    veh_keys = [k for k in personal.keys() if isinstance(k, str) and k.isdigit()]
-    p = personal[veh_keys[0]] if veh_keys else {}
-
-    # базовые поля
-    mastery = p.get("markOfMastery")            # 3
-    credits = p.get("credits", 0)               # 22541
-    xp = p.get("xp", 0)                         # 2318
-    kills = p.get("kills", 0)                   # 6
-    damage = p.get("damageDealt", 0)            # 2255
-    block = p.get("damageBlockedByArmor", 0)    # 0
-
-    # ассист: суммирую явные компоненты (если нужно по-другому — скажи)
-    assist = (
-        p.get("damageAssistedTrack", 0)
-        + p.get("damageAssistedRadio", 0)
-        + p.get("damageAssistedStun", 0)
-        + p.get("damageAssistedSmoke", 0)
-        + p.get("damageAssistedInspire", 0)
-    )
-
-    tank = Tank.objects.only("level", "type", "nation").get(vehicleId=player_vehicle)
-
-    return {
-        "mastery": mastery,
-        "level": tank.level,
-        "type": tank.type,
-        "nation": tank.get_nation_display(),
-        "playerVehicle": player_vehicle,  # 'R174_BT-5'
-        "vehicleName": tank.name,
-        "date_cont": data.get("dateTime"),      # '25.08.2025 15:57:56'
-        "mapName": data.get("mapName"),         # '04_himmelsdorf'
-        "mapDisplayName": data.get("mapDisplayName"),  # 'Химмельсдорф'
-        "credits": credits,          # 22541
-        "xp": xp,                    # 2318
-        "kills": kills,              # 6
-        "damage": damage,            # 2255
-        "assist": assist,            # 22
-        "block": block,              # 0
-    }
-
-
-def _extract_replay_data(payload: Dict[str, Any]) -> Dict[str, Any]:
-    """Извлекает и нормализует данные из payload реплея"""
-    p = payload
-
-    # Извлекаем данные с fallback значениями
-    """
-      "regionCode": "RU",
-        "playerName": "unknowns2002",
-      "mapDisplayName": "Химмельсдорф",
-        "mapName": "04_himmelsdorf",
-        
-      mastery
-        level
-        type
-        
-        "playerVehicle": "ussr-R174_BT-5",
-        
-        title  
-                      
-        date-cont
-
-        
-        credits
-        xp
-        kills
-        damage
-        assist
-        block  
-    
-    """
-    map_data = {
-        'mapDisplayName': p.get('mapDisplayName'),
-        'mapName': p.get('mapName') or "Unknown map"
-    }
-
-    vehicle_data = {
-        'name': p.get('playerVehicle'),
-        'vehicleDisplayName': p.get('vehicleDisplayName'),
-        'level': p.get('level'),
-        'type': p.get('vehicle', {}).get('type') or p.get('type'),
-        'tier': p.get('vehicle', {}).get('tier') or p.get('vehicle', {}).get('level'),
-        'premium': p.get('vehicle', {}).get('premium') or p.get('common', {}).get('premium', False)
-    }
-
-    player_data = {
-        'name': p.get('player', {}).get('name') or p.get('common', {}).get('playerName') or
-                p.get('user', {}).get('name') or "—"
-    }
-
-    battle_data = {
-        'mode': p.get('battle', {}).get('mode') or p.get('mode') or p.get('common', {}).get('mode'),
-        'title': p.get('title')
-    }
-
-    stats_data = {
-        'credits': p.get('player', {}).get('credits') or p.get('stats', {}).get('credits') or p.get('credits') or 0,
-        'xp': p.get('player', {}).get('xp') or p.get('stats', {}).get('xp') or p.get('xp') or 0,
-        'kills': p.get('player', {}).get('frags') or p.get('stats', {}).get('kills') or p.get('frags') or 0,
-        'damage': p.get('player', {}).get('damage') or p.get('stats', {}).get('damage') or p.get('damage') or 0,
-        'assist': p.get('stats', {}).get('assist') or p.get('assist') or 0,
-        'block': p.get('stats', {}).get('blocked') or p.get('blocked') or p.get('block') or 0
-    }
-
-    return {
-        'map': map_data,
-        'vehicle': vehicle_data,
-        'player': player_data,
-        'battle': battle_data,
-        'stats': stats_data,
-    }
-
-
-def list_page(request: HttpRequest) -> HttpResponse:
-    """
-    Одна страница: GET — показывает список, POST — принимает загрузку реплеев.
-    """
-    if request.method == "POST":
-        files = request.FILES.getlist("files") or request.FILES.getlist("file")
-        if not files:
-            messages.error(request, "Выберите файл(ы) .mtreplay")
-            return redirect("replays_list")
-
-        success, skipped, failed = 0, 0, 0
-        for up in files:
-            file_name = Path(up.name).name
-            dest = FILES_DIR / file_name
-
-            # если имя занято — пропускаем
-            if dest.exists() or Replay.objects.filter(file_name=file_name).exists():
-                skipped += 1
-                continue
-
-            # сохраняем файл
-            with open(dest, "wb") as f:
-                for chunk in up.chunks():
-                    f.write(chunk)
-
-            try:
-                extracted_str = extract_all_json_from_mtreplay(str(dest))
-                payload = json.loads(extracted_str) if extracted_str.strip() else {}
-            except Exception:
-                failed += 1
-                with contextlib.suppress(Exception):
-                    dest.unlink(missing_ok=True)
-                continue
-
-            with transaction.atomic():
-                Replay.objects.create(file_name=file_name, payload=payload)
-                success += 1
-
-        if success:
-            messages.success(request, f"Загружено: {success}")
-        if skipped:
-            messages.info(request, f"Пропущено (уже есть): {skipped}")
-        if failed:
-            messages.error(request, f"Ошибок: {failed}")
-
-        return redirect("replays_list")
-
-    # GET — последние 60 реплеев с подготовленными данными
-    items = Replay.objects.order_by("-id")[:60]
-
-    # Подготавливаем данные для шаблона
-    processed_items = []
-    for item in items:
-        replay_data = {
-            'id': item.id,
-            'file_name': item.file_name,
-            'created_at': item.created_at,
-            'data': _extract_wot_brief_for_list(item.payload)
-        }
-        processed_items.append(replay_data)
-        print(processed_items)
-
-    return render(request, "replays/list.html", {"items": processed_items, "tiers": range(1, 12)})
-
-
+# def _extract_wot_brief_for_list(data: dict) -> dict:
+#     # короткий tag техники без префикса до '-'
+#     pv_full = data.get("playerVehicle", "")
+#     player_vehicle = pv_full.split("-", 1)[1] if "-" in pv_full else pv_full
+#
+#     # в personal есть числовой ключ техники (у тебя это "23041")
+#     personal = data.get("personal", {})
+#     veh_keys = [k for k in personal.keys() if isinstance(k, str) and k.isdigit()]
+#     p = personal[veh_keys[0]] if veh_keys else {}
+#
+#     # базовые поля
+#     mastery = p.get("markOfMastery")            # 3
+#     credits = p.get("credits", 0)               # 22541
+#     xp = p.get("xp", 0)                         # 2318
+#     kills = p.get("kills", 0)                   # 6
+#     damage = p.get("damageDealt", 0)            # 2255
+#     block = p.get("damageBlockedByArmor", 0)    # 0
+#
+#     # ассист: суммирую явные компоненты (если нужно по-другому — скажи)
+#     assist = (
+#         p.get("damageAssistedTrack", 0)
+#         + p.get("damageAssistedRadio", 0)
+#         + p.get("damageAssistedStun", 0)
+#         + p.get("damageAssistedSmoke", 0)
+#         + p.get("damageAssistedInspire", 0)
+#     )
+#
+#     tank = Tank.objects.only("level", "type", "nation").get(vehicleId=player_vehicle)
+#
+#     return {
+#         "mastery": mastery,
+#         "level": tank.level,
+#         "type": tank.type,
+#         "nation": tank.get_nation_display(),
+#         "playerVehicle": player_vehicle,  # 'R174_BT-5'
+#         "vehicleName": tank.name,
+#         "date_cont": data.get("dateTime"),      # '25.08.2025 15:57:56'
+#         "mapName": data.get("mapName"),         # '04_himmelsdorf'
+#         "mapDisplayName": data.get("mapDisplayName"),  # 'Химмельсдорф'
+#         "credits": credits,          # 22541
+#         "xp": xp,                    # 2318
+#         "kills": kills,              # 6
+#         "damage": damage,            # 2255
+#         "assist": assist,            # 22
+#         "block": block,              # 0
+#     }
+#
+#
+# def _extract_replay_data(payload: Dict[str, Any]) -> Dict[str, Any]:
+#     """Извлекает и нормализует данные из payload реплея"""
+#     p = payload
+#
+#     # Извлекаем данные с fallback значениями
+#     """
+#       "regionCode": "RU",
+#         "playerName": "unknowns2002",
+#       "mapDisplayName": "Химмельсдорф",
+#         "mapName": "04_himmelsdorf",
+#
+#       mastery
+#         level
+#         type
+#
+#         "playerVehicle": "ussr-R174_BT-5",
+#
+#         title
+#
+#         date-cont
+#
+#
+#         credits
+#         xp
+#         kills
+#         damage
+#         assist
+#         block
+#
+#     """
+#     map_data = {
+#         'mapDisplayName': p.get('mapDisplayName'),
+#         'mapName': p.get('mapName') or "Unknown map"
+#     }
+#
+#     vehicle_data = {
+#         'name': p.get('playerVehicle'),
+#         'vehicleDisplayName': p.get('vehicleDisplayName'),
+#         'level': p.get('level'),
+#         'type': p.get('vehicle', {}).get('type') or p.get('type'),
+#         'tier': p.get('vehicle', {}).get('tier') or p.get('vehicle', {}).get('level'),
+#         'premium': p.get('vehicle', {}).get('premium') or p.get('common', {}).get('premium', False)
+#     }
+#
+#     player_data = {
+#         'name': p.get('player', {}).get('name') or p.get('common', {}).get('playerName') or
+#                 p.get('user', {}).get('name') or "—"
+#     }
+#
+#     battle_data = {
+#         'mode': p.get('battle', {}).get('mode') or p.get('mode') or p.get('common', {}).get('mode'),
+#         'title': p.get('title')
+#     }
+#
+#     stats_data = {
+#         'credits': p.get('player', {}).get('credits') or p.get('stats', {}).get('credits') or p.get('credits') or 0,
+#         'xp': p.get('player', {}).get('xp') or p.get('stats', {}).get('xp') or p.get('xp') or 0,
+#         'kills': p.get('player', {}).get('frags') or p.get('stats', {}).get('kills') or p.get('frags') or 0,
+#         'damage': p.get('player', {}).get('damage') or p.get('stats', {}).get('damage') or p.get('damage') or 0,
+#         'assist': p.get('stats', {}).get('assist') or p.get('assist') or 0,
+#         'block': p.get('stats', {}).get('blocked') or p.get('blocked') or p.get('block') or 0
+#     }
+#
+#     return {
+#         'map': map_data,
+#         'vehicle': vehicle_data,
+#         'player': player_data,
+#         'battle': battle_data,
+#         'stats': stats_data,
+#     }
+#
+#
+# def list_page(request: HttpRequest) -> HttpResponse:
+#     """
+#     Одна страница: GET — показывает список, POST — принимает загрузку реплеев.
+#     """
+#     if request.method == "POST":
+#         files = request.FILES.getlist("files") or request.FILES.getlist("file")
+#         if not files:
+#             messages.error(request, "Выберите файл(ы) .mtreplay")
+#             return redirect("replays_list")
+#
+#         success, skipped, failed = 0, 0, 0
+#         for up in files:
+#             file_name = Path(up.name).name
+#             dest = FILES_DIR / file_name
+#
+#             # если имя занято — пропускаем
+#             if dest.exists() or Replay.objects.filter(file_name=file_name).exists():
+#                 skipped += 1
+#                 continue
+#
+#             # сохраняем файл
+#             with open(dest, "wb") as f:
+#                 for chunk in up.chunks():
+#                     f.write(chunk)
+#
+#             try:
+#                 extracted_str = extract_all_json_from_mtreplay(str(dest))
+#                 payload = json.loads(extracted_str) if extracted_str.strip() else {}
+#             except Exception:
+#                 failed += 1
+#                 with contextlib.suppress(Exception):
+#                     dest.unlink(missing_ok=True)
+#                 continue
+#
+#             with transaction.atomic():
+#                 Replay.objects.create(file_name=file_name, payload=payload)
+#                 success += 1
+#
+#         if success:
+#             messages.success(request, f"Загружено: {success}")
+#         if skipped:
+#             messages.info(request, f"Пропущено (уже есть): {skipped}")
+#         if failed:
+#             messages.error(request, f"Ошибок: {failed}")
+#
+#         return redirect("replays_list")
+#
+#     # GET — последние 60 реплеев с подготовленными данными
+#     items = Replay.objects.order_by("-id")[:60]
+#
+#     # Подготавливаем данные для шаблона
+#     processed_items = []
+#     for item in items:
+#         replay_data = {
+#             'id': item.id,
+#             'file_name': item.file_name,
+#             'created_at': item.created_at,
+#             'data': _extract_wot_brief_for_list(item.payload)
+#         }
+#         processed_items.append(replay_data)
+#         print(processed_items)
+#
+#     return render(request, "replays/list.html", {"items": processed_items, "tiers": range(1, 12)})
+#
+#
 # --- пример, как быстро превратить заглушку в настоящую детальную страницу ---
 def replay_detail(request, pk: int):
     """
