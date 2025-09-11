@@ -1,0 +1,80 @@
+{# replays/templates/replays/detail.html #}
+{% extends "base.html" %}
+{% load static humanize %}
+{% block title %}Реплей #{{ replay.id }} — Lesta Replays{% endblock %}
+{% block body_class %}replays detail{% endblock %}
+{% block content_mod %}content--solo{% endblock %}
+
+{% block content %}
+  <article class="replay-detail card">
+    <header class="detail-header">
+      <h1>
+        {{ replay.data.vehicleName|default:replay.data.playerVehicle }}
+        — {{ replay.data.mapDisplayName|default:replay.data.mapName }}
+      </h1>
+      <div class="meta">
+        <span class="date">{{ replay.data.date_cont }}</span>
+      </div>
+    </header>
+
+    <div class="detail-body">
+      <div class="detail-media">
+        <div class="img-container img-container--xl">
+          <img class="map"
+               src="{% static 'style/images/wot/map/stats/' %}{{ replay.data.mapName }}.png"
+               alt="{{ replay.data.mapDisplayName|default:replay.data.mapName }}" />
+          <img class="tank"
+               src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ replay.data.playerVehicle }}.png"
+               alt="{{ replay.data.vehicleName|default:replay.data.playerVehicle }}" />
+          {% if replay.data.battleType %}
+            <img class="game"
+                 src="{% static 'style/images/wot/battleTypes/136x136/' %}{{ replay.data.battleType }}.png"
+                 alt="Battle type" />
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="detail-stats">
+        <div class="table row">
+          {% if replay.data.mastery %}
+            <div class="cell">
+              <img class="mastery"
+                   src="{% static 'style/images/wot/library/proficiency/class_icons_' %}{{ replay.data.mastery }}.png"
+                   alt="Mastery {{ replay.data.mastery }}" />
+            </div>
+          {% endif %}
+          {% if replay.data.type %}
+            <div class="cell">
+              <img class="type"
+                   src="{% static 'style/images/wot/vehicleTypes/' %}{{ replay.data.type }}.png"
+                   alt="Vehicle type" />
+            </div>
+          {% endif %}
+          {% if replay.data.level %}
+            <div class="cell">
+              <img class="level"
+                   src="{% static 'style/images/wot/levels/tank_level_' %}{{ replay.data.level }}.png"
+                   alt="Level {{ replay.data.level }}" />
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="table row">
+          <div class="cell"><img src="{% static 'style/images/wot/library/CreditsIconBig.png' %}" alt=""><span>{{ replay.data.credits|default:"0"|intcomma }}</span></div>
+          <div class="cell"><img src="{% static 'style/images/wot/library/XpIconBig.png' %}" alt=""><span>{{ replay.data.xp|default:"0"|intcomma }}</span></div>
+          <div class="cell"><img src="{% static 'style/images/wot/buttons/Tank-ico.png' %}" alt=""><span>{{ replay.data.kills|default:"0" }}</span></div>
+          <div class="cell"><img src="{% static 'style/images/wot/library/BattleResultIcon-1.png' %}" alt=""><span>{{ replay.data.damage|default:"0"|intcomma }}</span></div>
+          <div class="cell"><img src="{% static 'style/images/wot/buttons/assist.png' %}" alt=""><span>{{ replay.data.assist|default:"0"|intcomma }}</span></div>
+          <div class="cell"><img src="{% static 'style/images/wot/buttons/blocked.png' %}" alt=""><span>{{ replay.data.block|default:"0"|intcomma }}</span></div>
+        </div>
+
+        <div class="actions">
+          {% if replay.file_name %}
+            <a class="btn" href="/media/replays/{{ replay.file_name }}" download>Скачать .wotreplay</a>
+          {% endif %}
+          <a class="btn btn--ghost" href="/replays/">← К списку</a>
+        </div>
+      </div>
+    </div>
+  </article>
+{% endblock %}

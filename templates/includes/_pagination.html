@@ -1,0 +1,16 @@
+{# templates/includes/_pagination.html #}
+{% if page_obj and page_obj.has_other_pages %}
+  <nav class="pagination">
+    {% if page_obj.has_previous %}
+      <a class="page-btn" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">&laquo; Назад</a>
+    {% endif %}
+
+    <span class="page-state">
+      Стр. {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+    </span>
+
+    {% if page_obj.has_next %}
+      <a class="page-btn" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Вперёд &raquo;</a>
+    {% endif %}
+  </nav>
+{% endif %}

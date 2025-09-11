@@ -1,0 +1,30 @@
+{# templates/base.html #}
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Реплеи Мира танков{% endblock %}</title>
+
+  <link rel="icon" href="{% static 'favicon.ico' %}">
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+  <link rel="stylesheet" href="{% static 'css/wot_record_skin.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+  {% include "includes/_navbar.html" %}
+
+  <div id="content" class="content {% block content_mod %}{% endblock %}">
+    <div class="container">
+      {% include "includes/_messages.html" %}
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+
+  {% include "includes/_footer.html" %}
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

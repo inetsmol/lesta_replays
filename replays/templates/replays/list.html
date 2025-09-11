@@ -1,0 +1,134 @@
+{# replays/templates/replays/list.html #}
+{% extends "base.html" %}
+{% block body_class %}replays index{% endblock %}
+{% block content_mod %}content--solo{% endblock %}
+{% block content %}
+    {% load static humanize %}
+
+<div id="content" class="content content--solo">
+
+  <main class="replay-grid replay-grid--rows">
+    {% if items %}
+      {% for replay in items %}
+        <a class="tovabb"
+           href="{% url 'replay_detail' replay.id %}"
+           title="{{ replay.tank.name|default:'Неизвестный танк' }} — {{ replay.map_display_name|default:replay.map_name }}">
+          <div class="wrapper">
+
+            <div class="img-container">
+              <!-- КАРТА -->
+              <img class="map"
+                   src="{% static 'style/images/wot/map/stats/' %}{{ replay.map_name }}.png"
+                   alt="{{ replay.map_display_name|default:replay.map_name }}" />
+
+              <!-- ТАНК -->
+              {% if replay.tank %}
+                <img class="tank"
+                     src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ replay.tank.vehicleId }}.png"
+                     alt="{{ replay.tank.name }}" />
+              {% endif %}
+
+              <span class="map-name">{{ replay.map_display_name|default:replay.map_name }}</span>
+              <span class="name">{{ replay.tank.name|default:'Неизвестный танк' }}</span>
+
+              <!-- Убираю battleType пока нет этого поля в модели -->
+            </div>
+
+            <div class="details">
+              <div class="title">{{ replay.tank.name|default:'Неизвестный танк' }} — {{ replay.map_display_name|default:replay.map_name }}</div>
+
+              <div class="upload-info">
+                <span class="date-cont">{{ replay.battle_date|date:"d.m.Y H:i"|default:replay.created_at|date:"d.m.Y H:i" }}</span>
+              </div>
+
+              <div class="table">
+                  {% if replay.mastery %}
+                  <div class="cell">
+                    <img class="mastery"
+                         src="{% static 'style/images/wot/library/proficiency/class_icons_' %}{{ replay.mastery }}.png"
+                         alt="Mastery {{ replay.mastery }}" />
+                  </div>
+                  {% endif %}
+
+                  {% if replay.tank.type %}
+                  <div class="cell">
+                    <img class="type"
+                         src="{% static 'style/images/wot/vehicleTypes/' %}{{ replay.tank.type }}.png"
+                         alt="Vehicle type" />
+                  </div>
+                  {% endif %}
+
+                  {% if replay.tank.level %}
+                  <div class="cell">
+                    <img class="level"
+                         src="{% static 'style/images/wot/levels/tank_level_' %}{{ replay.tank.level }}.png"
+                         alt="Level {{ replay.tank.level }}" />
+                  </div>
+                  {% endif %}
+              </div>
+
+              <div class="table">
+                <!-- Статистика из модели -->
+                <div class="cell">
+                  <img src="{% static 'style/images/wot/library/CreditsIconBig.png' %}" alt="Credits" />
+                  <span>{{ replay.credits|intcomma }}</span>
+                </div>
+                <div class="cell">
+                  <img src="{% static 'style/images/wot/library/XpIconBig.png' %}" alt="XP" />
+                  <span>{{ replay.xp|intcomma }}</span>
+                </div>
+                <div class="cell">
+                  <img src="{% static 'style/images/wot/buttons/Tank-ico.png' %}" alt="Kills" />
+                  <span>{{ replay.kills }}</span>
+                </div>
+                <div class="cell">
+                  <img src="{% static 'style/images/wot/library/BattleResultIcon-1.png' %}" alt="Damage" />
+                  <span>{{ replay.damage|intcomma }}</span>
+                </div>
+                <div class="cell">
+                  <img src="{% static 'style/images/wot/buttons/assist.png' %}" alt="Assist" />
+                  <span>{{ replay.assist|intcomma }}</span>
+                </div>
+                <div class="cell">
+                  <img src="{% static 'style/images/wot/buttons/blocked.png' %}" alt="Blocked" />
+                  <span>{{ replay.block|intcomma }}</span>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </a>
+      {% endfor %}
+    {% else %}
+      <p class="empty">Пока нет загруженных реплеев.</p>
+    {% endif %}
+  </main>
+
+  <!-- Пагинация -->
+  {% if is_paginated %}
+  <div class="pagination">
+    <span class="pagination-links">
+      {% if page_obj.has_previous %}
+        <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page=1" class="pagination-link">&laquo; первая</a>
+        <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}" class="pagination-link">предыдущая</a>
+      {% endif %}
+
+      <span class="current-page">
+        Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+      </span>
+
+      {% if page_obj.has_next %}
+        <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}" class="pagination-link">следующая</a>
+        <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.paginator.num_pages }}" class="pagination-link">последняя &raquo;</a>
+      {% endif %}
+    </span>
+
+    <span class="pagination-info">
+      Показаны {{ page_obj.start_index }}-{{ page_obj.end_index }} из {{ page_obj.paginator.count }} реплеев
+    </span>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
