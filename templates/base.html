@@ -26,11 +26,11 @@
   {% include "includes/_footer.html" %}
 
 <!-- Модальное окно загрузки реплеев -->
-<div id="upload-modal" class="modal" style="display: none;">
+<div id="upload-modal" class="modal">
   <div class="modal-overlay" id="modal-overlay"></div>
   <div class="modal-content">
     <div class="modal-header">
-      <h2>Загрузить реплеи</h2>
+      <h2>Загрузить реплей</h2>
       <button class="modal-close" id="modal-close" type="button">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
           <path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
@@ -48,22 +48,23 @@
             </svg>
           </div>
           <p class="upload-text">
-            <strong>Перетащите файлы .mtreplay сюда</strong><br>
-            или нажмите для выбора файлов
+            <strong>Перетащите файл .mtreplay сюда</strong><br>
+            или нажмите для выбора файла
           </p>
-          <input type="file" id="file-input" name="files" multiple accept=".mtreplay" class="file-input">
+          <!-- Убрали multiple атрибут -->
+          <input type="file" id="file-input" name="file" accept=".mtreplay" class="file-input">
         </div>
 
-        <div class="selected-files" id="selected-files" style="display: none;">
-          <h3>Выбранные файлы:</h3>
-          <ul id="files-list"></ul>
+        <div class="selected-file" id="selected-file" style="display: none;">
+          <h3>Выбранный файл:</h3>
+          <div class="file-info" id="file-info"></div>
         </div>
       </div>
 
       <div class="modal-footer">
         <button type="button" class="btn btn--ghost" id="cancel-upload">Отмена</button>
         <button type="submit" class="btn btn--accent" id="submit-upload" disabled>
-          <span class="upload-status">Загрузить файлы</span>
+          <span class="upload-status">Загрузить файл</span>
         </button>
       </div>
     </form>
