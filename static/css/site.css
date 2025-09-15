@@ -743,3 +743,25 @@ body{
     transform: scale(0.9) translateY(20px);
   }
 }
+
+.big-red-button {
+	width: 152px;
+	height: 44px;
+	line-height: 42px;
+	background: url(../style/images/wot/buttons/red-button-sprite.png);
+	border: none;
+	border-radius: 4px;
+	font-family: 'Oswald', sans-serif;
+  	font-size: 20px;
+  	color: #F2F2F2;
+ 	text-shadow: 0px 0px 10px black,0px 0px 10px black,0px 0px 1px black,0px 0px 2px black;
+}
+.big-red-button.inactive,.big-red-button.inactive:hover {
+	background-size: 100% 400%;
+	background-position: 0% 200%;
+}
+.big-red-button:hover {
+	cursor:url(../style/images/wot/cursors/cursor-pointer.png),pointer;
+	background-position: 0px -44px;
+	color: #fff;
+}
