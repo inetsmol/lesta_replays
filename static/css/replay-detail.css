@@ -1,0 +1,6758 @@
+/* static/css/replay-detail.css */
+/* === Детальная страница реплея === */
+
+/*.replay-detail-wrapper {*/
+/*  max-width: 1200px;*/
+/*  margin: 0 auto;*/
+/*  padding: 20px;*/
+/*}*/
+
+/*.replay-header {*/
+/*  background: var(--panel);*/
+/*  border: 1px solid var(--border);*/
+/*  border-radius: var(--radius);*/
+/*  padding: 24px;*/
+/*  margin-bottom: 20px;*/
+/*}*/
+
+/*.battle-result.victory {*/
+/*  border-left: 4px solid var(--success);*/
+/*}*/
+
+/*.battle-result.defeat {*/
+/*  border-left: 4px solid var(--accent);*/
+/*}*/
+
+/*.battle-result h1 {*/
+/*  margin: 0 0 8px 0;*/
+/*  font-size: 24px;*/
+/*  font-weight: 700;*/
+/*}*/
+
+/*.result-info {*/
+/*  margin-bottom: 12px;*/
+/*}*/
+
+/*.result-text {*/
+/*  font-size: 18px;*/
+/*  font-weight: 600;*/
+/*  margin-right: 16px;*/
+/*}*/
+
+/*.victory .result-text {*/
+/*  color: var(--success);*/
+/*}*/
+
+/*.defeat .result-text {*/
+/*  color: var(--accent);*/
+/*}*/
+
+/*.finish-reason {*/
+/*  color: var(--muted);*/
+/*  font-size: 14px;*/
+/*}*/
+
+/*.battle-meta {*/
+/*  display: flex;*/
+/*  gap: 20px;*/
+/*  font-size: 14px;*/
+/*  color: var(--muted);*/
+/*}*/
+
+/*!* === Система вкладок === *!*/
+/*.replay-tabs {*/
+/*  background: var(--panel);*/
+/*  border: 1px solid var(--border);*/
+/*  border-radius: var(--radius);*/
+/*  overflow: hidden;*/
+/*}*/
+
+/*.tab-headers {*/
+/*  display: flex;*/
+/*  background: var(--panel-2);*/
+/*  border-bottom: 1px solid var(--border);*/
+/*}*/
+
+/*.tab-header {*/
+/*  flex: 1;*/
+/*  padding: 16px 20px;*/
+/*  background: none;*/
+/*  border: none;*/
+/*  color: var(--muted);*/
+/*  cursor: pointer;*/
+/*  font-size: 14px;*/
+/*  font-weight: 500;*/
+/*  transition: all 0.2s ease;*/
+/*}*/
+
+/*.tab-header:hover {*/
+/*  background: var(--border);*/
+/*  color: var(--text);*/
+/*}*/
+
+/*.tab-header.active {*/
+/*  background: var(--panel);*/
+/*  color: var(--text);*/
+/*  position: relative;*/
+/*}*/
+
+/*.tab-header.active::after {*/
+/*  content: '';*/
+/*  position: absolute;*/
+/*  bottom: 0;*/
+/*  left: 0;*/
+/*  right: 0;*/
+/*  height: 2px;*/
+/*  background: var(--accent);*/
+/*}*/
+
+/*.tab-content {*/
+/*  display: none;*/
+/*  padding: 24px;*/
+/*}*/
+
+/*.tab-content.active {*/
+/*  display: block;*/
+/*}*/
+
+/*!* === Личный результат === *!*/
+/*.personal-result {*/
+/*  display: grid;*/
+/*  gap: 24px;*/
+/*}*/
+
+/*.battle-summary {*/
+/*  display: grid;*/
+/*  grid-template-columns: 300px 1fr;*/
+/*  gap: 24px;*/
+/*  align-items: start;*/
+/*}*/
+
+/*.visual-summary {*/
+/*  position: relative;*/
+/*}*/
+
+/*.map-display {*/
+/*  position: relative;*/
+/*  width: 100%;*/
+/*  aspect-ratio: 16/10;*/
+/*  background: #000;*/
+/*  border-radius: var(--radius);*/
+/*  overflow: hidden;*/
+/*}*/
+
+/*.map-image {*/
+/*  width: 100%;*/
+/*  height: 100%;*/
+/*  object-fit: cover;*/
+/*}*/
+
+/*.tank-image {*/
+/*  position: absolute;*/
+/*  bottom: 10px;*/
+/*  right: 10px;*/
+/*  height: 80px;*/
+/*  width: auto;*/
+/*  filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.7));*/
+/*}*/
+
+/*.stats-grid {*/
+/*  display: grid;*/
+/*  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));*/
+/*  gap: 16px;*/
+/*}*/
+
+/*.stat-item {*/
+/*  display: flex;*/
+/*  flex-direction: column;*/
+/*  align-items: center;*/
+/*  text-align: center;*/
+/*  padding: 16px;*/
+/*  background: var(--bg);*/
+/*  border: 1px solid var(--border);*/
+/*  border-radius: var(--radius-sm);*/
+/*}*/
+
+/*.stat-item.highlight {*/
+/*  border-color: var(--accent);*/
+/*  background: rgba(192, 57, 43, 0.1);*/
+/*}*/
+
+/*.stat-item img {*/
+/*  width: 24px;*/
+/*  height: 24px;*/
+/*  margin-bottom: 8px;*/
+/*}*/
+
+/*.stat-item .value {*/
+/*  font-size: 18px;*/
+/*  font-weight: 700;*/
+/*  color: var(--text);*/
+/*  margin-bottom: 4px;*/
+/*}*/
+
+/*.stat-item .label {*/
+/*  font-size: 12px;*/
+/*  color: var(--muted);*/
+/*}*/
+
+/*.achievements {*/
+/*  margin-top: 20px;*/
+/*}*/
+
+/*.achievements h3 {*/
+/*  margin: 0 0 12px 0;*/
+/*  font-size: 16px;*/
+/*}*/
+
+/*.achievement-list {*/
+/*  display: flex;*/
+/*  flex-wrap: wrap;*/
+/*  gap: 8px;*/
+/*}*/
+
+/*.achievement-list img {*/
+/*  width: 48px;*/
+/*  height: 48px;*/
+/*}*/
+
+/*!* === Командный результат === *!*/
+/*.teams-comparison {*/
+/*  display: grid;*/
+/*  grid-template-columns: 1fr 1fr;*/
+/*  gap: 24px;*/
+/*}*/
+
+/*.team h3 {*/
+/*  margin: 0 0 16px 0;*/
+/*  padding-bottom: 8px;*/
+/*  border-bottom: 1px solid var(--border);*/
+/*}*/
+
+/*.team-table table {*/
+/*  width: 100%;*/
+/*  border-collapse: collapse;*/
+/*}*/
+
+/*.team-table th,*/
+/*.team-table td {*/
+/*  padding: 8px 12px;*/
+/*  text-align: left;*/
+/*  border-bottom: 1px solid var(--border);*/
+/*}*/
+
+/*.team-table th {*/
+/*  background: var(--panel-2);*/
+/*  font-weight: 600;*/
+/*  font-size: 12px;*/
+/*  color: var(--muted);*/
+/*}*/
+
+/*.team-table tr.dead {*/
+/*  opacity: 0.6;*/
+/*}*/
+
+/*.team-table tr.highlight {*/
+/*  background: rgba(192, 57, 43, 0.1);*/
+/*  border-left: 3px solid var(--accent);*/
+/*}*/
+
+/*.player-info .clan {*/
+/*  color: var(--muted);*/
+/*  font-size: 12px;*/
+/*}*/
+
+/*.mini-achievements {*/
+/*  display: flex;*/
+/*  gap: 2px;*/
+/*  margin-top: 4px;*/
+/*}*/
+
+/*.mini-achievements img {*/
+/*  width: 16px;*/
+/*  height: 16px;*/
+/*}*/
+
+/*!* === Подробный отчёт === *!*/
+/*.detailed-report {*/
+/*  max-width: 1000px;*/
+/*}*/
+
+/*.report-sections {*/
+/*  display: grid;*/
+/*  gap: 32px;*/
+/*}*/
+
+/*.report-sections h3 {*/
+/*  margin: 0 0 16px 0;*/
+/*  font-size: 18px;*/
+/*  color: var(--text);*/
+/*}*/
+
+/*.stats-table {*/
+/*  display: grid;*/
+/*  gap: 4px;*/
+/*}*/
+
+/*.stat-row {*/
+/*  display: flex;*/
+/*  justify-content: space-between;*/
+/*  padding: 8px 0;*/
+/*  border-bottom: 1px solid var(--border);*/
+/*}*/
+
+/*.stat-row.sub {*/
+/*  padding-left: 20px;*/
+/*  font-size: 14px;*/
+/*  color: var(--muted);*/
+/*}*/
+
+/*.stat-row .label {*/
+/*  flex: 1;*/
+/*}*/
+
+/*.stat-row .value {*/
+/*  font-weight: 500;*/
+/*}*/
+
+/*.economics-grid {*/
+/*  display: grid;*/
+/*  grid-template-columns: 1fr 1fr;*/
+/*  gap: 24px;*/
+/*}*/
+
+/*.economics h4 {*/
+/*  margin: 0 0 12px 0;*/
+/*  font-size: 16px;*/
+/*  color: var(--text);*/
+/*}*/
+
+/*.economic-breakdown {*/
+/*  background: var(--bg);*/
+/*  border: 1px solid var(--border);*/
+/*  border-radius: var(--radius-sm);*/
+/*  padding: 16px;*/
+/*}*/
+
+/*.economic-breakdown .line {*/
+/*  display: flex;*/
+/*  justify-content: space-between;*/
+/*  padding: 6px 0;*/
+/*}*/
+
+/*.economic-breakdown .line.expense span:last-child {*/
+/*  color: var(--accent);*/
+/*}*/
+
+/*.economic-breakdown .line.total,*/
+/*.economic-breakdown .line.final {*/
+/*  border-top: 1px solid var(--border);*/
+/*  margin-top: 8px;*/
+/*  padding-top: 8px;*/
+/*  font-weight: 600;*/
+/*}*/
+
+/*.time-stats {*/
+/*  display: grid;*/
+/*  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));*/
+/*  gap: 16px;*/
+/*}*/
+
+/*.time-item {*/
+/*  display: flex;*/
+/*  justify-content: space-between;*/
+/*  padding: 12px 16px;*/
+/*  background: var(--bg);*/
+/*  border: 1px solid var(--border);*/
+/*  border-radius: var(--radius-sm);*/
+/*}*/
+
+/*.time-item .label {*/
+/*  color: var(--muted);*/
+/*}*/
+
+/*.time-item .value {*/
+/*  font-weight: 500;*/
+/*}*/
+
+/*!* === Действия === *!*/
+/*.replay-actions {*/
+/*  margin-top: 24px;*/
+/*  display: flex;*/
+/*  gap: 12px;*/
+/*  justify-content: center;*/
+/*}*/
+
+/*!* === Адаптивность === *!*/
+/*@media (max-width: 768px) {*/
+/*  .battle-summary {*/
+/*    grid-template-columns: 1fr;*/
+/*  }*/
+
+/*  .teams-comparison {*/
+/*    grid-template-columns: 1fr;*/
+/*  }*/
+
+/*  .economics-grid {*/
+/*    grid-template-columns: 1fr;*/
+/*  }*/
+
+/*  .tab-headers {*/
+/*    flex-direction: column;*/
+/*  }*/
+
+/*  .stats-grid {*/
+/*    grid-template-columns: repeat(2, 1fr);*/
+/*  }*/
+/*}*/
+
+
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+
+@font-face {
+    font-family: 'swiss721_cn_pflbold';
+    src: url('fonts/swiss721_cn_pfl_bold_0-webfont.eot');
+    src: url('fonts/swiss721_cn_pfl_bold_0-webfont.eot?#iefix') format('embedded-opentype'),
+         url('fonts/swiss721_cn_pfl_bold_0-webfont.woff2') format('woff2'),
+         url('fonts/swiss721_cn_pfl_bold_0-webfont.woff') format('woff'),
+         url('fonts/swiss721_cn_pfl_bold_0-webfont.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'swiss721_cn_pflnormal';
+    src: url('fonts/swiss721_cn_pfl_normal_0-webfont.eot');
+    src: url('fonts/swiss721_cn_pfl_normal_0-webfont.eot?#iefix') format('embedded-opentype'),
+         url('fonts/swiss721_cn_pfl_normal_0-webfont.woff2') format('woff2'),
+         url('fonts/swiss721_cn_pfl_normal_0-webfont.woff') format('woff'),
+         url('fonts/swiss721_cn_pfl_normal_0-webfont.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'dharma_gothic_ebold';
+    src: url('fonts/dharmagothice_bold_r-webfont.eot');
+    src: url('dharmagothice_bold_r-webfont.eot?#iefix') format('embedded-opentype'),
+         url('fonts/dharmagothice_bold_r-webfont.woff2') format('woff2'),
+         url('fonts/dharmagothice_bold_r-webfont.woff') format('woff'),
+         url('fonts/dharmagothice_bold_r-webfont.ttf') format('truetype'),
+         url('fonts/dharmagothice_bold_r-webfont.svg#dharma_gothic_ebold') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+
+* {
+    outline: none;
+    box-sizing : border-box;
+}
+
+img{border:0}
+pre {background:rgba(255,255,255,0.8);}
+/*html, body {*/
+/*    margin: 0px; padding: 0px;*/
+/*}*/
+/*body {*/
+/*    background-color: black;*/
+/*    overflow-y: scroll;*/
+/*    font-family: 'Arial';*/
+/*    color: rgb(70, 70, 70);*/
+/*    font-size: 12px;*/
+/*    background-image: url(images/bg.jpg);*/
+/*    background-repeat: no-repeat;*/
+/*    background-position: center -380px;*/
+/*    cursor:url(../style/images/wot/cursors/cursor-normal.png),auto;*/
+/*    background-attachment: fixed;*/
+/*}*/
+a:hover,.replay-filter .col:hover,.replay-filter .tank-list:hover,.replay-filter label,.mCSB_scrollTools .mCSB_dragger,.pointer:hover,
+.nation-select-wrapper.vote .nation-select,.tankopedia-tanks label {
+	cursor:url(../style/images/wot/cursors/cursor-pointer.png),pointer !important;
+}
+.right {
+    float: right;
+}
+.clearfix {
+    clear: both;
+}
+.border-none {
+    border: none !important;
+}
+h2 {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 300;
+    margin-top: 0px;
+    margin-bottom: 15px;
+    font-size: 25px;
+}
+h2.admin {
+    width: 550px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.main h2,#content .right-panel h2 {
+	border-bottom: 1px solid rgb(170, 170, 170);
+}
+h3 {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 300;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    font-size: 18px;
+}
+.void {
+	height: 10px;
+	width: 1053px;
+	margin: 0px auto;
+	background-color: rgba(239, 239, 239, 0.9);
+}
+/*header {*/
+/*    height: 60px;*/
+/*	background: url(images/header_bg.jpg);*/
+/*	width: 1083px;*/
+/*	margin: 0px auto;*/
+/*	position: relative;*/
+/*}*/
+/*header::before,header::after {*/
+/*	position: absolute;*/
+/*	display: block;*/
+/*	border-style: solid;*/
+/*	bottom: -14px;*/
+/*	content: '';*/
+/*}*/
+/*header::before {*/
+/*	border-width: 14px 0 0 16px;*/
+/*	border-color: #871616 transparent transparent transparent;*/
+/*}*/
+/*header::after {*/
+/*	border-color: #871616 transparent transparent transparent;*/
+/*	border-width: 14px 16px 0 0;*/
+/*	right: 0px;*/
+/*}*/
+/*header .wrapper {*/
+/*    position: relative;*/
+/*}*/
+/*header .wrapper, footer .wrapper {*/
+/*    width: 1053px;*/
+/*    padding: 0px 25px 0px 10px;*/
+/*    margin: 0px auto;*/
+/*}*/
+/*header .wrapper .logo {*/
+/*    display: inline-block;*/
+/*}*/
+/*header .wrapper .logo img {*/
+/*	height: 39px;*/
+/*    margin-top: 12px;*/
+/*}*/
+/*header .wrapper .user-panel a {*/
+/*    color: white;*/
+/*    text-decoration: none;*/
+/*}*/
+/*header .wrapper .user-panel a:hover {*/
+/*    text-decoration: underline;*/
+/*}*/
+/*header .right {*/
+/*    line-height: 65px;*/
+/*    height: 60px;*/
+/*    color: white;*/
+/*}*/
+/*header .right .hello {*/
+/*  display: inline-block;*/
+/*  margin-right: 5px;*/
+/*}*/
+/*header .right a {*/
+/*    color: white;*/
+/*    text-decoration: none;*/
+/*}*/
+/*header .right a:hover {*/
+/*    text-decoration: underline;*/
+/*}*/
+/*header nav {*/
+/*	vertical-align: top;*/
+/*	height: 60px;*/
+/*	line-height: 64px;*/
+/*}*/
+/*header nav ul {*/
+/*	margin: 0px;*/
+/*	padding-left: 10px;*/
+/*}*/
+/*header nav,header nav ul li {*/
+/*	display:inline-block;*/
+/*	margin-right: 15px;*/
+/*}*/
+/*header nav,header nav ul li a {*/
+/*	color: #fff;*/
+/*	text-decoration: none;*/
+/*}*/
+/*header nav,header nav ul li a:hover {*/
+/*	text-decoration: underline;*/
+/*}*/
+.hr {
+    background: url("https://worldoftanks.eu/static/3.24.0.2/common/css/scss/content/hrs/img/delimeter.png") no-repeat center top;
+    background-size: 100%;
+    opacity: 0.25;
+    margin: 25px 0px 25px 0px;
+    height: 1px;
+}
+.login-needed {
+	text-align: center;
+}
+.login-needed a {
+	color: #464646;
+}
+#content {
+    overflow: hidden;
+    width: 1053px;
+    margin: 0px auto;
+    padding-bottom: 15px;
+    /*background-color: rgba(239, 239, 239, 0.9);*/
+    /*
+    border-right: 1px solid rgb(3, 3, 3);
+    border-left: 1px solid rgb(3, 3, 3);
+	*/
+    min-height: calc(100vh - 202px);
+    position: relative;
+}
+#content .left-panel {
+	padding: 0px 25px 25px 25px;
+	display: inline-block;
+	width: 778px;
+	vertical-align: top;
+	position: relative;
+}
+#content .left-panel.full {
+	padding: 0px 25px 25px 25px;
+	width:100%;
+}
+#content .right-panel {
+	display: inline-block;
+	vertical-align: top;
+	width: 250px;
+	/*min-height: calc(100% - 73px ); */
+	/*padding:10px;*/
+	margin-bottom:25px;
+}
+#content .right-panel h2 {
+	font-family: 'Oswald', sans-serif;
+	font-size: 20px;
+	margin-top: 25px;
+}
+#content .right-panel h2:first-child {
+	margin-top: 0px;
+}
+#content .right-panel ol {
+	margin: 0px 0px 25px 0px;
+  	padding-left: 22px;
+}
+#content .right-panel ul.top5 {
+	margin: 0px 0px 25px 0px;
+	padding-left: 0px;
+	list-style: none;
+}
+#content .right-panel ul.top5 li {
+	margin-bottom: 7px;
+	white-space: nowrap;
+	line-height: 30px;
+	height: 30px;
+	width: 250px;
+	position: relative;
+	padding-left: 60px;
+	border: 1px solid #000;
+	border-radius: 4px;
+	padding-right: 5px;
+	background: #000;
+	color: #fff;
+	box-shadow: 1px 1px 4px 1px rgba(0, 0, 0, 0.64);
+	overflow: hidden;
+	text-shadow: 1px 1px 1px black,1px 1px 1px black,0px 0px 2px black;
+	transform: translateZ(0);
+	-webkit-transform: translateZ(0);
+	-moz-transform: translateZ(0);
+	-ms-transform: translateZ(0);
+	-o-transform: translateZ(0);
+	transition: all 200ms;
+}
+#content .right-panel ul.top5 li:hover {
+	margin-left: -5px;
+}
+#content .right-panel ul.top5 li a {
+	color: #E7E7E7;
+	text-decoration: none;
+}
+#content .right-panel ul.top5 li .tank {
+	/*height: 28px;
+	display: block;
+	position: absolute;
+	left: -10px;
+	top: 0px;*/
+	  position: absolute;
+	  left: -15px;
+	  top: 0px;
+	  height: 48px;
+	  margin-top: -8px;
+}
+#content .right-panel ul.top5 li .map {
+	width: 248px;
+	height: 28px;
+	position: absolute;
+	left: 0px;
+	border-radius: 3px;
+	background-size: cover;
+	background-position: 0% 292px;
+	opacity: 0.8;
+}
+#content .right-panel ul.top5 li .cell {
+	display: inline-block;
+	font-size: 10px;
+ 	width: 50px;
+ 	position: relative;
+ 	z-index: 1;
+}
+#content .right-panel ul.top5 li .cell img {
+	height: 12px;
+	margin-right: 3px;
+	vertical-align: text-bottom;
+	-webkit-filter: drop-shadow(2px 2px 2px rgba(0,0,0,1));
+  	filter: drop-shadow(2px 2px 2px rgba(0,0,0,1));
+}
+#content .right-panel ul.top5 li .cell img.kill {
+	margin-bottom: 2px;
+	height: 10px;
+}
+#content .right-panel ul.top5 li .right {
+	position: absolute;
+	right: 10px;
+	top: 0px;
+	font-size: 10px;
+}
+#content .right-panel a.tank-poll {
+    padding: 0px 15px;
+    text-transform: uppercase;
+    border-radius: 4px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 20px;
+    color: #F2F2F2;
+    text-shadow: 0px 0px 2px rgba(0, 0, 0, 1), 0px 0px 2px rgba(0, 0, 0, 1), 0px 0px 11px black;
+    position: relative;
+    top: 50%;
+    margin-top: 22px;
+    text-decoration: none;
+    display: block;
+    margin: 10px auto -7px auto;
+    background: url(../style/images/wot/vehicle/falloutBattleResults/germany-G89_Leopard1_fallout.png) no-repeat;
+    border: 1px solid #080808;
+    background-color: #313131;
+    height: 50px;
+    background-position: right -30px;
+    line-height: 50px;
+    /*border-top-left-radius: 0px;*/
+}
+/*
+#content .right-panel a.tank-poll:before {
+    content: 'New';
+    position: absolute;
+    top: -19px;
+    display: block;
+    background: red;
+    font-size: 12px;
+    padding: 3px 4px;
+    line-height: 11px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    left: -1px;
+    border: 1px solid black;
+    border-bottom: none;
+    font-weight: 300;
+    font-family: arial;
+    text-transform: capitalize;
+}
+*/
+/*tank-list*/
+.tank-list {
+    border-right: 1px solid rgb(210, 210, 210);
+    border-collapse: collapse;
+    width: 100%;
+    text-align: center;
+    clear: both;
+}
+.tank-list a {
+    color: rgb(70, 70, 70);
+    text-decoration: none;
+}
+.tank-list th {
+    background-color: #2D2C25;
+    cursor:url(../style/images/wot/cursors/cursor-pointer.png),pointer;
+    color: white;
+    line-height: 1.3;
+    height: 40px;
+}
+.tank-list .sorting_asc {
+	background: #26251E url(../style/images/wot/results/ascendingSortArrow.png) no-repeat;
+    background-position: 4px 4px;
+}
+.tank-list .sorting_desc {
+	background: #26251E url(../style/images/wot/results/descendingSortArrow.png) no-repeat;
+    background-position: 4px 4px;
+}
+.tank-list .img-container {
+    width: 80px;
+    text-align: center;
+    display: inline-block;
+    vertical-align: middle;
+}
+.tank-list .text-left {
+    text-align: left;
+    padding-top: 2px;
+}
+.tank-list .sorting_1 {
+    background-color: rgba(215, 215, 215, 0.23);
+}
+.tank-list tr.even {
+    background: #EFEFEF;
+}
+.tank-list .number-width {
+    width: 85px;
+}
+.tank-list tr.odd {
+    background: #FFF;
+}
+.tank-list tr {
+    height: 31px;
+    position: relative;
+}
+.tank-list td {
+    padding:0px;
+    border: 1px solid rgb(210, 210, 210);
+    height: 31px;
+}
+.tank-list .dataTables_empty {
+    vertical-align: middle;
+}
+.dataTables_filter {
+    float: right;
+    margin-bottom: 10px;
+}
+.dataTables_filter input[type=search] {
+    padding: 2px;
+}
+.dataTables_paginate {
+    margin-top: 10px;
+    text-align: center;
+}
+.paginate_button {
+    box-sizing: border-box;
+    display: inline-block;
+    min-width: 1.5em;
+    padding: 0.5em 1em;
+    margin-left: 2px;
+    text-align: center;
+    text-decoration: none !important;
+    cursor: pointer;
+    color: #333333 !important;
+    border: 1px solid transparent;
+}
+.paginate_button:hover {
+    color: white !important;
+    border: 1px solid #111111;
+    background-color: #585858;
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #585858), color-stop(100%, #111111));
+    background: -webkit-linear-gradient(top, #585858 0%, #111111 100%);
+    background: -moz-linear-gradient(top, #585858 0%, #111111 100%);
+    background: -ms-linear-gradient(top, #585858 0%, #111111 100%);
+    background: -o-linear-gradient(top, #585858 0%, #111111 100%);
+    background: linear-gradient(to bottom, #585858 0%, #111111 100%);
+}
+.paginate_button.disabled:hover {
+    cursor: default;
+    color: #666 !important;
+    border: 1px solid transparent;
+    background: transparent;
+    box-shadow: none;
+}
+.paginate_button.disabled {
+    color: #666 !important;
+}
+.paginate_button.current {
+    color: #333333 !important;
+    border: 1px solid #cacaca;
+    background-color: white;
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, white), color-stop(100%, gainsboro));
+    background: -webkit-linear-gradient(top, white 0%, gainsboro 100%);
+    background: -moz-linear-gradient(top, white 0%, gainsboro 100%);
+    background: -ms-linear-gradient(top, white 0%, gainsboro 100%);
+    background: -o-linear-gradient(top, white 0%, gainsboro 100%);
+    background: linear-gradient(to bottom, white 0%, gainsboro 100%);
+}
+/*Player Search*/
+form.player-search {
+    display: inline-block;
+    float: right;
+    line-height: 60px;
+}
+form.player-search input[type=text] {
+    padding: 2px;
+    color: rgb(70, 70, 70);
+    width: 177px;
+}
+/*Stats*/
+.main-stats {
+    height: 240px;
+}
+.main-stats hr{
+    background: url("https://worldoftanks.eu/static/3.24.0.2/common/css/scss/content/hrs/img/delimeter.png") no-repeat center top;
+    background-size: 73px 1px;
+    background-position: 0px;
+    border: 0px;
+    height: 1px;
+    margin: 0px;
+    margin-bottom: 4px;
+    opacity: 0.5;
+}
+.main-stats .stat-container-middle hr{
+    background-position: 50%;
+}
+.stat-container {
+    display: inline-block;
+    width: 50%;
+    position: relative;
+    padding-left:84px;
+    vertical-align: top;
+}
+.stat-container img{
+    position: absolute;
+    left: 40px;
+    top: -4px;
+}
+.stat-container-right,.stat-container-left {
+    display:inline-block;
+    width: 400px;
+    vertical-align: top;
+    position: relative;
+}
+.stat-container-middle {
+    margin-top: -50px;
+    display:inline-block;
+    width: 200px;
+    text-align:center;
+    position: relative;
+}
+.stat-container-middle .flag {
+	width: 175px;
+	height: 192px;
+	background:url(../style/images/wot_flag_anim.png);
+	animation: flag-play .6s steps(10) infinite;
+	margin: 0px auto;
+	margin-top: -33px;
+    margin-bottom: -22px;
+}
+@keyframes flag-play {
+   100% { background-position: -7000px; }
+}
+.stat-container-middle .wn8{
+    position: absolute;
+    right: 17px;
+}
+.stat-container-middle .effi{
+    position: absolute;
+    left: 17px;
+}
+.stat-down {
+    position: absolute;
+    top: 148px;
+}
+.stat-down2 {
+    position: absolute;
+    top: 148px;
+    left: 200px;
+}
+.stat-number {
+    font-size: 22px;
+    display: inline-block;
+    vertical-align: super;
+    position: relative;
+}
+.diff2 {
+	display: none;
+}
+.admin .diff2 {
+	display: block;
+}
+.achi-number-wrapper.diff,.player-profile .main-stats .diff,.player-profile .tank-list td.diff:after {
+	display: none!important;
+}
+.achi-number-wrapper.diff.show,.player-profile .main-stats .diff.show,.player-profile .tank-list td.diff.show:after {
+	display: block!important;
+}
+.stat-number .diff {
+	position: absolute;
+    top: -13px;
+    right: 0px;
+    color: #4D7326;
+    font-size: 15px;
+    font-weight: bold;
+    transform: translate(100%,0%);
+}
+.player-profile .tank-list td.diff:after {
+	content: attr(data-num);
+	position: absolute;
+    top: 2px;
+    right: 2px;
+    color: #4D7326;
+    font-size: 11px;
+}
+.player-profile .tank-list td.diff.small:after {
+	font-size: 9px;
+	top: 0px;
+}
+.stat-number .diff.red,.player-profile .tank-list td.diff.red:after{
+	color: #CD3333;
+}
+.stat-title {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+.player-profile .diff-tanks {
+    float: right;
+    display: none;
+}
+.player-profile .diff-tanks.show {
+    display: block;
+}
+.player-profile .chart {
+    display: none!important;
+    margin-bottom: 20px;
+}
+.player-profile .chart.active {
+    display: block!important;
+}
+.player-profile .graph-buttons {
+    text-align: center;
+    margin-bottom: 25px;
+}
+.player-profile .graph-buttons span {
+    height: 30px;
+    display: inline-block;
+    line-height: 29px;
+    font-size: 14px;
+    min-width: 145px;
+    margin: 0px 5px;
+    background: url(../style/images/wot/buttons/button_login.png);
+    background-size: 100% 56px;
+    background-position: 0px 1px;
+    padding: 0 10px;
+    width: auto;
+    min-width: 155px;
+    text-transform: capitalize;
+}
+.player-profile .graph-buttons span:hover {
+	background-position: 0px -27px;
+}
+.player-profile .graph-buttons span.active {
+	background: url(../style/images/wot/buttons/gold-button.png);
+ 	background-size: 100% 30px;
+    background-position: 0px 0px;
+}
+.player-profile .statics-table {
+	border-collapse: collapse;
+}
+.player-profile .statics-table th {
+    background-color: #2D2C25;
+    color: white;
+    line-height: 32px;
+    text-transform: capitalize;
+}
+.player-profile .statics-table td {
+	border: 1px solid rgb(210, 210, 210);
+	padding: 0px 7px;
+	height: 31px;
+	width: 88px;
+	text-transform: capitalize;
+}
+.player-profile .statics-table td[colspan="2"] {
+	width: 165px;
+}
+.player-profile .statics-table td {
+    background: #FFF;
+}
+.player-profile .statics-table td.secondary {
+    background: #EFEFEF;
+}
+.player-profile .statics-table .wn8,.player-profile .statics-table .winrate {
+	font-weight: bold;
+}
+/*Achievments*/
+.achi-wrapper {
+    position: relative;
+    display: inline-block;
+    margin: 0px -2px 0px -2px;
+}
+.achi-number-wrapper {
+    bottom: 5px;
+    display: none;
+    left: 0;
+    position: absolute;
+    right: 0;
+    text-align: center;
+}
+.achi-number {
+    border: 1px solid #5b5b5b;
+    font-size: 11px;
+    display: inline-block;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+.achi-number span {
+    background: url("https://worldoftanks.eu/static/3.24.0.2/common/css/scss/content/user/img/chivements-num.gif") repeat-x 0 0 #4f1514;
+    border: 1px solid #2c0909;
+    color: #fff;
+    padding: 0 3px;
+    text-shadow: 0 0 25px #000,0 0 10px rgba(255,255,190,0.39);
+    display: inline-block;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 2px;
+}
+.achi-number-wrapper.diff {
+	bottom: auto;
+    top: 5px;
+
+}
+.achi-number-wrapper.diff .achi-number span {
+	background: #0b6d1f;
+    box-shadow: inset 0px 0px 5px 1px rgba(0, 0, 0, 0.65);
+    color: #27e02e;
+    text-shadow: 0px 0px 5px #080001;
+}
+.gold.achi-number-wrapper {
+	bottom: 0px;
+}
+.gold .achi-number {
+	border: none;
+}
+.gold .achi-number span {
+	width:41px;
+	height: 25px;
+	border: none;
+	background:url(../style/images/wot/achievement/web/achievements-1.png);
+ 	padding-top: 3px;
+}
+.achi-extended {
+    display: none;
+}
+.achi-ext-button {
+    color: #006ebc;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.achi-ext-button:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+.ui-tooltip {
+    /*background: url("http://worldoftanks.eu/static/3.24.0.2/common/css/scss/content/tooltip/img/tooltip_bg.jpg") repeat scroll 0 0 rgba(0, 0, 0, 0);*/
+    background-color: rgba(0,0,0,0.94);
+    border: 1px solid #454648;
+    border-radius: 3px;
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.85), 0 0 20px rgba(0, 0, 0, 0.25), 0 0 7px rgba(0, 0, 0, 0.21), 0 0 11px rgba(255, 255, 255, 0.03) inset;
+    color: #979899;
+    display: none;
+    float: left;
+    line-height: 130%;
+    margin: 0;
+    padding: 8px 13px;
+    position: absolute;
+    z-index: 10000;
+}
+.ui-tooltip.achi-tooltip {
+    width: 300px;
+    padding: 15px;
+}
+.ui-tooltip.achi-tooltip img {
+    display: block;
+    margin: 0 auto;
+    width: 180px;
+    height: 180px;
+}
+.ui-tooltip.achi-tooltip .title {
+    font-size: 18px;
+	font-family: 'swiss721_cn_pflbold';
+    line-height: 20px;
+}
+.ui-tooltip.achi-tooltip .condition {
+	margin-top: 15px;
+	opacity: 0.6;
+}
+.ui-tooltip.achi-tooltip img.achi {
+	margin: 20px auto;
+}
+.hit-list-tooltip {
+	min-height: 65px;
+	width: 330px;
+	padding: 15px;
+}
+.hit-list-tooltip .title {
+	font-size: 16px!important;
+	font-family: 'swiss721_cn_pflbold';
+	margin-top: 18px;
+	vertical-align: top;
+	line-height: 1.3;
+}
+.hit-list-tooltip .ribbon {
+	display: block;
+	float: none;
+	width: 180px;
+	margin: 10px auto;
+}
+.hit-list-tooltip .ribbon.v2 {
+	width: 48px;
+	height: 48px;
+	display: inline-block;
+	margin: 0px;
+	vertical-align: top;
+	margin-top: -15px;
+	margin-right: 10px;
+	float: left;
+}
+.hit-list-tooltip .descr {
+	font-size: 11px;
+	line-height: 15px;
+	padding-right: 30px;
+}
+.hit-list-tooltip .numbers {
+	font-size: 11px;
+	line-height: 15px;
+}
+.hit-list-tooltip .gray {
+	font-size: 11px;
+	color: #54514c;
+}
+.hit-list-tooltip .numbers .dmg_white {
+	float: left;
+}
+.hit-list-tooltip .numbers .text {
+	overflow: auto;
+	display: block;
+}
+.ui-tooltip .tooltip .upper {
+	margin-left: 50px;
+	margin-top: 5px;
+}
+.ui-tooltip .tooltip .img.left {
+	position: absolute;
+	top: 10px;
+	left: 10px;
+	display: block;
+}
+.ui-tooltip .tooltip {
+	font-size: 10px;
+	line-height: 13px;
+	color: #84867b;
+}
+.ui-tooltip .tooltip hr {
+	clear: both;
+	border: none;
+	height: 1px;
+	background: url(../style/images/wot/battleresults/hr-bg.png) center bottom;
+ 	display: block;
+ 	width: 100%;
+ 	margin: 15px 0px;
+ 	opacity: 0.5;
+}
+.ui-tooltip .tooltip .title {
+	margin-bottom: 5px;
+	color: #fcf1d3;
+	font-weight: bold;
+	font-size: 14px;
+}
+.ui-tooltip .tooltip .crit_title {
+	color: #3e3b30;
+	font-size: 13px;
+	font-weight: bold;
+	margin-bottom: 5px;
+}
+.ui-tooltip .tooltip .crit_info {
+	padding-left: 30px;
+	font-size: 11px;
+	line-height: 18px;
+}
+.ui-tooltip .tooltip .crit_info img {
+	vertical-align: sub;
+	margin-right: 3px;
+	margin-bottom: -1px;
+}
+.ui-tooltip .tooltip .dmg_white {
+	width: 50px;
+	text-align: right;
+	color: white;
+	display: inline-block;
+	margin-right: 5px;
+}
+.ui-tooltip .tooltip .sum {
+	font-size: 13px;
+	color: #d0a676;
+	font-weight: bold;
+}
+.ui-tooltip .tooltip .white {
+	color: #fff;
+}
+/*Loading*/
+.waiting {
+    margin: 50px auto;
+    width: 132px;
+    position: relative;
+    display: none;
+    height: 120px;
+}
+.waiting .logo {
+    position: absolute;
+    z-index: 10;
+    top: 0px;
+}
+.waiting .gear {
+    position:absolute;
+    left:0px;
+    top: -7px;
+}
+.spin {
+    -webkit-animation-name: spin;
+    -webkit-animation-duration: 7000ms;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: linear;
+    -moz-animation-name: spin;
+    -moz-animation-duration: 4000ms;
+    -moz-animation-iteration-count: infinite;
+    -moz-animation-timing-function: linear;
+    -ms-animation-name: spin;
+    -ms-animation-duration: 4000ms;
+    -ms-animation-iteration-count: infinite;
+    -ms-animation-timing-function: linear;
+
+    animation-name: spin;
+    animation-duration: 4000ms;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}
+@-moz-keyframes spin {
+    from { -moz-transform: rotate(0deg); }
+    to { -moz-transform: rotate(360deg); }
+}
+@-webkit-keyframes spin {
+    from { -webkit-transform: rotate(0deg); }
+    to { -webkit-transform: rotate(360deg); }
+}
+@keyframes spin {
+    from {transform:rotate(0deg);}
+    to {transform:rotate(360deg);}
+}
+/*Vehicle info*/
+.tank-profile .stat-info {
+    line-height: 1.4;
+    background: url(../style/images/wot/library/attentionIconFilledBig.png) center left no-repeat;
+    background-size: 25px 25px;
+    padding-left: 30px;
+    margin-top: 3px;
+    margin-bottom: 19px;
+}
+table.vehicle-details {
+    line-height: 20px;
+    vertical-align: top;
+    width: 100%;
+    border-collapse: collapse;
+}
+table.vehicle-details tr {
+    border-bottom: 1px solid rgb(189, 189, 189);
+    padding-left: 10px;
+    padding-right: 10px;
+}
+table.vehicle-details .border-none.tr {
+    border: none;
+}
+table.vehicle-details h2 {
+    margin-top: 15px;
+}
+table.vehicle-equipment {
+    vertical-align: top;
+    display: inline-block;
+}
+/*
+.vehicle-equipment-title {
+    display: inline-block;
+    line-height: 60px;
+    vertical-align: top;
+}
+.vehicle-image {
+    display: inline-block;
+    background-image: url(http://worldoftanks.eu/static/3.24.0.2/common/css/scss/content/encyclopedia/img/slot.png);
+    background-position: -1px -1px;
+    position: relative;
+}
+.vehicle-image img{
+    display: block;
+    position: relative;
+    z-index: 1;
+}
+.vehicle-image .type {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    z-index: 1;
+}
+.vehicle-image .level {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    z-index: 1;
+}
+.vehicle-desc {
+    display: inline-block;
+    vertical-align: top;
+    width: 420px;
+    padding-left: 10px;
+}
+.vehicle-bg {
+    width: 160px;
+    height: 100px;
+    position: absolute;
+    top: 0px;
+    opacity: 0.5;
+}*/
+.vehicle-image {
+    display: inline-block;
+    /*background: rgb(76, 76, 76) url(../style/images/wot/custom/slot.png);
+    background-position: -1px -1px;*/
+    position: relative;
+    margin: 0px 10px 10px 0px;
+    float: left;
+    width: 160px;
+    height: 100px;
+    z-index: 1;
+}
+.tank-profile .vehicle-image:hover {
+    cursor:url(../style/images/wot/cursors/cursor-pointer.png),pointer !important;
+}
+.vehicle-image.small {
+	height: 50px;
+	overflow: hidden;
+}
+.vehicle-image.small img.tank {
+	height: 64px;
+    margin-top: -8px;
+    margin-left: 23px;
+}
+.poll-tank-small {
+	clear: both;
+}
+.poll-tank-sum {
+    clear: both;
+    margin-bottom: 15px;
+    font-size: 16px;
+    font-weight: 400;
+    font-family: 'Oswald', sans-serif;
+}
+.poll-tank-small .container {
+	float: left;
+	width: 558px;
+}
+.poll-tank-small .container .line {
+	height: 20px;
+	background: url(images/votes/vote.jpg);
+	border: 1px solid rgb(90, 90, 90);
+	/*box-shadow: 2px 2px 7px 1px rgb(98, 98, 98);*/
+	/*-webkit-animation: fill 3s;
+    animation: fill 3s;*/
+}
+.poll-tank-small .container .line.own {
+	background: url(images/votes/vote_own.jpg);
+}
+.poll-tank-small .container .number {
+	font-weight: bold;
+    margin-top: 6px;
+    font-size: 14px;
+    float: left;
+}
+.poll-tank-small .container .number + a {
+	font-size: 14px;
+	margin-top: 6px;
+    color: rgb(70, 70, 70);
+	display: inline-block;
+	text-decoration: none;
+	margin-left: 10px;
+}
+.poll-tank-small .container .number + a:hover {
+	color: #e3452a;
+}
+.poll-title {
+	float: left;
+ 	width: 600px;
+ 	min-height: 37px;
+}
+.poll-change {
+	float: right;
+    margin-top: 15px;
+    text-decoration: none;
+    color: rgb(181, 63, 27);
+}
+.poll-change i {
+	font-style: normal;
+    display: inline-block;
+    margin-top: -1px;
+    font-size: 12px;
+    margin-right: -1px;
+    vertical-align: top;
+}
+.poll-change:hover {
+	text-decoration: underline;
+}
+.tankopedia-tanks.vote .vehicle-image {
+	margin: 0px 7px 7px 0px;
+}
+.tankopedia-tanks.ussr .vehicle-image, .vehicle-image.ussr {
+	background: #000 url(../style/images/wot/flags/160x100/ussr.png);
+}
+.tankopedia-tanks.germany .vehicle-image, .vehicle-image.germany {
+	background: #000 url(../style/images/wot/flags/160x100/germany.png);
+}
+.tankopedia-tanks.uk .vehicle-image, .vehicle-image.uk {
+	background: #000 url(../style/images/wot/flags/160x100/uk.png);
+}
+.tankopedia-tanks.usa .vehicle-image, .vehicle-image.usa {
+	background: #000 url(../style/images/wot/flags/160x100/usa.png);
+}
+.tankopedia-tanks.china .vehicle-image, .vehicle-image.china {
+	background: #000 url(../style/images/wot/flags/160x100/china.png);
+}
+.tankopedia-tanks.france .vehicle-image, .vehicle-image.france {
+	background: #000 url(../style/images/wot/flags/160x100/france.png);
+}
+.tankopedia-tanks.japan .vehicle-image, .vehicle-image.japan {
+	background: #000 url(../style/images/wot/flags/160x100/japan.png);
+}
+.tankopedia-tanks.czech .vehicle-image, .vehicle-image.czech {
+	background: #000 url(../style/images/wot/flags/160x100/czech.png);
+}
+.tankopedia-tanks.sweden .vehicle-image, .vehicle-image.sweden {
+	background: #000 url(../style/images/wot/flags/160x100/sweden.png);
+}
+.tankopedia-tanks.poland .vehicle-image, .vehicle-image.poland {
+	background: #000 url(../style/images/wot/flags/160x100/poland.png);
+}
+.tankopedia-tanks.italy .vehicle-image, .vehicle-image.italy {
+	background: #000 url(../style/images/wot/flags/160x100/italy.png);
+}
+.tankopedia-tanks input[type="checkbox"],.tankopedia-tanks input[type="radio"] {
+	display: none;
+}
+.tankopedia-tanks label {
+	cursor: pointer;
+}
+.tankopedia-tanks input[type="checkbox"]:checked + .vehicle-image:before,
+.tankopedia-tanks input[type="radio"]:checked + .vehicle-image:before {
+	content: ' ';
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	background: rgba(77, 172, 48, 0.1) url(../style/images/wot/library/done.png) no-repeat center center;
+    z-index: 10;
+}
+.tankopedia-tanks.vote {
+	display: none;
+}
+.tankopedia-tanks.vote label {
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+.tankopedia-tanks.vote.active {
+	display: block;
+}
+.tankopedia-tanks.vote label input[type="submit"] {
+    display: none;
+}
+.tankopedia-tanks.vote label:hover .vote_layer {
+    opacity: 1;
+}
+.tankopedia-tanks.vote label .vote_layer {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    background: rgba(0,0,0,0.7);
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+.tankopedia-tanks.vote label .vote_layer .button,.tankopedia-tanks.vote label .vote_layer .login {
+    display: inline-block;
+    padding: 0px 15px;
+    text-transform: uppercase;
+    height: 44px;
+    line-height: 44px;
+    background: url(../style/images/wot/buttons/big-orange-button.png);
+    background-position: 100% -44px;
+    border: none;
+    border-radius: 4px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 18px;
+    color: #F2F2F2;
+    text-shadow: 0px 0px 2px rgba(0, 0, 0, 1), 0px 0px 2px rgba(0, 0, 0, 1), 0px 0px 11px black;
+    position: relative;
+    top: 50%;
+    margin-top: -22px;
+}
+.tankopedia-tanks.vote label .vote_layer .login {
+	text-decoration: none;
+	font-size: 16px;
+	padding: 0px 7px;
+	min-width: 120px;
+}
+.tankopedia-tanks .vehicle-image .tank {
+    height: 100%;
+    display: block;
+    margin: 0px auto;
+
+
+}
+.vehicle-image img{
+    display: block;
+    position: relative;
+    z-index: 1;
+}
+.vehicle-image .tank {
+    height: 100%;
+    margin: 0 auto;
+}
+.vehicle-image .type {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    z-index: 2;
+}
+.vehicle-image .level {
+    position: absolute;
+    top: 5px;
+    left: 20px;
+    z-index: 2;
+}
+.vehicle-image .name {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    z-index: 1;
+    text-align: right;
+    color: rgb(237, 237, 237);
+    text-shadow: 0 0 8px rgba(205, 205, 205, 0.8);
+}
+.vehicle-image .price {
+	position: absolute;
+ 	color: rgb(237, 237, 237);
+ 	z-index: 1;
+  	width: 76px;
+    height: 19px;
+    background-image: url(../style/images/wot/tree/nodesLib-41.png);
+    background-position: -19px -19px;
+    line-height: 19px;
+    text-align: center;
+    font-size: 11px;
+    bottom: -9px;
+    left: 50%;
+    margin-left: -37px;
+    text-shadow: 1px 1px 1px #000;
+    border-radius: 4px;
+}
+.vehicle-image .price img {
+	display: inline-block;
+ 	margin-left: 2px;
+}
+.tank-profile .vehicle-image .name {
+	bottom: auto;
+	top: 5px;
+}
+.vehicle-image .name.premium {
+    color: #C57338;
+    text-shadow: 0 0 8px #B86D37;
+}
+.vehicle-desc {
+    display: inline-block;
+    vertical-align: top;
+    width: 502px;
+}
+.vehicle-bg {
+    width: 160px;
+    height: 100px;
+    position: absolute;
+    top: 0px;
+    opacity: 0.7;
+}
+.eqv-wrapper {
+    vertical-align:top;
+    position: relative;
+    margin-left: 80px;
+    display: inline-block;
+    /*overflow: hidden;*/
+ 	padding-top: 40px;
+ 	margin-top: -10px;
+  	/*width: 660px;*/
+}
+.eqv-holder {
+    display:inline-block;
+    width:110px;
+    height:59px;
+    vertical-align:top;
+    text-align: center;
+    padding-right: 5px;
+    padding-left: 5px;
+    font-size: 11px;
+    position: relative;
+}
+.eqv-holder.active:after {
+	content: ' ';
+	display: block;
+	position: absolute;
+ 	bottom: -15px;
+    left: 50%;
+    margin-left: -32px;
+    z-index: 2;
+	width: 64px;
+	height: 32px;
+	background: url(../style/images/wot/library/completedIndicator.png);
+}
+.eqv-holder img{
+    position: relative;
+    z-index: 1;
+    margin-bottom: 3px;
+}
+.eqv-holder .level {
+	position: absolute;
+	left: 28px;
+	top: 3px;
+}
+.eqv-holder .magazine {
+	position: absolute;
+	right: 35px;
+	bottom: 1px;
+}
+.eqv-holder .bg-div.last {
+    width: 50%;
+}
+.eqv-holder .bg-div {
+    background-image:url(../style/images/wot/tree/line.png);
+    background-repeat: repeat-x;
+    background-position: center;
+    position: absolute;
+    left: 0px;
+    height: 100%;
+    width: 100%;
+}
+.eqv-holder .bg-blank,.tank-profile .ammo-wrapper {
+	width: 61px;
+	height: 61px;
+	background: rgb(68, 62, 48) url(../style/images/wot/modules/ico-blank.png);
+	position: absolute;
+	left: 50%;
+	margin-left: -30px;
+	border: 1px solid #686667;
+	border-radius: 3px;
+}
+.eqv-holder .overlay {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    top: 0px;
+    left: 25px;
+    z-index: 2;
+}
+.eqv-tank .overlay {
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    position: absolute;
+}
+.tank-profile .eqv-tank .overlay:after {
+	content: ' ';
+    position: absolute;
+    width: 76px;
+    height: 19px;
+    bottom: -9px;
+    left: 50%;
+    margin-left: -37px;
+}
+.eqv-holder .overlay:hover {
+    cursor: url(../style/images/wot/cursors/cursor-pointer.png),pointer;
+}
+.eqv-holder.active .overlay {
+    background: url(../style/images/wot/modules/web/image-29.png) no-repeat;
+    background-position: -9px -9px;
+}
+.eqv-holder.turret-error .overlay, .eqv-holder.weight-error .overlay {
+    background-image: url(../style/images/wot/modules/web/image-32.png);
+    background-position: -8px -8px;
+    -webkit-animation: opacity-error 2s infinite;
+    animation: opacity-error 2s infinite;
+}
+.eqv-holder.turret-error .bg-blank, .eqv-holder.weight-error .bg-blank {
+    background-image: url(../style/images/wot/modules/web/image-70.bmp);
+    background-position: 0px 0px;
+}
+@-webkit-keyframes opacity-error {
+    0% {opacity: 1;}
+    20% {opacity: 1;}
+    60% {opacity: 0;}
+    100% {opacity: 1;}
+}
+
+@keyframes opacity-error {
+    0% {opacity: 1;}
+    20% {opacity: 1;}
+    60% {opacity: 0;}
+    100% {opacity: 1;}
+}
+.tank-profile .left-side {
+    width: 700px;
+    float: left;
+}
+.tank-profile .right-side {
+    width: 300px;
+    float: left;
+}
+.tank-profile .ammo-wrapper-line {
+	display: none;
+}
+.tank-profile .ammo-wrapper-line.active {
+	display: block;
+	margin-bottom: 10px;
+    margin-top: -3px;
+}
+.tank-profile .ammo-wrapper {
+	position: relative;
+	left: auto;
+	margin: 0px;
+	display: inline-block;
+	margin-right: 15px;
+}
+.tank-profile .ammo-wrapper .type {
+	position: absolute;
+	color: #949488;
+ 	font-family: 'Oswald', sans-serif;
+    text-shadow: 0px 0px 3px black;
+    left: 4px;
+    top: 1px;
+}
+.tank-profile .ammo-wrapper img {
+    margin: 5px;
+}
+.tank-profile .crew table {
+    border-collapse: collapse;
+    border-top: 1px solid rgb(189, 189, 189);
+    width: 100%;
+}
+.tank-profile .crew tr {
+	border-bottom: 1px solid rgb(189, 189, 189);
+    height: 60px;
+}
+.tank-profile .crew td {
+	position: relative;
+    overflow: hidden;
+    line-height: 18px;
+}
+.tank-profile .crew .face {
+    z-index: 1;
+    margin: -1px 30px -1px 0px;
+    display: block;
+    position: absolute;
+    height: 75px;
+    top: -13px;
+    left: -2px;
+}
+.tank-profile .crew .face.dog {
+    height: auto;
+    top: 0px;
+    left: 0px;
+}
+.tank-profile .crew .skill {
+	position: absolute;
+	left: 75px;
+	top: 0px;
+}
+.tank-profile .crew .more {
+	display: inline-block;
+	margin-left: 3px;
+}
+.eqv-holder .bg-white {
+	width: 58px;
+	height: 58px;
+	background: rgba(255, 255, 255, 0.0);
+	position: absolute;
+	left: 50%;
+	top: 0px;
+	margin-left: -29px;
+	border-radius: 3px;
+	margin-top: 1px;
+	-webkit-transition: all 250ms;
+	-moz-transition: all 250ms;
+	-ms-transition: all 250ms;
+	-o-transition: all 250ms;
+	transition: all 250ms;
+}
+.eqv-tank .bg-white {
+    width: 100%;
+    left: 0;
+    margin-left: 0;
+}
+.eqv-holder .overlay:hover + .bg-white,.eqv-holder.tank a:hover + .bg-white {
+	background: rgba(255, 255, 255, 0.10);
+}
+.eqv-holder.tank {
+	width: 152px;
+	padding-left: 27px;
+}
+.eqv-holder .item-wrapper {
+	display: inline-block;
+}
+/*.eqv-holder img {
+    float: right;
+    display: block;
+}*/
+.eqv-row {
+    height: 105px;
+}
+.eqv-row.margin-1 {
+	margin-left: 110px;
+}
+.eqv-row.margin-2 {
+	margin-left: 220px;
+}
+.eqv-row.margin-3 {
+	margin-left: 330px;
+}
+.eqv-row.margin-4 {
+	margin-left: 440px;
+}
+.eqv-row.margin-5 {
+	margin-top: 0px!important;
+  	margin-left: 440px;
+}
+.eqv-row.margin-5 .eqv-hor-line {
+	position: relative;
+	left: 110px;
+}
+.eqv-row.margin-5 .bg-div.last {
+	left: auto;
+	right: 0px;
+}
+.eqv-row.margin-5 .eqv-holder.tank .bg-div {
+	background: none;
+}
+.eqv-row.child.row-1 .eqv-hor-line {
+	margin-top: -180px;
+  height: 210px;
+}
+.eqv-row.child.row-2 .eqv-hor-line {
+	height: 315px;
+ 	top: -210px;
+}
+/*
+.eqv-row.child.row-1 {
+	margin-top:-105px;
+}
+.eqv-row.child.row-2 {
+	margin-top:-210px;
+}*/
+.eqv-row.child .eqv-hor-line {
+	margin-top: -75px;
+	height: 105px;
+	top: 0px;
+}
+.eqv-row .item-name{
+    display: inline-block;
+}
+.eqv-hor-line {
+    width: 2px;
+    height: 1px;
+    position: relative;
+    /*top: -361px;*/
+    display: inline-block;
+    background-color: #636363;
+}
+.eqv-hor-line.first {
+    position: absolute;
+    top: 0px;
+    height: 30px;
+}
+.eqv-hor-line.last {
+    /*top: -390px;*/
+}
+.eqv-tank {
+	background: rgb(68, 62, 48) url(../style/images/wot/tree/normal.png);
+ 	background-size: 100% 100%;
+ 	position: relative;
+	height: 35px;
+	border-radius: 3px;
+	width: 128px;
+ 	margin-top: 12px;
+}
+.eqv-tank .name {
+	position: absolute;
+	right: 4px;
+	top: 3px;
+	color: #fff;
+	z-index: 1;
+}
+.eqv-tank .type {
+	position: absolute;
+	left: 3px;
+	top: 3px;
+}
+.eqv-tank .level {
+	position: absolute;
+	left: 15px;
+	top: 3px;
+}
+.eqv-tank .price {
+	position: absolute;
+    color: rgb(237, 237, 237);
+    z-index: 1;
+    width: 76px;
+    height: 19px;
+    background-image: url(../style/images/wot/tree/nodesLib-39.png);
+    background-position: -19px -19px;
+    line-height: 19px;
+    text-align: center;
+    font-size: 11px;
+    bottom: -9px;
+    left: 50%;
+    margin-left: -37px;
+    text-shadow: 1px 1px 1px #000;
+    border-radius: 4px;
+}
+.eqv-tank .price img {
+	vertical-align: top;
+}
+.eqv-tank .tank {
+	position: absolute;
+    left: 10px;
+    top: 2px;
+}
+.tankopedia-main {
+    text-align: center;
+}
+.tankopedia-main a {
+    text-decoration: none;
+}
+.tankopedia-main .item {
+    display: inline-block;
+    width: 180px;
+    margin: 0px 25px 15px 25px;
+}
+.tankopedia-main .item .image {
+    height: 150px;
+    background-size: contain!important;
+    transform: scale(1.0);
+    transition: all 300ms;
+}
+.tankopedia-main a:hover .image {
+    transform: scale(1.05);
+}
+.tankopedia-main .item.achievements .image {
+    background: url(../style/images/wot/rankedBattles/rankedBattesView/icon_ranks_ladders_208x100.png) no-repeat center center;
+}
+.tankopedia-main .item.maps .image {
+    background: url(../style/images/wot/boosters/booster_free_xp_tt_big.png) no-repeat center center;
+}
+.tankopedia-main .item.tanks .image {
+    background: url(../style/images/wot/actions/480x280/vehicles.png) no-repeat center center;
+}
+.tankopedia-main .item.crew .image {
+    background: url(../style/images/wot/rankedBattles/rankedBattesView/icn_crew.png) no-repeat center center;
+    background-size: 120%!important;
+}
+.tankopedia-main .item.techtree .image {
+    background: url(../style/images/wot/actions/480x280/tank_exp.png) no-repeat center center;
+}
+.tankopedia-main .item.missions .image {
+    background: url(../style/images/wot/orders/big/reserveRoulette.png) no-repeat center center;
+    background-size: 60%!important;
+}
+.tankopedia-main .item.consumables .image {
+    background: url(../style/images/wot/actions/480x280/consumables.png) no-repeat center center;
+}
+.tankopedia-main .item.equipment .image {
+    background: url(../style/images/wot/actions/480x280/equipment.png) no-repeat center center;
+}
+.tankopedia-main .item.perks .image {
+    background: url(../style/images/wot/actions/480x280/crew_skill_reset.png) no-repeat center center;
+}
+.tankopedia-main .item.reserves .image {
+    background: url(../style/images/wot/actions/480x280/reserve.png) no-repeat center center;
+}
+.tankopedia-main .item.badges .image {
+    background: url(../style/images/wot/library/badges/220x220/badge_18.png) no-repeat center center;
+	background-size: 120px 120px!important;
+}
+.tankopedia-main .item .title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 18px;
+    line-height: 18px;
+    padding-top: 5px;
+    color: rgb(70, 70, 70);
+}
+.tankopedia-eqv-info img {
+	margin-right: 5px;
+}
+.tankopedia-tank-techtree {
+	padding-bottom: 35px;
+}
+.tankopedia-tank-techtree .eqv-tank {
+    margin: 20px 0px;
+    display: inline-block;
+    position: relative;
+}
+.tankopedia-tank-techtree .column {
+    display: inline-block;
+    width: 33%;
+    vertical-align: middle;
+    position: relative;
+}
+
+.tankopedia-tank-techtree .column:empty {
+    width: 0px;
+}
+.tankopedia-tank-techtree .column:empty + .column .eqv-tank:before {
+	display: none;
+}
+.tankopedia-tank-techtree .columns {
+	margin-top: -20px;
+}
+.tankopedia-tank-techtree .columns .column:nth-child(1) .eqv-tank .line-after,.tankopedia-tank-techtree .columns .column:nth-child(2) .eqv-tank .line-after {
+    width: 52px;
+    height: 2px;
+    background-color: #636363;
+    position: absolute;
+    top: 50%;
+    left: 100%;
+}
+.tankopedia-tank-techtree .columns .column:nth-child(2) .eqv-tank .line-before,.tankopedia-tank-techtree .columns .column:nth-child(3) .eqv-tank .line-before  {
+    width: 52px;
+    height: 2px;
+    background-color: #636363;
+    position: absolute;
+    top: 50%;
+    right: 100%;
+}
+.tankopedia-tank-techtree .column .hor-line {
+    width: 2px;
+    background-color: #636363;
+    position: absolute;
+    right: 51px;
+    top: 40px;
+}
+.tankopedia-tank-techtree .column[data-family="after"] .hor-line {
+    right: auto;
+    left: -52px;
+}
+.tankopedia-tank-techtree .column[data-family="current"] .eqv-tank:before,.tankopedia-tank-techtree .column[data-family="after"] .eqv-tank:before,
+.tank-profile .eqv-row.child:not(.margin-5) .bg-white:before {
+	content: ' ';
+	display: block;
+	width: 0;
+	height: 0;
+ 	border-style: solid;
+    border-width: 5px 0 5px 6px;
+    border-color: transparent transparent transparent #464646;
+    position: absolute;
+    left: -5px;
+    top: 50%;
+    margin-top: -4px;
+    z-index: 1;
+}
+.tank-profile .eqv-row.child:not(.margin-5) .bg-white:before {
+	margin-top: -5px;
+	left: -6px;
+}
+.tank-profile .eqv-row.child:not(.margin-5) .eqv-tank .bg-white:before {
+	left: -5px;
+	top: 17px;
+}
+.tankopedia-tank-techtree .column[data-family="current"] .eqv-tank:after {
+	content: attr(data-current);
+    position: absolute;
+    display: block;
+    bottom: 34px;
+    color: white;
+    background: rgb(68, 62, 48) url(../style/images/wot/tree/premium.png);
+    background-size: 100% 100%;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    text-shadow: 1px 1px 3px #000;
+    line-height: 1.2;
+    text-align: center;
+    padding: 5px 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 105px;
+    width: max-content;
+    width: -moz-max-content;
+}
+
+
+.eqv-tooltip hr {
+	clear: both;
+	border: none;
+	height: 1px;
+	background: url(../style/images/wot/battleresults/hr-bg.png) center bottom ;
+ 	display: block;
+ 	width: 100%;
+ 	margin: 15px 0px;
+ 	opacity: 0.5;
+}
+.eqv-tooltip {
+	width: 380px;
+	font-size: 11px;
+}
+.eqv-tooltip .title {
+	color: #f4efc5;
+	font-size: 16px;
+	font-weight: bold;
+	margin-top: 5px;
+	margin-bottom: 3px;
+	line-height: 1.3;
+}
+.eqv-tooltip .credit  {
+	margin: 0px 5px -1px 5px;
+}
+.eqv-tooltip .price .gold {
+	margin: 0px 5px -1px 6px;
+}
+.eqv-tooltip .price {
+	margin-left: 4px;
+}
+.eqv-tooltip .price span {
+	color: #979899;
+}
+.eqv-tooltip .price .first {
+	display: inline-block;
+	width: 40px;
+	text-align: right;
+}
+.eqv-tooltip .price .first.or {
+	display: block;
+	margin: 2px 0px 5px 0px;
+}
+.eqv-tooltip .condition {
+	color: #979899;
+	background: rgba(27, 26, 21, 0.3);
+	margin: -10px -12px -10px -12px;
+	padding: 15px 18px;
+	font-size: 11px;
+}
+.eqv-tooltip .condition .title {
+	color: #5d5d53;
+	margin-bottom: 10px;
+	font-size: 14px;
+	font-weight: bold;
+}
+.eqv-tooltip .title-image {
+    vertical-align: top;
+    margin-top: -10px;
+    margin-right: 10px;
+    float: left;
+}
+.eqv-tooltip .condition span {
+	color: #c9a372;
+	font-size: 13px;
+	font-weight: bold;
+    color: #f4efc5;
+    display: inline-block;
+    margin-bottom: 3px;
+}
+.eqv-tooltip .complex {
+	min-height: 109px;
+	background: url(../style/images/wot/tooltip/complex_bg.png) no-repeat left;
+	padding-top: 5px;
+	padding-left: 15px;
+	padding-right: 15px;
+	padding-bottom: 10px;
+	margin: 10px -10px -10px -10px;
+	color: #7a7b7c;
+	background-size: 100% 100%;
+}
+.eqv-tooltip .green {
+	font-weight: normal!important;
+	font-size: inherit!important;
+	color: #81b457!important;
+}
+.eqv-tooltip .complex .title {
+	color: #da741f;
+	font-size: 14px;
+	font-weight: bold;
+	margin-left: 5px;
+	display: inline-block;
+	margin-bottom: 10px;
+}
+.eqv-tooltip .complex .icon {
+	margin-bottom: -3px;
+}
+.eqv-tooltip .complex .gold {
+	margin-bottom: -3px;
+}
+.eqv-tooltip .complex .gold-color {
+	color: #d1ae86;
+    font-weight: bold;
+}
+.eqv-tooltip .details .title {
+	color: #f4efc5;
+	margin-bottom: 5px;
+	font-size: 13px;
+	font-weight: bold;
+}
+.eqv-tooltip .details .first,.eqv-tooltip .price .first,.eqv-tooltip .first {
+	color: #b8b7b2!important;
+	width: 80px;
+	display: inline-block;
+	margin-right: 10px;
+	text-align: right;
+	font-size: inherit!important;
+	font-weight: inherit!important;
+	float: left;
+}
+.eqv-tooltip .first {
+	width: 50px;
+}
+.eqv-tooltip .magazine {
+	margin-top: 3px;
+}
+.eqv-tooltip .magazine img {
+	margin-bottom: -4px;
+	margin-right: 5px;
+}
+.eqv-tooltip .details .gray,.eqv-tooltip .gray {
+	color: #6c6d6f!important;
+	font-size: inherit!important;
+	font-weight: inherit!important;
+}
+.eqv-tooltip .eqv-credit {
+	margin-right: 5px;
+	margin-left: 0px;
+}
+.eqv-tooltip .eqv-xp {
+	margin-top: -2px;
+	margin-left: -5px;
+	margin-right: 2px;
+	vertical-align: top;
+}
+.eqv-tooltip hr {
+	margin: 10px 0px;
+}
+.eqv-row .item-title {
+    margin-top: 2px;
+    max-height: 36px;
+    overflow: hidden;
+}
+
+
+/*#*/
+.marquee {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    box-sizing: border-box;
+    font: 16px Arial;
+    margin: 15px 0px 15px 0px;
+    text-align: center;
+}
+.marquee a {
+	color: rgb(7, 7, 158);
+}
+.marquee img {
+	margin: 0px 5px -2px 5px;
+}
+/*.marquee:hover {
+    -webkit-animation-play-state: paused;
+    animation-play-state: paused;
+}*/
+/***/
+.battle-records {
+	height: 85px;
+	background: url(../style/images/wot/battleresults/battleResults-43.png) no-repeat center;
+	background-size: 150% 100%;
+}
+.tanks-image.defeat .battle-records {
+	background: url(../style/images/wot/battleresults/battleResults-41.png) no-repeat center;
+	background-size: 130% 100%;
+}
+.battle-records .dossier,.battle-records .achievements {
+	display: inline-block;
+	width: 440px;
+	height: 88px;
+}
+.battle-records .achievements div,.battle-records .dossier div {
+	display: inline-block;
+	float:right;
+	height: 85px;
+	line-height: 85px;
+	margin: -4px -15px 0px -15px;
+}
+.battle-records .achievements[data-number="7"] div img.mark.full {
+	margin: 0px 0px -7px 0px;
+}
+.battle-records .dossier .achi-img-cont {
+	float: left;
+	margin: 0px -5px;
+}
+.battle-records .achievements[data-number="8"] div {
+	margin: -4px -19px 0px -19px;
+}
+.battle-records .achievements[data-number="9"] div {
+	margin: -4px -22px 0px -22px;
+}
+.battle-records .achievements[data-number="10"] div {
+	margin: -4px -25px 0px -24px;
+}
+.battle-records .dossier[data-number="7"] .achi-img-cont {
+    margin: 0px -9px;
+}
+.battle-records .dossier[data-number="8"] .achi-img-cont {
+    margin: 0px -13px;
+}
+.battle-records .dossier[data-number="9"] .achi-img-cont {
+    margin: 0px -16px;
+}
+.battle-records .achievements[data-number="8"] .mark {
+	margin: 5px 3px 0px -4px!important;
+}
+.battle-records .achievements .mastery {
+	margin: 4px!important;
+}
+.battle-records .achievements .mastery img {
+	height: 60px;
+ 	margin-top: -5px;
+}
+.battle-records .achievements div img {
+	height: 90px;
+ 	vertical-align: middle;
+}
+.battle-records .dossier div img {
+	height: 80px;
+ 	vertical-align: middle;
+}
+.battle-records .dossier div.badge,.battle-records .achievements div.badge {
+	position: relative;
+}
+.battle-records .dossier div.badge img,.battle-records .achievements div.badge img{
+	position: relative;
+	z-index: 11;
+}
+.battle-records .dossier div.badge .ribbon,.battle-records .achievements div.badge .ribbon {
+	background: url(../style/images/wot/battleresults/battleResults-27.png) no-repeat center;
+ 	background-size: 77px 100%;
+	position: absolute;
+  	width: 97px;
+  	height: 87px;
+  	z-index: 10;
+  	top: -1px;
+  	left: 50%;
+  	margin-left: -48px;
+}
+.battle-records .income {
+	color: white;
+	font-family: 'Oswald', sans-serif;
+ 	font-size: 25px;
+ 	width: 120px;
+ 	text-align: center;
+ 	margin: 0px auto;
+  	padding-top: 8px;
+  	line-height: 33px;
+  	text-shadow: 1px 1px 5px #000;
+  	display: inline-block;
+  	vertical-align: top;
+}
+.battle-records .income img{
+	margin-left: 5px;
+}
+.battle-records .income .credit img {
+	vertical-align: top;
+ 	margin-top: 10px;
+}
+.battle-records .income.bond {
+	font-size: 22px;
+    line-height: 26px;
+    padding-top: 2px;
+}
+.battle-records .income img {
+	margin-left: 8px;
+}
+.battle-records .income.bond .credit img {
+	margin-top: 6px;
+}
+.battle-records .income.bond .xp img {
+	vertical-align: top;
+	margin-top: 3px;
+}
+.battle-records .income.bond .bond img {
+	height: 28px;
+    vertical-align: top;
+    margin-top: -1px;
+    margin-left: 5px;
+}
+/***/
+.titles-line {
+    display: flex;
+	height: 34px;
+  	border-bottom: 1px solid black;
+	background:#26251E;
+	border-top:1px solid black;
+ 	color: #bcbdbe;
+	font-weight: bold;
+ 	text-shadow: 1px 1px 2px #000;
+}
+.titles-line .battle-type {
+	padding-left: 10px;
+	line-height: 34px;
+}
+/***/
+.tanks-image {
+	height: 220px;
+	background-size: 100%;
+}
+.tanks-image.win {
+	background:  url(../style/images/wot/battleresults/win.jpg);
+}
+.tanks-image.defeat {
+	background:  url(../style/images/wot/battleresults/defeat.jpg);
+}
+.tanks-image.draw {
+	background:  url(../style/images/wot/battleresults/draw.jpg);
+}
+.tanks-image.girls,.tanks-image.halloween,.tanks-image.halloween2,.tanks-image.soccer {
+	-webkit-box-shadow: inset 0px 0px 55px 29px rgba(20,18,14,1);
+	-moz-box-shadow: inset 0px 0px 55px 29px rgba(20,18,14,1);
+	box-shadow: inset 0px 0px 55px 29px rgba(20,18,14,1);
+ 	background-size: 100%;
+}
+.tanks-image.girls .battle-records {
+	background-size: 100% 100%;
+}
+.tanks-image.win.girls {
+	background:  url(../style/images/wot/battleresults/win_girls.png);
+}
+.tanks-image.defeat.girls {
+	background:  url(../style/images/wot/battleresults/defeat_girls.png);
+}
+.tanks-image.draw.girls {
+	background:  url(../style/images/wot/battleresults/draw_girls.png);
+}
+.tanks-image.halloween.win {
+	background:  url(../style/images/wot/battleresults/halloween_win.png);
+}
+.tanks-image.halloween.defeat {
+	background:  url(../style/images/wot/battleresults/halloween_defeat.png);
+}
+.tanks-image.halloween.draw {
+	background:  url(../style/images/wot/battleresults/halloween_draw.png);
+}
+.tanks-image.halloween2.win {
+	background:  url(../style/images/wot/battleresults/halloween_win2.png);
+}
+.tanks-image.halloween2.defeat {
+	background:  url(../style/images/wot/battleresults/halloween_defeat2.png);
+}
+.tanks-image.halloween2.draw {
+	background:  url(../style/images/wot/battleresults/halloween_draw2.png);
+}
+.tanks-image.soccer.win {
+	background:  url(../style/images/wot/battleresults/soccer_win.jpg);
+}
+.tanks-image.soccer.defeat {
+	background:  url(../style/images/wot/battleresults/soccer_defeat.jpg);
+}
+.tanks-image.soccer.draw {
+	background:  url(../style/images/wot/battleresults/soccer_draw.jpg);
+}
+.tanks-image .winner-team {
+	color: #fff;
+	font-size: 40px;
+	text-align: center;
+	vertical-align: top;
+ 	font-family: 'Oswald', sans-serif;
+ 	text-shadow: 0 0 5px #000;
+  	text-transform: uppercase;
+  	padding-top: 10px;
+  	margin-bottom:15px;
+  	position: relative;
+}
+.tanks-image .winner-team .reason {
+	font-size: 17px;
+}
+/***/
+.map-stat {
+	position: relative;
+	background: rgb(20, 18, 14);
+	height: 98px;
+}
+.map-stat:before {
+	content: ' ';
+	width: 230px;
+	height: 98px;
+	/*background: url(../style/images/wot/map/stats/overlay.png) no-repeat;*/
+	top: 0px;
+	left: 0px;
+	z-index: 1;
+	position: absolute;
+	background: -moz-linear-gradient(left,  rgba(20,18,14,0) 0%, rgba(20,18,14,0) 21%, rgba(20,18,14,1) 82%, rgba(20,18,14,1) 99%);
+	background: -webkit-linear-gradient(left,  rgba(20,18,14,0) 0%,rgba(20,18,14,0) 21%,rgba(20,18,14,1) 82%,rgba(20,18,14,1) 99%);
+	background: linear-gradient(to right,  rgba(20,18,14,0) 0%,rgba(20,18,14,0) 21%,rgba(20,18,14,1) 82%,rgba(20,18,14,1) 99%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#0014120e', endColorstr='#14120e',GradientType=1 );
+}
+.map-stat img.map {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	height: 97px;
+}
+.map-stat .stat {
+	position: relative;
+	z-index: 5;
+ 	float: left;
+}
+.map-stat .stat .stat-tank {
+	display: inline-block;
+	position: relative;
+	width: 252px;
+    text-align: right;
+}
+.map-stat .stat .stat-tank .name {
+	position: absolute;
+	right: 20px;
+	bottom: 15px;
+ 	text-align: right;
+	color: rgb(237, 237, 237);
+	text-shadow: 0 0 8px rgba(205, 205, 205, 0.8);
+}
+.map-stat .stat .stat-tank .name.premium {
+	color: #C57338;
+	text-shadow: 0 0 8px #B86D37;
+}
+.map-stat .stat .stat-tank img.tank {
+  	height: 97px;
+}
+.map-stat .stat .stat-tank img.tank.new {
+	margin-right: 20px;
+}
+.map-stat .stat .stat-tank img.level,.map-stat .stat .stat-tank img.type {
+	position: absolute;
+	z-index: 10;
+}
+.map-stat .stat .stat-tank img.type {
+	top: 5px;
+	right: 15px;
+}
+.map-stat .stat .stat-tank img.level {
+	top: 5px;
+	right: 30px;
+}
+.map-stat .stat .map-name,.map-stat .stat .status {
+	position: absolute;
+	left: 15px;
+	top: 5px;
+	font-family: 'Oswald', sans-serif;
+	font-size: 16px;
+	text-shadow: 0 0 5px #FFFFFF,0 0 5px #FFFFFF,0 0 5px #FFFFFF;
+	text-transform: uppercase;
+ 	width: 130px;
+}
+.map-stat .stat .status {
+	top: 10px;
+	font-size: 20px;
+	width: 150px;
+	text-align: center;
+	color: white;
+	text-shadow: 0 0 10px #5FA646,0 0 10px #5FA646,0 0 10px #5FA646,1px 1px 1px #000,1px 1px 1px #000;
+}
+.map-stat .stat .status.defeat {
+	text-shadow: 0 0 10px #911C21,0 0 10px #911C21,0 0 10px #911C21,1px 1px 1px #000,1px 1px 1px #000;
+}
+.map-stat .stat .stat-text {
+	display: inline-block;
+	vertical-align: top;
+	color: #959586;
+	width: 240px;
+	text-overflow: ellipsis;
+  	white-space: nowrap;
+}
+.map-stat .stat .stat-text .name a {
+	text-decoration: none;
+	color: #FEC264;
+}
+.map-stat .stat .death-reason {
+	width: 240px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+  	white-space: nowrap;
+}
+.map-stat .stat .stat-text .wn8{
+	margin-top: 10px;
+	font-family: 'Oswald', sans-serif;
+	font-size: 16px;
+}
+.map-stat .stat .stat-text .wn8 span {
+	font-weight:bold;
+	text-shadow: 0px 0px 3px #000;
+}
+.map-stat .stat .stat-text .name {
+	color: #FEC264;
+	font-family: 'Oswald', sans-serif;
+	font-size: 17px;
+	margin-top: 6px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.map-stat .stat .income {
+	display: inline-block;
+	vertical-align: top;
+	padding: 15px 25px 20px 10px;
+  	line-height: 16px;
+}
+.map-stat .stat .income table {
+	font-size: 12px;
+ 	color: #959586;
+ 	text-align: right;
+ 	border-collapse: collapse;
+}
+.map-stat .stat .income table tr {
+	border-bottom: 1px dotted rgba(67, 66, 61, 0.75);
+	display: block;
+	vertical-align: top;
+}
+.map-stat .stat .income table tr:first-child {
+	border: none;
+	font-weight: bold;
+}
+.map-stat .stat .income table tr.no-border {
+	border-bottom: none;
+}
+.map-stat .stat .income table td {
+	width: 124px;
+	position: relative;
+	padding-right: 15px;
+}
+.map-stat .stat .income table td img.credit {
+	position: absolute;
+	right: 0px;
+	top: 4px;
+}
+.map-stat .stat .income table td img.xp {
+	position: absolute;
+	right: -3px;
+	top: 0px;
+}
+.map-stat .stat .income table .desc {
+	text-align: left;
+	width: 225px;
+	padding-right: 0px;
+}
+
+
+.map-stat .stat .income .inactive {
+	opacity: 0.5;
+}
+.map-stat .stat .income .inactive img {
+	opacity: 0.5;
+}
+.map-stat .stat .income .premium {
+	color: #FEC264;
+	margin-right: 34px
+}
+.map-stat .stat .income .premium-row td {
+	padding-right: 0px;
+}
+.map-stat .stat .income .premium-row td br {
+    display: none;
+}
+.mission-section {
+	padding: 0px 25px 15px 10px;
+}
+.mission-section .mission-progress {
+	background: #0b0a06;
+	/*height: 135px;*/
+	/*overflow-y: scroll;*/
+	box-shadow: 0px 0px 3px 0px #201f1a;
+	padding: 10px 15px;
+ 	line-height: 16px;
+}
+.mission-section .mission-progress .title-big {
+	color: #dbd7ba;
+	font-size: 15px;
+	font-weight: bold;
+	margin-bottom: 10px;
+}
+.mission-section .mission-progress .title-small {
+	color: #dbd7ba;
+	font-size: 13px;
+	font-weight: bold;
+	margin: 5px 0px;
+}
+.mission-section .mission-progress .condition {
+	display: inline-block;
+	width: 330px;
+	color: #8b8b83;
+}
+.mission-section .mission-progress .progress {
+	display: inline-block;
+	vertical-align: top;
+	color: #bf2d2d;
+	font-family: 'Oswald', sans-serif;
+  	font-size: 12px;
+  	margin-top: -20px;
+}
+.mission-section .mission-progress .progress.done {
+	color: #88b36c;
+}
+/***/
+table.tank-list.score {
+	table-layout:fixed;
+	color: #7C7969;
+	border: 0px solid rgb(14, 12, 9);
+	border-collapse: separate;
+  	border-spacing: 0px;
+}
+table.tank-list.score tr:hover {
+	cursor:url(../style/images/wot/cursors/cursor-pointer.png),pointer;
+	color: rgb(116, 116, 116);
+}
+table.tank-list.score td {
+	position: relative;
+	height: 31px;
+	border: none;
+	border-bottom: 1px solid #26251E;
+	background: rgb(20, 18, 14) url(../style/images/wot/battleresults/row-bg-sprite.png);
+  	background-repeat: no-repeat;
+}
+/*table.tank-list.score tr.dead td {
+	background-image: url(../style/images/wot/battleresults/row-bg-dead.png);
+}
+table.tank-list.score tr:hover td {
+	background-image: url(../style/images/wot/battleresults/row-bg-hover.png);
+}
+table.tank-list.score tr.dead:hover td {
+	background-image: url(../style/images/wot/battleresults/row-bg-dead-hover.png);
+}*/
+/* sor háttér */
+table.tank-list.score td.player-platoon {
+	background-position: 0px 0px;
+}
+table.tank-list.score td.player-names {
+	background-position: -33px 0px;
+}
+table.tank-list.score td.tanks-name {
+	background-position: -172px 0px;
+}
+table.tank-list.score td.damage {
+	background-position: -321px 0px;
+}
+table.tank-list.score td.kills {
+	background-position: -386px 0px;
+}
+table.tank-list.score td.xp {
+	background-position: -439px 0px;
+	text-align: right;
+}
+/*hover-bg*/
+table.tank-list.score tr:hover td.player-platoon {
+	background-position: 0px -31px;
+}
+table.tank-list.score tr:hover td.player-names {
+	background-position: -33px -31px;
+}
+table.tank-list.score tr:hover td.tanks-name {
+	background-position: -172px -31px;
+}
+table.tank-list.score tr:hover td.damage {
+	background-position: -321px -31px;
+}
+table.tank-list.score tr:hover td.kills {
+	background-position: -386px -31px;
+}
+table.tank-list.score tr:hover td.xp {
+	background-position: -439px -31px;
+}
+/*dead-bg*/
+table.tank-list.score tr.dead td.player-platoon {
+	background-position: 0px -62px;
+}
+table.tank-list.score tr.dead td.player-names {
+	background-position: -33px -62px;
+}
+table.tank-list.score tr.dead td.tanks-name {
+	background-position: -172px -62px;
+}
+table.tank-list.score tr.dead td.damage {
+	background-position: -321px -62px;
+}
+table.tank-list.score tr.dead td.kills {
+	background-position: -386px -62px;
+}
+table.tank-list.score tr.dead td.xp {
+	background-position: -439px -62px;
+}
+/*dead-bg-hover*/
+table.tank-list.score tr.dead:hover td.player-platoon {
+	background-position: 0px -93px;
+}
+table.tank-list.score tr.dead:hover td.player-names {
+	background-position: -33px -93px;
+}
+table.tank-list.score tr.dead:hover td.tanks-name {
+	background-position: -172px -93px;
+}
+table.tank-list.score tr.dead:hover td.damage {
+	background-position: -321px -93px;
+}
+table.tank-list.score tr.dead:hover td.kills {
+	background-position: -386px -93px;
+}
+table.tank-list.score tr.dead:hover td.xp {
+	background-position: -439px -93px;
+}
+
+
+table.tank-list.score th {
+	border-left: 1px solid #12110C;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+table.tank-list.score th:first-child {
+	border-left: none;
+}
+table.tank-list .sorting_1 {
+  background: none;
+}
+table.tank-list th:hover {
+	box-shadow: inset 0px 0px 30px rgba(157, 122, 33, 0.12);
+}
+table.tank-list th.sorting_desc,table.tank-list th.sorting_asc {
+	  box-shadow: inset 0px 0px 10px rgba(0,0,0,0.9);
+}
+table.tank-list.score td.tanks-name img{
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	height: 48px;
+  	margin-top: -8px;
+}
+table.tank-list.score td.player-names img{
+	float: left;
+    vertical-align: top;
+    margin-bottom: -7px;
+    margin-top: -5px;
+    margin-left: -6px;
+}
+table.tank-list.score tr.dead td img {
+	opacity: 0.5;
+}
+table.tank-list.score th.tanks-name,table.tank-list.score td.tanks-name  {
+	width: 140px !important;
+	max-width: 140px !important;
+}
+table.tank-list.score td.tanks-name {
+	text-align: left;
+	padding-left: 70px;
+	padding-right: 5px;
+	text-overflow: ellipsis;
+ 	white-space: nowrap;
+ 	position: relative;
+ 	overflow: hidden;
+}
+.tank-list.score td.tanks-name::after,.tank-list.score td.tanks-name::before {
+	content: '';
+	height: 1px;
+	width: 100%;
+	display: block;
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	z-index: 2;
+	background-color: #040402;
+}
+.tank-list.score td.tanks-name::after {
+	top: auto;
+	bottom: 0px;
+}
+table.tank-list.score td.tanks-name span {
+	position: relative;
+	z-index: 1;
+}
+table.tank-list.score td.tanks-name .medal {
+	position: absolute;
+	top: 2px;
+	left: 5px;
+	height: 25px;
+	width: 25px;
+	background: url('../style/images/wot/battleresults/battleResults-24.png');
+}
+table.tank-list.score td.tanks-name .medal .num {
+	position: absolute;
+	bottom: 0px;
+	right: 0px;
+	background: #000;
+	padding: 0px 3px 0px 3px;
+	border: 1px solid rgb(77, 77, 77);
+	font-size: 10px;
+	color: gray;
+}
+table.tank-list.score th.player-platoon {
+	width: 30px !important;
+	max-width: 35px !important;
+}
+table.tank-list.score td.player-platoon .number {
+	color: white;
+  	padding-top: 5px;
+  	font-size: 9px;
+  	width: 31px;
+  	height: 24px;
+	background-image: url('../style/images/wot/eventBoards/tableIcons/platoon.png');
+}
+table.tank-list.score td.player-platoon .number.own {
+	background-image: url('../style/images/wot/eventBoards/tableIcons/platoon_own.png');
+}
+table.tank-list.score tr.dead td.player-platoon .number {
+	opacity: 0.5;
+}
+table.tank-list.score th.player-names {
+	width: 130px !important;
+	max-width: 140px !important;
+}
+table.tank-list.score th.damage {
+	width: 60px !important;
+}
+table.tank-list.score th.kills {
+	width: 50px !important;
+}
+table.tank-list.score th.xp {
+	width: 58px !important;
+}
+@-moz-document url-prefix() {
+	table.tank-list.score th.xp {
+		width: 57px !important;
+	}
+	table.tank-list.score td.xp {
+		background-position: -439px 0px;
+	}
+	table.tank-list.score tr:hover td.xp {
+		background-position: -439px -31px;
+	}
+	table.tank-list.score tr.dead td.xp {
+		background-position: -439px -62px;
+	}
+	table.tank-list.score tr.dead:hover td.xp {
+		background-position: -439px -93px;
+	}
+	table.tank-list.score td.player-platoon .number {
+		line-height: 8px;
+	}
+}
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+   /* IE10+ specific styles go here */
+   table.tank-list.score th.xp {
+		width: 57px !important;
+	}
+}
+
+table.tank-list.score td.player-names {
+	text-align: left;
+	overflow: hidden;
+	text-overflow: ellipsis;
+ 	white-space: nowrap;
+ 	padding-left: 5px;
+}
+table.tank-list.score td.xp .xp{
+	  display: inline-block;
+	  margin-right: 5px;
+	  background: url(../style/images/wot/library/XpIcon.png) no-repeat 50%;
+	  width: 20px;
+	  height: 15px;
+	  margin-top: -3px;
+	  vertical-align: middle;
+}
+table.tank-list.score th {
+	/*background: #222117;*/
+	background: #26251E;
+}
+/* Header icons */
+table.tank-list.score th.sorting_asc,table.tank-list.score th.sorting_desc {
+	background-image: url(../style/images/wot/results/ascendingSortArrow.png);
+	background-repeat: no-repeat;
+	background-position: 3px 23px;
+}
+table.tank-list.score th.sorting_desc {
+	background-image: url(../style/images/wot/results/descendingSortArrow.png);
+	background-position: 3px 0px;
+}
+table.tank-list.score th.player-platoon div,
+table.tank-list.score th.player-names div,
+table.tank-list.score th.tanks-name div,
+table.tank-list.score th.damage div,
+table.tank-list.score th.kills div,
+table.tank-list.score th.xp div {
+	background-repeat: no-repeat;
+	background-position: center;
+	height: 25px;
+	width: 100%;
+}
+table.tank-list.score th.player-platoon div {
+	background-image: url(../style/images/wot/results/tbl_ico__squad.png);
+}
+table.tank-list.score th.player-names div {
+	background-image: url(../style/images/wot/results/tbl_ico__user.png);
+}
+table.tank-list.score th.tanks-name div {
+	background-image: url(../style/images/wot/results/tbl_ico__tank.png);
+}
+table.tank-list.score th.damage div {
+	background-image: url(../style/images/wot/results/tbl_ico__damage.png);
+	width: 50px;
+	margin: 0px auto;
+}
+table.tank-list.score th.kills div {
+	background-image: url(../style/images/wot/results/tbl_ico__kills.png);
+	width: 50px;
+	margin: 0px auto;
+}
+table.tank-list.score th.xp div {
+	background-image: url(../style/images/wot/results/tbl_ico__star.png);
+}
+.team-score .dataTables_wrapper .dataTables_scrollHeadInner,.team-score .dataTables_wrapper .dataTables_scrollHeadInner table {
+	width: 100%!important;
+}
+.team-score .mCSB_container {
+	margin-right: 0px!important;
+}
+.team-score .mCSB_scrollTools {
+	width: 5px!important;
+}
+.team-score .mCSB_dragger_bar{
+    background-color: rgb(38, 37, 30)!important;
+    border-radius: 0px!important;
+}
+.half {
+	width: 50%;
+	display: inline-block;
+	vertical-align: top;
+}
+.half.score {
+	width: 499px;
+	border-top: 1px solid black;
+}
+.half.score:nth-child(1) {
+	margin-right: 1px;
+    margin-left: 2px;
+}
+.third {
+	width: 33.3333333%;
+	display: inline-block;
+	vertical-align: top;
+}
+.fourth {
+	width: 25%;
+	display: inline-block;
+	vertical-align: top;
+}
+.team-score {
+	background: rgb(20, 18, 14);
+	position: relative;
+	min-height: 497px;
+}
+.team-score .personal-data {
+	height:540px;
+	width: 501px;
+	border: 1px solid rgb(38, 37, 30);
+	border-top: none;
+	position:absolute;
+	top:0px;
+	right:0px;
+	z-index:50;
+	background: url(../style/images/wot/battleresults/battleResults-1.png);
+ 	color: #959586;
+ 	display: none;
+}
+.team-score .personal-data.left {
+	left: 0px;
+	right: auto;
+}
+.team-score .personal-data.active {
+	display: block;
+}
+.team-score .personal-data .header .info {
+	display: inline-block;
+ 	width: 330px;
+	vertical-align: top;
+}
+.team-score .personal-data .header .name {
+	color: #FEC264;
+	font-family: 'Oswald', sans-serif;
+	font-size: 17px;
+ 	margin-top: 12px;
+ 	margin-bottom: 1px;
+}
+.team-score .personal-data .header .name a {
+	text-decoration: none;
+	color: #FEC264;
+}
+.team-score .personal-data .header {
+	height: 102px;
+	border-bottom: 1px solid rgb(38, 37, 30);
+}
+.team-score .personal-data .header.dead {
+	background: url(../style/images/wot/battleresults/battleResults-2.png);
+ 	background-position: 0px -1px;
+}
+.team-score .personal-data .header .tank {
+    display: inline-block;
+    position: relative;
+}
+.team-score .personal-data .header .tank.new {
+    width: 120px;
+    margin: 5px 20px;
+}
+.team-score .personal-data .header .tank img.type,.team-score .personal-data .header .tank img.level {
+	position: absolute;
+	z-index: 10;
+}
+.team-score .personal-data .header .tank img.type {
+	top: 5px;
+	right: 5px;
+}
+.team-score .personal-data .header .tank img.level {
+	top: 5px;
+	right: 20px;
+}
+.team-score .personal-data .header .wn8 {
+	margin-top: 5px;
+}
+.team-score .personal-data .medals {
+	text-align: center;
+	background-image: url(../style/images/wot/battleresults/battleResults-39.png);
+	background-size: 150% 100%;
+	background-position: 50% 0%;
+	margin-top: -1px;
+	margin-bottom: -5px;
+	height: 30px;
+}
+.team-score .personal-data .medals img {
+	height: 60px;
+	margin-top: -15px;
+	margin-left: -3px;
+  	margin-right: -3px;
+}
+.team-score .personal-data .data-wrapper {
+	padding: 20px;
+	line-height: 14px;
+}
+.team-score .personal-data .data-wrapper .row {
+	border-bottom: 1px dotted rgba(67, 66, 61, 0.75);
+	margin-bottom: 3px;
+	padding-bottom: 2px;
+}
+.team-score .personal-data .data-wrapper .row.padding {
+	padding-left: 30px;
+}
+.team-score .personal-data .close {
+	width: 150px;
+	height: 20px;
+	line-height: 20px;
+	text-align: center;
+	margin: 0px auto;
+	background: url(../style/images/wot/buttons/sprite.png);
+ 	background-size: 150px 60px;
+  	background-position: 0px -20px;
+  	border-radius: 3px;
+ 	box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
+ 	font-weight: bold;
+ 	color: #cecebc;
+ 	font-size: 11px;
+  	text-shadow: 0px 0px 2px #322A2A,0px 0px 2px #3F3939;
+  	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	position: absolute;
+	bottom: 25px;
+	left: 50%;
+	margin-left: -75px;
+}
+.team-score .personal-data .close:hover {
+	background-position: 0px -40px;
+	cursor:url(../style/images/wot/cursors/cursor-pointer.png),pointer;
+	text-shadow: 0px 0px 8px rgba(247, 245, 245, 0.3);
+}
+.team-score .personal-data .close:active {
+	margin-top: 1px;
+}
+
+.team-score .team-info {
+	color: #7C7969;
+	padding: 0px 7px 5px 7px;
+}
+.team-score .team-info img {
+	vertical-align: middle;
+ 	margin-top: -3px;
+ 	margin-left: 9px;
+}
+.team-score .team-info span {
+    display: inline-block;
+	color: #bcbdbe;
+    margin-left: 10px;
+    font-weight: normal;
+}
+.team-score .team-info span:first-child {
+    margin-left: 0px;
+}
+
+.hit-list {
+	/*background: rgb(20, 18, 14);*/
+ 	color: #959586;
+ 	margin-top: 1px;
+}
+.hit-list table {
+	table-layout: fixed;
+	color: #7C7969;
+	border: 0px solid rgb(14, 12, 9);
+	border-collapse: separate;
+	border-spacing: 0px;
+}
+.hit-list .title {
+	background: #26251E;
+}
+.titles-line .hit-list {
+	margin: 0px;
+}
+.titles-line .hit-list .info {
+	bottom: 2px;
+	right: -2px;
+}
+.titles-line .hit-list .kill .info {
+	right: 5px;
+}
+.titles-line .hit-list .title .table-title {
+	width: 320px !important;
+	max-width: 320px !important;
+	line-height: 28px;
+	color: #bcbdbe;
+	font-weight: bold;
+	text-shadow: 1px 1px 2px #000;
+	padding-top: 3px;
+}
+.hit-list table .name {
+	width: 163px !important;
+  	max-width: 163px !important;
+  	text-align: right;
+	padding-right: 5px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.hit-list table .name.bold {
+	font-weight: bold;
+	text-align: left;
+ 	color: #bcbdbe;
+    text-shadow: 1px 1px 2px #000;
+    font-size: 13px;
+    padding-left: 5px;
+}
+.hit-list table .kill {
+	width: 34px !important;
+  	max-width: 34px !important;
+}
+.hit-list table .vehicle {
+	position: relative;
+	width: 153px !important;
+  	max-width: 153px !important;
+	padding-left: 70px;
+	padding-right: 5px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.hit-list table .vehicle img {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	margin: 0px;
+	height: 48px;
+	width: auto;
+  	margin-top: -8px;
+}
+.hit-list table .dead .vehicle img {
+	opacity: 0.5;
+}
+.hit-list.stun table .vehicle {
+    width: 140px !important;
+  	max-width: 140px !important;
+}
+.hit-list.stun table .name {
+    width: 147px !important;
+  	max-width: 147px !important;
+}
+.hit-list table tr td {
+	position: relative;
+	height: 31px;
+	max-width: 30px;
+}
+.hit-list table img {
+	margin: 0px 5px 0px 5px;
+	display: block;
+	width: 22px;
+	height: 22px;
+}
+.hit-list table img.bigger {
+	width: 24px;
+	height: 24px;
+}
+.hit-list table .capture img.bigger {
+	margin-top: 2px;
+}
+.hit-list table .info {
+	position: absolute;
+	bottom: 4px;
+	right: 1px;
+	background: #000;
+	padding: 0px 2px 0px 2px;
+	border: 1px solid rgba(77, 77, 77, 0.63);
+	font-size: 9px;
+	color: rgb(123, 120, 120);
+}
+.hit-list table .row td {
+	background-image: url(../style/images/wot/battleresults/hit-list-bg.png);
+	background-repeat: no-repeat;
+}
+.hit-list table .row.dead td {
+	background-image: url(../style/images/wot/battleresults/hit-list-bg-dead.png);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.hit-list table .name {
+	background-position: -16px 0px;
+}
+.hit-list table .vehicle {
+	background-position: -170px 0px;
+	overflow: hidden;
+}
+.hit-list table .vehicle::after,.hit-list table .vehicle::before {
+	content: '';
+	height: 1px;
+	width: 100%;
+	display: block;
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	z-index: 2;
+	background-color: #040402;
+}
+.hit-list table .vehicle::after {
+	top: auto;
+	bottom: 0px;
+}
+.hit-list table .space {
+	height: 1px;
+}
+.hit-list table .spotted {
+	background-position: -285px 0px;
+}
+.hit-list table .assist {
+	background-position: -324px 0px;
+}
+.hit-list table .crits {
+	background-position: -369px 0px;
+}
+.hit-list table .damage {
+	background-position: -412px 0px;
+}
+.hit-list table .kill {
+	background-position: -456px 0px;
+}
+.hit-list .tank-scroll {
+	/*max-height: 319px;*/
+	max-height: 352px;
+	overflow: hidden;
+}
+.hit-list .tank-scroll .mCSB_container {
+	margin-right: 15px;
+	margin-right: 0px!important;
+}
+.hit-list .tank-scroll .mCSB_scrollTools {
+	/*opacity: 1!important;*/
+}
+.hit-list .tank-scroll .mCSB_scrollTools .mCSB_dragger_bar {
+	background-color: rgba(43, 40, 31, 0.75)!important;
+	width: 13px!important;
+	border-radius: 0px!important;
+	border: 1px solid #5f5d51!important;
+	position: relative;
+}
+.hit-list .tank-scroll .mCSB_scrollTools .mCSB_dragger_bar:before {
+	content: ' ';
+	height: 1px;
+	border-top: 1px solid #959289;
+	border-bottom: 1px solid #959289;
+	padding: 3px 0px;
+	width: 7px;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	margin-left: -3px;
+	margin-top: -3px;
+}
+.hit-list .tank-scroll .mCSB_scrollTools .mCSB_dragger_bar:after {
+	content: ' ';
+	height: 1px;
+	margin-top: 1px;
+	background: #959289;
+	width: 7px;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	margin-left: -3px;
+}
+.hit-list .tank-scroll .mCSB_scrollTools .mCSB_draggerContainer {
+	margin: 13px 0px!important;
+}
+.hit-list .tank-scroll .mCSB_scrollTools .mCSB_buttonUp,.hit-list .tank-scroll .mCSB_scrollTools .mCSB_buttonDown {
+	width: 13px!important;
+	height: 13px!important;
+	border: 1px solid #5f5d51!important;
+	opacity: 1!important;
+	background: rgba(43, 40, 31, 0.75) url(../style/images/wot/buttons/buttonUp.png) no-repeat center center!important;
+}
+.hit-list .tank-scroll .mCSB_scrollTools .mCSB_buttonDown {
+	bottom: 2px!important;
+	background-image: url(../style/images/wot/buttons/buttonDown.png)!important;
+}
+.hit-list .tank-scroll .mCSB_draggerContainer {
+	width: 13px!important;
+}
+.hit-list .tank-scroll .mCSB_scrollTools {
+	width: 13px!important;
+	margin-right: 3px!important;
+}
+.hit-list .tank-scroll .mCSB_scrollTools .mCSB_draggerRail {
+	background: #2f2f27!important;
+	width: 1px!important;
+	border-radius: 0px!important;
+}
+.hit-list .tank-scroll .mCSB_scrollTools .mCSB_dragger {
+	margin: -1px 0px 0px 0px!important;
+}
+
+.hit-list .tank-scroll table .row td.name {
+	width: 143px !important;
+    max-width: 143px !important;
+}
+.hit-list.stun .tank-scroll table .row td.name {
+    width: 129px !important;
+    max-width: 129px !important;
+}
+.titles-line .hit-list .title.scroll .table-title {
+	width: 297px !important;
+    max-width: 297px !important;
+}
+.titles-line .hit-list .title.scroll.stun .table-title {
+    width: 270px !important;
+    max-width: 270px !important;
+}
+
+.replay-download {
+	float: right;
+	margin-top: -72px;
+}
+.replay-download a {
+	width: 152px;
+ 	height: 44px;
+ 	display: inline-block;
+ 	text-decoration: none;
+ 	text-align: center;
+}
+.replay-download .edit {
+	margin-right: 10px;
+ 	position: relative;
+}
+.replay-upper-info {
+	display: inline-block;
+	float: right;
+ 	margin-top: -22px;
+}
+.replay-upper-info .comments,
+.replay-upper-info .views,
+.replay-upper-info .downloads {
+	display: inline-block;
+}
+.replay-tabs .tab {
+	display: inline-block;
+ 	padding: 0px 15px 0px 15px;
+	line-height: 20px;
+	text-align: center;
+	margin-right: 3px;
+	background: url(../style/images/wot/buttons/sprite.png);
+	background-size: 100% 60px;
+	background-position: 0px -20px;
+	border-top-right-radius: 3px;
+	border-top-left-radius: 3px;
+	box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
+	font-weight: bold;
+	color: #cecebc;
+	font-size: 12px;
+	text-shadow: 0px 0px 2px #322A2A,0px 0px 2px #3F3939;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+.replay-tabs .tab:hover {
+	cursor:url(../style/images/wot/cursors/cursor-pointer.png),pointer;
+	background-position: 0px -60px;
+}
+.replay-tabs .tab.active {
+	background-position: 0px -40px;
+}
+.replay-tab-wrapper {
+	display: none;
+	background: #14120E;
+}
+.replay-tab-wrapper.active {
+	display: block;
+}
+.replay-tab-wrapper img {
+	-webkit-user-drag: none;-khtml-user-drag: none;-moz-user-drag: none;-o-user-drag: none;user-drag: none;
+	-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-o-user-select: none;user-select: none;
+}
+
+.team-score .team-name {
+	height: 34px;
+	line-height: 34px;
+	padding-left: 7px;
+	color: #bcbdbe;
+	font-weight: bold;
+	text-shadow: 1px 1px 2px #000;
+}
+
+.personal-data.tab {
+	color: #959586;
+}
+.personal-data.tab .data-wrapper {
+	display: inline-block;
+	margin: 10px 24px;
+	vertical-align: top;
+}
+.personal-data.tab .data-wrapper .row {
+	border-bottom: 1px dotted rgba(67, 66, 61, 0.75);
+	margin-bottom: 3px;
+	padding-bottom: 2px;
+}
+.personal-data.tab .data-wrapper .row.padding {
+	padding-left: 30px;
+}
+.personal-data.tab .data-wrapper .row.top {
+	margin-top: 23px;
+}
+.personal-data.tab .data-wrapper.stat,.personal-data.tab .data-wrapper.time {
+	width: 350px;
+}
+.personal-data.tab .data-wrapper.credit .row,.personal-data.tab .data-wrapper.xp .row,.personal-data.tab .data-wrapper.bonds .row {
+	width: 300px;
+}
+.personal-data.tab .data-wrapper.credit .row.gold,.personal-data.tab .data-wrapper.xp .row.bonus {
+	width: 367px;
+}
+.personal-data.tab .data-wrapper.credit .row img,.personal-data.tab .data-wrapper.bonds .row img {
+	margin: 0px 2px 0px 5px;
+}
+.personal-data.tab .data-wrapper.bonds .row img {
+    vertical-align: top;
+    margin-top: -2px;
+}
+.personal-data.tab .data-wrapper.credit .row .gold,.personal-data.tab .data-wrapper.xp .row .bonus {
+	width: 67px;
+	display: inline-block;
+	text-align: right;
+}
+.personal-data.tab .data-wrapper.credit.premium .row,.personal-data.tab .data-wrapper.xp.premium .row {
+	width: 69px;
+}
+.personal-data.tab .data-wrapper.credit.premium .row.gold,.personal-data.tab .data-wrapper.xp.premium .row.bonus  {
+	width: 136px;
+}
+.personal-data.tab .data-wrapper .right .gold {
+	color: rgb(235, 190, 74);
+}
+.personal-data.tab .data-wrapper .red {
+	color: #920a16 !important;
+}
+.personal-data.tab .data-wrapper.xp img {
+	margin-top: -6px;
+  	margin-bottom: -2px;
+	margin-left: 2px;
+}
+.personal-data.tab .titles-line {
+	line-height: 34px;
+	padding-left: 24px;
+	position: relative;
+	z-index: 5;
+	font-size: 14px;
+}
+.personal-data.tab .titles-line.second {
+	  margin-top: 50px;
+}
+.personal-data.tab .titles-line span {
+	position: absolute;
+}
+.personal-data.tab .titles-line .credit,.personal-data.tab .titles-line.second span {
+	left: 422px;
+}
+.personal-data.tab .titles-line .premium {
+	left: 838px;
+ 	color: #FEC264;
+}
+.personal-data.tab .titles-line .premium.inactive {
+	opacity: 0.3;
+}
+.personal-data.tab .data-wrapper.inactive .right {
+	color: #42423a;
+}
+.personal-data.tab .data-wrapper.inactive .right.red {
+	color: #571513 !important;
+}
+.personal-data.tab .data-wrapper.inactive .right .gold {
+	  color: #423c2e;
+}
+.personal-data.tab .data-wrapper.inactive img {
+	opacity: 0.3;
+}
+.personal-data.tab .data-wrapper.credit .left,.personal-data.tab .data-wrapper.xp .left,.personal-data.tab .data-wrapper.bonds .left {
+ 	width: 230px;
+ 	display: inline-block;
+}
+.personal-data.tab .data-wrapper.xp .left {
+	width: 240px;
+}
+.personal-data.tab .data-wrapper.credit .row,.personal-data.tab .data-wrapper.xp .row {
+	position: relative;
+}
+.personal-data.tab .data-wrapper.credit .right,.personal-data.tab .data-wrapper.xp .right {
+	position: absolute;
+	right: 0px;
+	bottom: 2px;
+}
+.data-wrapper.credit.premium,.data-wrapper.xp.premium {
+	border-left: 2px solid #26231c;
+	margin-left: 0px;
+	padding-left: 24px;
+}
+.data-wrapper.xp.premium {
+	margin-bottom: 50px;
+}
+.personal-data .data-wrapper.bonds {
+	float: right;
+    width: 605px;
+    vertical-align: top;
+    margin-right: -0px;
+    margin-bottom: -30px;
+    margin-left: -25px;
+}
+
+.down-info {
+	color: rgb(70, 70, 70);
+	font-size: 11px;
+}
+.down-info a {
+	color: rgb(70, 70, 70);
+	text-decoration: none;
+}
+.down-info a:hover {
+	text-decoration: underline;
+}
+.down-info .gray {
+	border-left: 1px solid rgb(70, 70, 70);
+	color: rgb(70, 70, 70);
+	margin: 5px 5px 0px 10px;
+	padding-left: 10px;
+	display: inline-block;
+}
+.down-info .gray:first-child {
+	margin-left: 0px;
+	border:none;
+}
+
+/*Pop-up*/
+.pop-up {
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	top: 0px;
+	left: 0px;
+	z-index: 100;
+	opacity: 0;
+}
+.pop-up .background {
+	background:rgba(0,0,0,0.8);
+	width: 100%;
+	height: 100%;
+}
+.pop-up .content {
+	display: inline-block;
+	background: rgb(215, 215, 215);
+	padding: 25px;
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	z-index: 101;
+ 	box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+ 	border: 1px solid rgba(0,0,0,0.5);
+}
+.pop-up .content input,.pop-up .content textarea {
+	width: 100%;
+	outline: none;
+	margin-bottom: 15px;
+	padding: 5px;
+	font-family: Arial;
+	font-size: 12px;
+	border: 1px solid darkgrey;
+}
+.pop-up .content textarea {
+	height: 150px;
+	resize: none;
+}
+.pop-up .content input[type=submit] {
+	margin-bottom: 0px;
+}
+.pop-up.replay-upload .content {
+	width: 500px;
+}
+.pop-up .error {
+	border: 1px solid rgb(221, 14, 14) !important;
+}
+.pop-up .error-text img {
+	vertical-align: bottom;
+	margin-right: 2px;
+ 	margin-bottom: -2px;
+}
+.pop-up .error-text {
+	color: rgb(221, 14, 14);
+	font-size: 11px;
+	margin-bottom: 10px;
+  	margin-top: -5px;
+  	display: none;
+}
+.pop-up input[type=button],.pop-up input[type=submit] {
+	padding: 0px 15px 0px 15px;
+	line-height: 19px;
+	text-align: center;
+	background: url(../style/images/wot/buttons/sprite.png);
+	background-size: 100% 60px;
+	background-position: 0px -20px;
+	font-weight: bold;
+	color: #cecebc;
+	font-size: 11px;
+	text-shadow: 0px 0px 2px #322A2A,0px 0px 2px #3F3939;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	width: 150px;
+	height: 21px;
+  	border-radius: 3px;
+	margin: 0px auto 15px auto;
+	display: block;
+	border: none;
+}
+.pop-up input[type=text]:disabled {
+	background: #fff;
+}
+.pop-up .content label input[type=checkbox] {
+	display: none;
+}
+.pop-up .content label input[type=checkbox] + span {
+	display: inline-block;
+	height: 16px;
+	width: 16px;
+	background: url(../style/images/wot/buttons/checkbox-sprite.png);
+	margin-right: 2px;
+	margin-bottom: -3px;
+}
+.pop-up .content label input[type=checkbox]:checked + span {
+	background-position: 0px -16px;
+}
+.pop-up .content label:hover input[type=checkbox]:not(:checked) + span {
+	background-position: 0px -32px;
+}
+.pop-up .content label {
+	margin-bottom: 20px;
+	display: inline-block;
+}
+.pop-up .content label:hover {
+	cursor: url(../style/images/wot/cursors/cursor-pointer.png),pointer;
+}
+input[type=button] {
+	margin: 0px;
+}
+.pop-up input[type=button]:hover,.pop-up input[type=submit]:hover {
+  	background-position: 0px -60px;
+  	cursor:url(../style/images/wot/cursors/cursor-pointer.png),pointer;
+}
+.big-red-button {
+	width: 152px;
+	height: 44px;
+	line-height: 42px;
+	background: url(../style/images/wot/buttons/red-button-sprite.png);
+	border: none;
+	border-radius: 4px;
+	font-family: 'Oswald', sans-serif;
+  	font-size: 20px;
+  	color: #F2F2F2;
+ 	text-shadow: 0px 0px 10px black,0px 0px 10px black,0px 0px 1px black,0px 0px 2px black;
+}
+.big-red-button.inactive,.big-red-button.inactive:hover {
+	background-size: 100% 400%;
+	background-position: 0% 200%;
+}
+.big-red-button:hover {
+	cursor:url(../style/images/wot/cursors/cursor-pointer.png),pointer;
+	background-position: 0px -44px;
+	color: #fff;
+}
+a.big-orange-button {
+	text-decoration: none;
+	text-align: center;
+}
+.big-orange-button {
+	display: inline-block;
+	width: 150px;
+	height: 44px;
+	line-height: 42px;
+	background: url(../style/images/wot/buttons/big-orange-button.png);
+	background-position: 100% 0px;
+	border: none;
+	border-radius: 4px;
+	font-family: 'Oswald', sans-serif;
+  	font-size: 20px;
+  	color: #F2F2F2;
+ 	text-shadow: 0px 0px 2px rgba(0, 0, 0, 1),0px 0px 2px rgba(0, 0, 0, 1),0px 0px 11px black;
+}
+.big-orange-button:hover {
+	cursor:url(../style/images/wot/cursors/cursor-pointer.png),pointer;
+	background-position: 0px -44px;
+}
+/**/
+.replay-list .wrapper {
+	height: 98px;
+	border-radius: 10px;
+	position: relative;
+ 	margin-bottom: 15px;
+  	/*box-shadow: 3px 3px 10px 2px rgba(0, 0, 0, 0.75);*/
+  	box-shadow: 0px 4px 10px 2px rgba(0, 0, 0, 0.6);
+  	background: #14120e;
+  	transform: translateZ(0);
+  	-webkit-transform: translateZ(0);
+  	-moz-transform: translateZ(0);
+  	-ms-transform: translateZ(0);
+  	-o-transform: translateZ(0);
+  	transition: all 200ms;
+  	width: 728px;
+}
+.replay-list .wrapper:hover {
+	margin-left: -5px;
+}
+.replay-list .wrapper:before {
+	content: "";
+	width: 100%;
+	height: 20%;
+	display: block;
+	position: absolute;
+	z-index: 10;
+	opacity: 0.25;
+	border-radius: 10px;
+	background: -moz-linear-gradient(top, rgba(255,255,255,1) 0%, rgba(255,255,255,0.7) 8%, rgba(255,255,255,0) 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(8%,rgba(255,255,255,0.7)), color-stop(100%,rgba(255,255,255,0)));
+	background: -webkit-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(255,255,255,0.7) 8%,rgba(255,255,255,0) 100%);
+	background: -o-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(255,255,255,0.7) 8%,rgba(255,255,255,0) 100%);
+	background: -ms-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(255,255,255,0.7) 8%,rgba(255,255,255,0) 100%);
+	background: linear-gradient(to bottom, rgba(255,255,255,1) 0%,rgba(255,255,255,0.7) 8%,rgba(255,255,255,0) 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#00ffffff',GradientType=0 );
+}
+.replay-list .wrapper.youtube .details .title {
+    width: 405px;
+}
+.replay-list .wrapper .yt_logo {
+    position: absolute;
+    top: 2px;
+    right: 5px;
+    height: 65px;
+}
+.replay-list .wrapper .img-container:before {
+	content: ' ';
+	width: 100%;
+	height: 98px;
+	/*background: url(../style/images/wot/map/stats/overlay.png) no-repeat;*/
+	top: 0px;
+	right: -1px;
+	z-index: 1;
+	position: absolute;
+	background: -moz-linear-gradient(left,  rgba(20,18,14,0) 0%, rgba(20,18,14,0) 21%, rgba(20,18,14,1) 82%, rgba(20,18,14,1) 99%);
+	background: -webkit-linear-gradient(left,  rgba(20,18,14,0) 0%,rgba(20,18,14,0) 21%,rgba(20,18,14,1) 82%,rgba(20,18,14,1) 99%);
+	background: linear-gradient(to right,  rgba(20,18,14,0) 0%,rgba(20,18,14,0) 21%,rgba(20,18,14,1) 82%,rgba(20,18,14,1) 99%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#0014120e', endColorstr='#14120e',GradientType=1 );
+}
+.replay-list .wrapper .img-container {
+	position: relative;
+	display: inline-block;
+	min-width: 231px;
+ 	height: 100%;
+}
+.replay-list .wrapper .img-container img.map {
+	border-radius: 8px;
+	height: 98px;
+	display: block;
+}
+.replay-list .wrapper .img-container img.tank {
+	position: absolute;
+	right: 0px;
+	top: 0px;
+	z-index:2;
+	height: 98px;
+}
+.replay-list .wrapper .img-container img.type,.replay-list .wrapper .img-container img.level {
+	position: absolute;
+	z-index: 10;
+}
+.replay-list .wrapper .img-container img.type {
+	top: 5px;
+	right: 5px;
+}
+.replay-list .wrapper .img-container img.level {
+	top: 5px;
+	right: 20px;
+}
+.replay-list .wrapper .img-container .map-name {
+	position: absolute;
+	left: 10px;
+	top: 5px;
+	font-family: 'Oswald', Arial, sans-serif;
+	font-size: 16px;
+	text-shadow: 0 0 5px #FFFFFF,0 0 5px #FFFFFF,0 0 5px #FFFFFF;
+	text-transform: uppercase;
+	z-index:2;
+	color: rgb(57, 58, 58);
+	display: inline-block;
+    width: 135px;
+}
+.replay-list .wrapper .img-container .name {
+	position: absolute;
+	right: 10px;
+	bottom: 10px;
+ 	text-align: right;
+	color: rgb(237, 237, 237);
+	text-shadow: 0 0 8px rgba(205, 205, 205, 0.8);
+	z-index:2;
+}
+.replay-list .wrapper .img-container .name.premium {
+	color: #C57338;
+	text-shadow: 0 0 8px #B86D37;
+}
+.replay-list .wrapper .img-container .mastery {
+	position: absolute;
+	left: 5px;
+	bottom: 0px;
+	z-index: 20;
+	height: auto;
+	width: auto;
+}
+.replay-list .wrapper .img-container .game {
+	position: absolute;
+    left: 672px;
+    bottom: 1px;
+    z-index: 20;
+    height: auto;
+    width: 53px;
+}
+.replay-list .wrapper .img-container .locked {
+	position: absolute;
+ 	right: 1px;
+    top: 23px;
+	z-index: 20;
+	height: auto;
+	width: auto;
+}
+.replay-list .wrapper .details {
+	vertical-align: top;
+	display: inline-block;
+	width: 480px;
+	padding-left: 10px;
+	color: #959586;
+	height: 100%;
+}
+.replay-list .wrapper .details .title {
+	color: #FEC264;
+	font-family: 'Oswald', sans-serif;
+	font-size: 17px;
+	margin-top: 6px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.replay-list .wrapper .details .upload-info {
+	font-size:11px;
+ 	margin: 2px 0px 0px 0px;
+}
+.replay-list .wrapper .details .tovabb {
+	position: absolute;
+	top: 50%;
+	right: 10px;
+	margin-top: -25px;
+	display: block;
+	width: 70px;
+	text-align: center;
+}
+.replay-list .wrapper .details .tovabb:hover img {
+	transform: rotateY(180deg);
+	-webkit-transform: rotateY(180deg);
+	-moz-transform: rotateY(180deg);
+	-ms-transform: rotateY(180deg);
+	-o-transform: rotateY(180deg);
+}
+.replay-list .wrapper .details .tovabb:hover div {
+	transform: rotateY(0deg);
+	-webkit-transform: rotateY(0deg);
+	-moz-transform: rotateY(0deg);
+	-ms-transform: rotateY(0deg);
+	-o-transform: rotateY(0deg);
+}
+.replay-list .wrapper .details .tovabb img {
+	height: 50px;
+	transition: all 500ms;
+	-webkit-transition: all 500ms;
+	-moz-transition: all 500ms;
+	-ms-transition: all 500ms;
+	-o-transition: all 500ms;
+	backface-visibility: hidden;
+	-webkit-visibility: hidden;
+	-moz-visibility: hidden;
+}
+.replay-list .wrapper .details .tovabb div {
+	transform: rotateY(180deg);
+	-webkit-transform: rotateY(180deg);
+	-moz-transform: rotateY(180deg);
+	-ms-transform: rotateY(180deg);
+	-o-transform: rotateY(180deg);
+	color: rgb(128, 191, 38);
+	font-family: 'Oswald', sans-serif;
+	font-size: 18px;
+	text-transform: uppercase;
+	text-decoration: none;
+	position: absolute;
+  	top: 11px;
+  	backface-visibility: hidden;
+  	-webkit-visibility: hidden;
+	-moz-visibility: hidden;
+  	transition: all 500ms;
+  	-webkit-transition: all 500ms;
+	-moz-transition: all 500ms;
+	-ms-transition: all 500ms;
+	-o-transition: all 500ms;
+  	text-align: center;
+ 	width: 100%;
+ 	text-shadow: 0px 0px 1px black,0px 0px 1px black,0px 0px 1px black;
+}
+.replay-list .wrapper .details .cell {
+	display: inline-block;
+	width: 74px;
+ 	height: 22px;
+}
+.replay-list .wrapper .details .cell span {
+	display: inline-block;
+	height: 30px;
+	line-height: 30px;
+	font-size: 11px;
+	padding-left:2px;
+}
+.replay-list .wrapper .details .cell img {
+	vertical-align:middle;
+}
+.replay-list .wrapper .details .cell .icon_up {
+	margin:-3px 1px 0px -1px;
+}
+.replay-list .wrapper .details .cell .icon_down {
+	margin:-3px 2px 0px 0px;
+}
+.replay-list .wrapper .details .cell .icon_comment {
+	margin:0px 10px 0px 5px;
+}
+.replay-list .wrapper .details .cell .icon_view {
+	margin:-1px -1px 0px -3px;
+}
+.replay-list .wrapper .details .cell .icon_download {
+	margin:-1px -2px 0px -2px;transform: rotateX(180deg);
+}
+.replay-list .wrapper .details .cell .icon_credits {
+	height:10px;margin-right:2px;margin-top:-1px;
+}
+.replay-list .wrapper .details .cell .icon_xp {
+	height:14px;margin-top:-2px;
+}
+.replay-list .wrapper .details .cell .icon_kills {
+	height:12px;margin-top:-4px;margin-right:2px;
+}
+.replay-list .wrapper .details .cell .icon_damage {
+	height:14px;margin: -2px 2px 0px 0px;
+}
+.replay-list .wrapper .details .cell .icon_assist {
+	margin-left: -1px;
+	margin-right: 1px;
+	margin-top: -2px;
+}
+.replay-list .wrapper .details .cell .icon_block {
+	margin-top: -3px;
+}
+
+/* Adverts */
+.ad_728_90 {
+	margin-bottom: 15px;
+ 	margin-left: -1px;
+}
+.ad_970_90 {
+	margin: 30px 0px;
+	text-align: center;
+}
+.ad_970_90 ins:empty + .hr {
+    display: none;
+}
+.ad_250_250 {
+	text-align: center;
+}
+.desc-section {
+	margin-bottom: 25px;
+}
+.comment-section .list,.comment-section .list .item  {
+	margin-bottom: 25px;
+}
+.comment-section .list .item.highlight {
+	background-color: rgba(255, 0, 0, 0.15);
+  	padding: 20px;
+  	-webkit-animation: highlight 2s infinite;
+  	animation: highlight 2s infinite;
+}
+@-webkit-keyframes highlight {
+    0% {background-color: rgba(255, 0, 0, 0.0);}
+    50% {background-color: rgba(255, 0, 0, 0.30);}
+    100% {background-color: rgba(255, 0, 0, 0.0);}
+}
+@keyframes highlight {
+    0% {background-color: rgba(255, 0, 0, 0.0);}
+    50% {background-color: rgba(255, 0, 0, 0.30);}
+    100% {background-color: rgba(255, 0, 0, 0.0);}
+}
+.comment-section .list .item:last-child  {
+	margin-bottom: 50px;
+}
+.comment-section .list .item hr {
+	margin-top: -1px;
+	border: none;
+	height: 1px;
+	background: rgba(169,169,169,1);
+}
+.comment-section .list .hash {
+	display: inline-block;
+	border: 1px solid rgb(170, 170, 170);
+	font-family: 'Oswald', sans-serif;
+	font-size: 15px;
+	padding: 0px 10px;
+	text-align: center;
+	height: 30px;
+	line-height: 29px;
+	color: rgb(82, 82, 82);
+	vertical-align: bottom;
+}
+.comment-section .list .date {
+	display: inline-block;
+	border: 1px solid rgb(170, 170, 170);
+	height: 30px;
+	line-height: 29px;
+	color: rgb(82, 82, 82);
+	width: 130px;
+	text-align: center;
+	float: right;
+}
+.comment-section .list .edit {
+	float: right;
+	margin-right: 5px;
+}
+.comment-section .list .edit img {
+	height: 26px;
+}
+.comment-section .list .name {
+	display: inline-block;
+	padding: 7px;
+}
+.comment-section .list .name .owner {
+    color: rgb(232, 15, 15);
+    font-size: 15px;
+    font-family: 'Oswald', sans-serif;
+    line-height: 13px;
+    margin-bottom: 1px;
+    display: block;
+}
+.comments textarea {
+	display: block;
+	width: 100%;
+	height: 150px;
+	resize: none;
+	margin-bottom: 15px;
+	font-family: arial;
+	padding: 10px;
+	border: 1px solid darkgrey;
+}
+.replay-list {
+	margin-top: 20px;
+}
+.sort-wrapper {
+	margin-top: 25px;
+	font-size: 14px;
+	text-align: center;
+}
+.sort-wrapper a,.pagination a  {
+	text-decoration: none;
+	display: inline-block;
+	padding: 0px 7px;
+	line-height: 20px;
+	text-align: center;
+	margin-right: 7px;
+	background: url(../style/images/wot/buttons/sprite.png);
+	background-size: 100% 60px;
+	background-position: 0px -21px;
+	border-radius: 3px;
+	box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
+	font-weight: bold;
+	color: #cecebc;
+	font-size: 12px;
+	text-shadow: 0px 0px 2px #322A2A,0px 0px 2px #3F3939;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	margin-bottom: 6px;
+}
+.sort-wrapper a:last-child {
+	margin-right: 0px;
+}
+.sort-wrapper a:hover,.pagination a:hover {
+	background-position: 0px -42px;
+ 	background-size: 100% 61px;
+}
+.pagination {
+	text-align: center;
+}
+.pagination a.inactive {
+	background-position: 0px -62px;
+ 	background-size: 100% 61px;
+ 	color: rgba(147, 147, 147, 1);
+}
+
+.vote-section {
+	/*position: absolute;
+	right: 177px;
+	top: 0px;*/
+	float: left;
+}
+.vote-section a,.vote-section .vote_up,.vote-section .vote_down {
+	background: url(../style/images/wot/buttons/red-button-sprite.png);
+	height: 44px;
+	display: inline-block;
+	vertical-align: top;
+	text-align: center;
+	text-decoration: none;
+	width: 50px;
+	margin-right: 10px;
+	background-size: 100% 400%;
+ 	background-position: 0px -200%;
+ 	color: #F2F2F2;
+  	text-shadow: 0px 0px 10px black,0px 0px 10px black,0px 0px 1px black,0px 0px 2px black;
+  	border-radius: 4px;
+}
+.vote-section a {
+	background-position: 0px 0px;
+}
+.youtube-list .item {
+	width: 32.4%;
+	display: inline-block;
+	vertical-align: top;
+	margin-left: 10px;
+	margin-bottom: 10px;
+	position: relative;
+}
+.youtube-list .item a {
+	color: #fff;
+	text-decoration: none;
+}
+.youtube-list .item:hover {
+	box-shadow: 0px 0px 8px 2px rgba(0, 0, 0, 0.7);
+}
+.youtube-list .item.no-margin {
+	margin-left: 0px;
+}
+.youtube-list .item  img {
+	display: block;
+	width: 100%;
+	height: 133px;
+}
+.youtube-list .item .time,.youtube-list .item .views {
+	position: absolute;
+	right: 0px;
+	bottom: 0px;
+	background: rgba(0, 0, 0, 0.7);
+	padding: 3px 7px;
+	font-family: 'Oswald', sans-serif;
+	letter-spacing: 1px;
+}
+.youtube-list .item .views {
+	right: auto;
+	left: 0px;
+	background: rgba(0, 0, 0, 0.7) url(images/eye.png);
+	background-size: 16px;
+	background-repeat: no-repeat;
+	background-position: 5px 50%;
+	padding-left: 26px
+}
+.youtube-list .item .title {
+	font-family: 'Oswald', sans-serif;
+	font-size: 13px;
+ 	padding: 5px 7px 7px 7px;
+	background: #000;
+	width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.youtube-list .plus {
+	font-family: arial;
+	font-weight: bold;
+	font-size: 14px;
+	margin-left: 2px;
+}
+.replay-filter {
+	padding-top: 15px;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	display: none;
+}
+.replay-filter .search {
+	float: right;
+	margin-top: 25px;
+ 	margin-right: 50px;
+}
+.replay-filter .title {
+	font-family: 'Oswald', sans-serif;
+	font-size: 15px;
+	margin-bottom: 10px;
+}
+.replay-filter .title .count {
+	font-size: 12px;
+}
+.replay-filter .col {
+	width: 135px;
+	display: inline-block;
+	vertical-align: top;
+}
+.replay-filter .col.tier {
+	margin-right: 20px;
+    width: 70px;
+}
+.replay-filter .col label,.replay-filter .tank-list label {
+	display: block;
+	margin-bottom: 3px;
+    line-height: 15px;
+    padding-top: 2px;
+}
+.replay-filter .version {
+	margin-right: 15px;
+	width: 300px;
+}
+.replay-filter .mastery {
+	width: 110px;
+}
+.replay-filter .tank-list,.replay-filter .map-list {
+	float: right;
+	width: 220px;
+	text-align: left;
+	border: none;
+	position: relative;
+}
+.replay-filter .tank-list .list {
+	height: 216px;
+ 	overflow: hidden;
+}
+.replay-filter .map-list .list {
+    height: 239px;
+    overflow: hidden;
+}
+.replay-filter .tank-list .list .mCSB_outside+.mCSB_scrollTools,.replay-filter .map-list .list .mCSB_outside+.mCSB_scrollTools {
+	right: 0px;
+}
+.replay-filter input[type=checkbox] {
+	display: none;
+}
+.replay-filter input[type=checkbox] + span {
+	display: inline-block;
+	height: 16px;
+	width: 16px;
+	background: url(../style/images/wot/buttons/checkbox-sprite.png);
+	margin-right: 5px;
+	margin-left: 5px;
+    margin-top: -2px;
+    margin-bottom: 3px;
+    float: left;
+}
+.replay-filter input[type=checkbox]:checked + span {
+	background-position: 0px -16px;
+}
+.replay-filter label:hover input[type=checkbox]:not(:checked) + span {
+	background-position: 0px -32px;
+}
+.replay-filter a.search {
+	text-align: center;
+	text-decoration: none;
+}
+
+/*Spinner*/
+.spinner {
+  margin: -20px auto 0px auto;
+  width: 50px;
+  height: 40px;
+  text-align: center;
+  font-size: 10px;
+  position: relative;
+  top: 50%;
+}
+
+.spinner > div {
+  background-color: #464646;
+  height: 100%;
+  width: 6px;
+  display: inline-block;
+  margin-right: 5px;
+  -webkit-animation: stretchdelay 1.2s infinite ease-in-out;
+  animation: stretchdelay 1.2s infinite ease-in-out;
+}
+
+.spinner .rect2 {
+  -webkit-animation-delay: -1.1s;
+  animation-delay: -1.1s;
+}
+
+.spinner .rect3 {
+  -webkit-animation-delay: -1.0s;
+  animation-delay: -1.0s;
+}
+
+.spinner .rect4 {
+  -webkit-animation-delay: -0.9s;
+  animation-delay: -0.9s;
+}
+
+.spinner .rect5 {
+  -webkit-animation-delay: -0.8s;
+  animation-delay: -0.8s;
+  margin: 0px;
+}
+
+@-webkit-keyframes stretchdelay {
+  0%, 40%, 100% { -webkit-transform: scaleY(0.4) }
+  20% { -webkit-transform: scaleY(1.0) }
+}
+
+@keyframes stretchdelay {
+  0%, 40%, 100% {
+    transform: scaleY(0.4);
+    -webkit-transform: scaleY(0.4);
+  }  20% {
+    transform: scaleY(1.0);
+    -webkit-transform: scaleY(1.0);
+  }
+}
+/*******/
+.admin-input-text {
+	width: 100%;
+ 	color: rgb(70, 70, 70);
+	padding: 5px;
+}
+.admin-inline {
+	display: inline-block;
+	margin: 25px 25px 25px 0px;
+	vertical-align: top;
+}
+.admin-inline label {
+	min-width: 70px;
+	display: inline-block;
+	margin: 0px 20px 10px 0px;
+}
+.admin-inline label img {
+	vertical-align: top;
+	margin-top: 2px;
+}
+.admin-table {
+	width: 100%;
+	text-align: center;
+	border-collapse: collapse;
+}
+.admin-table td,.admin-table th {
+	padding: 5px;
+	border: 1px solid rgb(173, 173, 173);
+}
+.admin-table tr:first-child:hover {
+	background: none;
+}
+.admin-table tr:hover {
+	background: rgba(128, 128, 128, 0.2);
+}
+
+/*Votes*/
+.votes-section .item {
+	margin-bottom: 25px;
+}
+.votes-section .item .hash {
+  display: inline-block;
+  border: 1px solid rgb(170, 170, 170);
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px;
+  padding: 0px 10px;
+  text-align: center;
+  height: 31px;
+  line-height: 29px;
+  color: rgb(82, 82, 82);
+  vertical-align: bottom;
+}
+.votes-section .item .name {
+  display: inline-block;
+  padding: 0px 0px 3px 1px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px;
+  color: rgb(82, 82, 82);
+  line-height: 24px;
+  margin-left: 2px;
+}
+.votes-section .item .count {
+  display: inline-block;
+  border: 1px solid rgb(170, 170, 170);
+  height: 31px;
+  line-height: 30px;
+  color: rgb(82, 82, 82);
+  width: 100px;
+  text-align: center;
+  float: right;
+}
+.votes-section .comment-section .list .date {
+	height: 31px;
+	line-height: 30px;
+}
+.votes-section .item hr {
+  margin-top: -1px;
+  border: none;
+  height: 1px;
+  background: rgba(169,169,169,1);
+}
+.votes-section .item input[type=radio] {
+	display: none;
+}
+.votes-section .item label {
+	margin-left: 5px;
+}
+.votes-section .item label:hover {
+	cursor: url(../style/images/wot/cursors/cursor-pointer.png),pointer !important;
+}
+.votes-section .item input[type=radio] + span {
+	display: inline-block;
+	height: 16px;
+	width: 16px;
+	background: url(../style/images/wot/buttons/checkbox-sprite.png);
+	margin-right: 5px;
+	margin-bottom: -3px;
+	margin-left: -1px;
+}
+.votes-section .item  input[type=radio]:checked + span {
+	background-position: 0px -16px;
+}
+.votes-section .item label:hover input[type=radio]:not(:checked) + span {
+	background-position: 0px -32px;
+}
+.votes-section .item .a {
+	margin-bottom: 5px;
+}
+.votes-section .item .result {
+	margin: 5px 0px 10px 0px;
+}
+.votes-section .item .value-wrapper {
+	padding-left: 5px;
+}
+.votes-section .item .result .value {
+	height: 20px;
+	background: url(images/votes/vote.jpg);
+	border: 1px solid rgb(90, 90, 90);
+	/*box-shadow: 2px 2px 7px 1px rgb(98, 98, 98);*/
+	/*-webkit-animation: fill 3s;
+    animation: fill 3s;*/
+}
+.votes-section .item .result.own .value {
+	background: url(images/votes/vote_own.jpg);
+}
+.votes-section .image-container {
+    text-align:center;
+}
+.votes-section .image-container img {
+    margin-top: -50px;
+    width: 400px;
+    opacity: 0.7;
+    margin-bottom: 15px;
+}
+.votes-section .navigation {
+	min-height: 47px;
+}
+.votes-section .navigation .big-orange-button {
+    font-size: 18px;
+    line-height: 44px;
+}
+.votes-section .comment-section .list .name .owner {
+	line-height: inherit;
+}
+/*
+@-webkit-keyframes fill {
+    0% { width:0%; }
+    30% { width:0%; }
+    100% {width:100%;}
+}
+@keyframes fill {
+    0% { width:0%; }
+    30% { width:0%; }
+    100% {width:100%;}
+}
+*/
+.votes-section .item .result-text {
+	margin-left: 5px;
+	margin-top: 3px;
+ 	/*margin-bottom: 15px;*/
+ 	float: right;
+}
+.votes-section .change {
+	text-decoration: none;
+	text-align: center;
+}
+
+form.contact input[type=text],form.contact textarea {
+	width: 100%;
+	color: rgb(70, 70, 70);
+	padding: 5px;
+	margin-bottom: 5px;
+	font-family: arial;
+	border: 1px solid rgb(169, 169, 169);
+}
+form.contact textarea {
+	resize: none;
+	height: 150px;
+}
+form.contact .error {
+	border: 1px solid red!important;
+}
+div.contact {
+	height:50px;
+	line-height:50px;
+	vertical-align:top;
+	font-size: 15px;
+	text-align: center;
+	margin-bottom: 20px;
+}
+div.contact a {
+	display: inline-block;
+	height:50px;
+	line-height:50px;
+	vertical-align: top;
+	color: rgb(7, 7, 158);
+	text-decoration: none;
+}
+div.contact a:hover {
+	text-decoration: underline;
+}
+.blog-section .item .name,.blog-wrapper .name {
+  display: inline-block;
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px;
+  height: 30px;
+  line-height: 29px;
+  color: rgb(82, 82, 82);
+  vertical-align: bottom;
+}
+.blog-section .item  {
+  position: relative;
+  margin-bottom: 25px;
+}
+.blog-section .item .text {
+	padding-bottom: 65px;
+	overflow:auto;
+}
+.blog-section .item a {
+	position: absolute;
+	bottom: 0px;
+	right: 0px;
+}
+.blog-section .item hr,.blog-wrapper hr {
+  margin-top: -1px;
+  border: none;
+  height: 1px;
+  background: rgba(169,169,169,1);
+}
+.blog-section .item .date,.blog-wrapper .date {
+  display: inline-block;
+  border: 1px solid rgb(170, 170, 170);
+  height: 30px;
+  line-height: 29px;
+  color: rgb(82, 82, 82);
+  width: 130px;
+  text-align: center;
+  float: right;
+}
+.blog-section .item .image {
+	float: left;
+	width:200px;
+	margin: 0px 10px 0px 0px;
+}
+.blog-wrapper img {
+	max-width: 100%;
+	height: auto;
+}
+.blog-wrapper img[style~="left;"]  {
+    margin-right: 10px;
+    margin-bottom: 5px;
+}
+.blog-wrapper img[style~="right;"]  {
+    margin-left: 10px;
+    margin-bottom: 5px;
+}
+.blog-wrapper a {
+	color: rgb(181, 63, 27);
+}
+.blog-wrapper .share .right {
+	color: rgb(70, 70, 70);
+	display: inline-block;
+	height: 15px;
+	line-height: 15px;
+	margin-top: 4px;
+}
+.blog-wrapper .share .right span {
+	color: #000;
+	display: inline-block;
+	height:13px;
+	border-right: 1px solid #000;
+	padding-right: 5px;
+	margin-right: 5px;
+}
+.blog-wrapper .share .right span:last-child {
+	border-right: none;
+	padding-right: 0px;
+	margin-right: 0px;
+}
+.youtube-list {
+	height: 360px;
+}
+.main hr.section {
+	border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(169, 169, 169, 1), rgba(0, 0, 0, 0));
+    margin: 30px 0px;
+}
+.youtube_wrapper {
+	position: absolute;
+	left: 50%;
+	top: 0px;
+	width: 800px;
+	margin: 0px 0px 0px -400px;
+	opacity: 1;
+	z-index: 21;
+}
+.youtube_wrapper ins {
+	margin: 20px auto 0px auto;
+	display: block !important;
+}
+.youtube_bg {
+	background: rgba(0,0,0,0.8);
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	opacity: 1;
+	z-index: 20;
+}
+.chat-userlist {
+	width: 160px;
+	height: 400px;
+	background: rgba(255, 255, 255, 0.3);
+	border: 1px solid darkgrey;
+	padding: 5px;
+	float: left;
+	overflow-y: scroll;
+}
+.chat-userlist .chat-user-name img {
+	vertical-align: top;
+	margin-top: -3px;
+	margin-right: 3px;
+}
+.chat-content {
+	width: 558px;
+	margin-left: 10px;
+	padding: 5px;
+	height: 358px;
+	background: rgba(255, 255, 255, 0.3);
+	border: 1px solid darkgrey;
+	float: left;
+ 	overflow-y: scroll;
+}
+.chat-content .message .name {
+	float:left;
+	font-weight: bold;
+	margin-right: 5px;
+}
+.chat-content .message .text {
+	word-break: break-word;
+}
+.chat-content .message {
+	margin-bottom: 3px;
+}
+.chat-content a {
+	color: rgb(181, 63, 27);
+}
+.chat-content .emoticon {
+	height: 16px;
+	margin-top: -2px;
+	vertical-align: top;
+	margin: -2px 2px 0px 2px;
+}
+.chat-userlist .chat-user-name {
+	margin-bottom: 3px;
+}
+.chat-input {
+	margin-left: 10px;
+	width: 558px;
+	padding: 5px;
+	height: 42px;
+	resize:none;
+	border-top: none;
+	background: rgba(255, 255, 255, 0.3);
+	font-family: Arial;
+}
+.chat-remaining {
+	text-align: right;
+}
+.chat-remaining.red {
+	color: red;
+}
+.chat-warning {
+	float: left;
+	margin-left: 172px;
+	color: red;
+}
+.nation-select-wrapper {
+	text-align: center;
+	padding-right: 58px;
+}
+.nation-select {
+	width: 198px;
+	height: 30px;
+	display: inline-block;
+ 	margin: 0px 2px 4px 2px;
+	line-height: 30px;
+	color: rgb(237, 237, 237);
+	text-shadow: 0 0 10px rgba(0, 0, 0, 1);
+	background-size: 100%!important;
+}
+.nation-select.selected,.nation-select:hover {
+	color: #C57338;
+	text-shadow: 0 0 8px #B86D37;
+}
+.nation-select.ussr {
+	background: url(../style/images/wot/flags/select_ussr.bmp);
+}
+.nation-select.uk {
+	background: url(../style/images/wot/flags/select_uk.bmp);
+}
+.nation-select.japan {
+	background: url(../style/images/wot/flags/select_japan.bmp);
+}
+.nation-select.china {
+	background: url(../style/images/wot/flags/select_china.bmp);
+}
+.nation-select.germany {
+	background: url(../style/images/wot/flags/select_germany.bmp);
+}
+.nation-select.france {
+	background: url(../style/images/wot/flags/select_france.bmp);
+}
+.nation-select.usa {
+	background: url(../style/images/wot/flags/select_usa.bmp);
+}
+.nation-select.czech {
+	background: url(../style/images/wot/flags/select_czech.bmp);
+}
+.nation-select.sweden {
+	background: url(../style/images/wot/flags/select_sweden.bmp);
+}
+.nation-select.poland {
+	background: url(../style/images/wot/flags/select_poland.bmp);
+}
+.nation-select.italy {
+	background: url(../style/images/wot/flags/select_italy.bmp);
+}
+.tankopedia-tanks h2 {
+	/*text-align: center;	*/
+	margin: 10px 0px -10px 0px;
+	font-size: 30px;
+	letter-spacing: 1px;
+}
+.tankopedia-tanks h3 {
+	/*text-align: center;	*/
+	margin: 10px 0px;
+	font-size: 23px;
+}
+.tank-profile img {
+	user-drag: none;
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+.tank-profile h2 {
+	display: inline-block;
+}
+.tank-profile a.back {
+	float: right;
+	margin-top: 13px;
+	text-decoration: none;
+	color: rgb(181, 63, 27);
+    margin-right: 32px;
+}
+.tank-profile a:hover {
+	text-decoration: underline;
+}
+.tank-profile a.back i {
+	font-style: normal;
+	display: inline-block;
+	margin-top: -2px;
+	font-size: 12px;
+	margin-right: -1px;
+	vertical-align: top;
+}
+.tankopedia-achi {
+	margin-bottom: 150px;
+}
+.tankopedia-achi h2,.tankopedia-maps h2 {
+	font-size: 30px;
+	margin-bottom: 0px;
+    display: inline-block;
+    height: 30px;
+    line-height: 30px;
+}
+.tankopedia-achi h3 {
+	margin: 30px 0px 15px 0px;
+	font-size: 22px;
+}
+.tankopedia-achi img {
+	width: 95px;
+    height: 95px;
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+    -webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-o-user-select: none;
+	user-select: none;
+}
+.tankopedia-achi .achi-num,.player-profile .achi-num {
+	position: absolute;
+	bottom: 10px;
+	right: 8px;
+	width: auto!important; height: auto!important;
+}
+.tankopedia-achi .achi-wrapper.show.dont {
+	opacity: 0.5;
+}
+.tankopedia-achi .hide {
+	display: none;
+}
+.tankopedia-achi .achi-wrapper.show .achi-number-wrapper,.tankopedia-achi .visible {
+	display: block;
+}
+.tankopedia-achi input[type=checkbox] {
+	display: none;
+}
+.tankopedia-achi label {
+	display: inline-block;
+    vertical-align: top;
+    margin-left: -5px;
+    margin-top: 13px;
+}
+.tankopedia-achi label:hover {
+	cursor: url(../style/images/wot/cursors/cursor-pointer.png),pointer !important;
+}
+.tankopedia-achi input[type=checkbox] + span {
+	display: inline-block;
+	height: 16px;
+	width: 16px;
+	background: url(../style/images/wot/buttons/checkbox-sprite.png);
+	margin-right: 5px;
+	margin-bottom: -3px;
+	margin-left: 5px;
+}
+.tankopedia-achi input[type=checkbox]:checked + span {
+	background-position: 0px -16px;
+}
+.tankopedia-achi label:hover input[type=checkbox]:not(:checked) + span {
+	background-position: 0px -32px;
+}
+
+.tankopedia-maps h2 {
+	font-size: 30px;
+	/*text-align: center;*/
+	margin-bottom: 5px;
+}
+.tankopedia-maps h3 {
+	font-size: 24px;
+    line-height: 20px;
+    margin-bottom: 15px;
+}
+.map_container_wiki .map {
+	width: 220px;
+	float: left;
+}
+.pop-up  .map_container_wiki {
+    position: relative;
+    overflow: visible;
+    transform: scale(2.32725);
+    margin-right: 100%;
+}
+.pop-up .maps.content {
+	padding-left: 17px!important;
+	padding-top: 17px!important;
+	padding-right: 2px!important;
+	padding-bottom: 2px!important;
+	box-shadow: none;
+	border: none;
+	background: none;
+ 	width: 533px;
+    height: 533px;
+}
+.pop-up .maps.content:after {
+	content: ' ';
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: url(../style/images/wot/map/web/image%205.png);
+	position: absolute;
+	background-size: contain;
+}
+.tankopedia-maps .item {
+	margin-bottom: 35px;
+	position: relative;
+    background: url(../style/images/wot/windows/flash/image%202.png) no-repeat;
+    background-size: 100% 100%;
+    padding: 18px 15px 23px 15px;
+    margin: -5px;
+    margin-top: 7px;
+}
+.tankopedia-maps .item:before {
+    content: ' ';
+    position: absolute;
+    width: 712px;
+    height: 448px;
+    background: url(../style/images/wot/windows/flash/image%209.png) no-repeat;
+    background-size: 100% 100%;
+    top: 15px;
+    left: 13px;
+}
+.tankopedia-maps .item .header {
+    height: 200px;
+    position: relative;
+}
+.tankopedia-maps .item .header .name {
+    color: #EFEDE1;
+    text-shadow: 0px 0px 3px #000000, 0px 0px 12px #000000;
+    font-size: 35px;
+    text-align: center;
+    font-family: 'Oswald', sans-serif;
+    line-height: 1em;
+    padding-top: 10px;
+}
+.tankopedia-maps .item .header .types {
+    text-align: center;
+}
+.tankopedia-maps .item .header .types img {
+    display: inline-block;
+    margin: 0px -4px;
+    height: 80px;
+}
+.tankopedia-maps .item .header .info {
+    padding: 5px 20px;
+    background-color: rgba(255,255,255,0.3);
+    width: 100%;
+    text-align: center;
+    color: #EFEDE1;
+    text-shadow: 0px 0px 3px #000000, 0px 0px 12px #000000;
+    font-size:18px;
+    font-weight: 600;
+    top: 128px;
+    position: absolute;
+}
+.tankopedia-maps .item .header .info .camo {
+    text-transform: capitalize;
+}
+.tankopedia-maps .item .body {
+    padding: 10px;
+}
+.tankopedia-maps .item .descr-wrapper {
+	padding-left: 10px;
+	min-height: 222px;
+    overflow: hidden;
+    position: relative;
+    color: #87877d;
+    font-size: 13px;
+}
+.tankopedia-maps .item .descr {
+	line-height: 17px;
+}
+
+.tankopedia-maps input[type=radio] {
+	display: none;
+}
+.tankopedia-maps input[type=radio] + span {
+	display: inline-block;
+	height: 16px;
+	width: 16px;
+	background: url(../style/images/wot/buttons/checkbox-sprite.png);
+	margin-right: 3px;
+	margin-bottom: -4px;
+	margin-left: 5px;
+}
+.tankopedia-maps label:first-child input[type=radio] + span {
+    margin-left: 0;
+}
+.tankopedia-maps input[type=radio]:checked + span {
+	background-position: 0px -16px;
+}
+.tankopedia-maps label:hover input[type=radio]:not(:checked) + span {
+	background-position: 0px -32px;
+}
+
+.map_container_wiki {
+	position: relative;
+	overflow: hidden;
+ 	border: 1px solid #3C3C3C;
+}
+.map_container_wiki .size {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    z-index: 2;
+    color: rgb(226, 226, 226);
+    padding-left: 3px;
+    text-shadow: 1px 1px 1px black;
+    background: url(../style/images/wot/custom/b-description_class.png) no-repeat;
+    background-position: -25px 0px;
+    height: 17px;
+    width: 60px;
+}
+.tankopedia-maps .map-wrapper {
+	float: left;
+}
+.tankopedia-maps .links {
+	position: absolute;
+	bottom: -3px;
+}
+.tankopedia-maps .links strong {
+    font-size: 14px;
+    margin-left: 1px;
+    margin-bottom: 3px;
+    display: block;
+}
+.tankopedia-maps .links label {
+	display: inline-block;
+	margin-right: 5px;
+    font-size: 12px;
+}
+.map_container_wiki .icon {
+	position:absolute;
+	width:26px;
+	margin-top:-13px;
+	margin-left:-13px;
+	display: none;
+}
+.map_container_wiki .icon.ctf {
+	display: block;
+}
+.tank-profile .half + .half table {
+	float: right;
+	margin-right: 30px;
+}
+.tank-profile .eqv-holder.turret-error:before,.tank-profile .eqv-holder.weight-error:before {
+	content: attr(data-turret-text);
+	background-color: rgba(0,0,0,0.94);
+    border: 1px solid #454648;
+    border-radius: 3px;
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.85), 0 0 20px rgba(0, 0, 0, 0.25), 0 0 7px rgba(0, 0, 0, 0.21), 0 0 11px rgba(255, 255, 255, 0.03) inset;
+    color: #979899;
+    float: left;
+    line-height: 130%;
+    margin: 0;
+    padding: 8px 5px;
+    position: absolute;
+    z-index: 10;
+    width: 140px;
+    bottom: 66px;
+    left: 50%;
+    margin-left: -70px;
+    box-sizing: border-box;
+}
+.tank-profile .eqv-holder.turret-error:after,.tank-profile .eqv-holder.weight-error:after  {
+    content: ' ';
+    width: 29px;
+    height: 14px;
+    background: url(../style/images/wot/tooltip/bottom.png) no-repeat;
+    display: block;
+    position: absolute;
+    z-index: 11;
+    bottom: 61px;
+    left: 50%;
+    transform: translateX(-50%);
+
+}
+.tank-profile .eqv-holder.weight-error:before {
+	content: attr(data-weight-text);
+}
+.vehicle-details .gun-clip td,.vehicle-details .gun-single td {
+	display: none;
+}
+.vehicle-details .gun-clip.active td,.vehicle-details .gun-single.active td {
+	display: table-cell;
+}
+
+
+
+header .flags {
+	display: inline-block;
+ 	background: rgba(20, 10, 10, 0.87);
+    border-radius: 5px;
+	padding: 10px;
+ 	position: absolute;
+    right: 127px;
+    top: 44px;
+    z-index: 100;
+    display: none;
+}
+header .flags img {
+	margin-right: 5px;
+ 	vertical-align: middle;
+    margin-bottom: 2px;
+}
+header .flags.act {
+	display: block;
+}
+header .flags a {
+	display: block;
+	line-height: 30px;
+}
+header .flags .col {
+	float: left;
+	margin-right: 25px;
+}
+header .flags .col:last-child {
+	margin-right: 16px;
+}
+header .flags-select {
+	border: 1px solid #34332e;
+	height: 20px;
+	line-height: 19px;
+	display: inline-block;
+	margin-right: 25px;
+	padding: 0px 20px 0px 5px;
+	width: 125px;
+ 	background: rgba(0, 0, 0, 0.28);
+    border-radius: 2px;
+    position: relative;
+    -webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-o-user-select: none;
+	user-select: none;
+	color: #959586;
+ 	vertical-align: middle;
+  	margin-top: -3px;
+}
+header .flags-select:after {
+	content: ' ';
+ 	display: block;
+    width: 18px;
+    height: 18px;
+    background: url(../style/images/wot/buttons/select.png);
+    position: absolute;
+    right: 1px;
+    top: -1px;
+}
+header .flags-select img {
+	vertical-align: top;
+	margin-right: 5px;
+	margin-top: 1px;
+	-webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+    height: 16px;
+}
+header .flags-select {
+    cursor: url(../style/images/wot/cursors/cursor-pointer.png),pointer;
+}
+.help_panel {
+	line-height: 20px;
+	margin-top: -5px;
+}
+.help_panel a {
+	color: rgb(70, 70, 70);
+}
+.replay-edit label input[type=checkbox] {
+	display: none;
+}
+.replay-edit label input[type=checkbox] + span {
+	display: inline-block;
+	height: 16px;
+	width: 16px;
+	background: url(../style/images/wot/buttons/checkbox-sprite.png);
+	margin-right: 2px;
+	margin-bottom: -3px;
+}
+.replay-edit label input[type=checkbox]:checked + span {
+	background-position: 0px -16px;
+}
+.replay-edit label:hover input[type=checkbox]:not(:checked) + span {
+	background-position: 0px -32px;
+}
+.replay-edit label {
+	margin-bottom: 20px;
+	display: inline-block;
+}
+.replay-edit label:hover {
+	cursor: url(../style/images/wot/cursors/cursor-pointer.png),pointer;
+}
+footer .text {
+	display: inline-block;
+    width: 585px;
+}
+.pop-up.login {
+	display: none;
+}
+.pop-up.login .content {
+	background: url('../style/images/wot/windows/switch_periphery_window_bg.png');
+	width: 440px;
+    height: 282px;
+    border: none;
+    box-shadow: none;
+}
+.pop-up.login .content a {
+	display: block;
+	background:url('../style/images/wot/buttons/button_login.png');
+	background-size: 100% 60px;
+ 	height: 30px;
+    width: 120px;
+    line-height: 30px;
+    text-shadow: 1px 1px 1px black;
+    color: #fff;
+    margin: 0px 0px 10px 0px;
+    text-align: center;
+    text-decoration: none;
+}
+.pop-up.login .content a:hover {
+	background-size: 100% 60px;
+	background-position: 0px -90px;
+}
+.pop-up.replay-upload .waiting {
+	-webkit-transform: scale(0.5);
+	-moz-transform: scale(0.5);
+	-ms-transform: scale(0.5);
+	-o-transform: scale(0.5);
+    transform: scale(0.5);
+    margin-top: -21px;
+    margin-bottom: 42px;
+}
+
+.player-profile .achi-wrapper img {width: 85px;}
+.player-profile .achi-number-wrapper {display:block;}
+.player-profile .tank-list tr {height:36px;}
+.player-profile .tank-list td {padding:0px 10px;position: relative;}
+.player-profile .tank-list th {padding:0px 10px;}
+.player-profile .tank-list th.sorting_desc, .player-profile .tank-list th.sorting_asc {}
+.player-profile .achi-extended h3 {margin-top: 25px;margin-bottom: 5px;}
+.player-profile .achi-ext-button {margin-top:15px;display: inline-block;}
+.player-profile .achi-ext-button:before {content:'+ ';}
+.player-profile .achi-ext-button.active:before {content:'- ';}
+.player-profile .graphs {padding-left: 17px;}
+.player-profile .graphs .stat {margin-top:20px;height:113px;position: relative;display: inline-block;margin-right: 42px;margin-bottom: 40px;}
+.player-profile .graphs .stat:after {height:26px;position:absolute;bottom:-28px;content:' ';display: block;width: calc(100% + 30px);background: #2D2C25;border:1px solid black;left:50%;transform: translate(-50%,0%););box-shadow: 3px 3px 3px 0px rgba(0, 0, 0, 0.4);}
+.player-profile .graphs .stat:last-child {margin-right:0px;}
+.player-profile .graphs .stat .col-wrapper {display: inline-block;margin-right: 19px;width: 14px;height: 100%;vertical-align: bottom;position:relative;}
+.player-profile .graphs .stat .col {transition:all 1800ms 200ms;height:0%;width:100%;background:url(../style/images/wot/custom/profileStatistics-1.png) center bottom;position: absolute;bottom: 0px;}
+.player-profile .graphs .stat .col-wrapper:last-child {margin-right:0px;}
+.player-profile .graphs .stat .col:before {content: attr(data-number);position:absolute;top: -15px;display:block;width:35px;text-align:center;left:-8.75px;}
+.player-profile .graphs .stat .col.strong:before {font-weight:bold;}
+.player-profile .graphs .stat .col .after {position:absolute;bottom: -26px;display:block;width:35px;text-align:center;left:-10px;z-index:1;}
+.player-profile .clan-info {position: absolute;right: 25px;top: 5px;}
+.player-profile .clan-info img {float:left;margin-right:10px;}
+.player-profile .clan-info .info {overflow: auto;line-height: 18px;padding-top: 4px;}
+.player-profile .clan-info .name {font-size:17px;margin-bottom: 5px;font-weight:bold;}
+.player-profile .clan-info .name span {text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.25);}
+.player-profile label.stat {
+	margin-top:10px;
+	cursor: url(../style/images/wot/cursors/cursor-pointer.png),pointer !important;
+	-webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    display: inline-block;
+}
+.player-profile label.stat input {
+	display:none;
+}
+.player-profile label.stat span {
+    display: inline-block;
+    height: 16px;
+    width: 16px;
+    background: url(../style/images/wot/buttons/checkbox-sprite.png);
+    margin-right: 5px;
+    margin-bottom: -3px;
+    margin-left: 5px;
+}
+.player-profile label.stat input[type=checkbox]:checked + span {
+	background-position: 0px -16px;
+}
+.player-profile label.stat:hover input[type=checkbox]:not(:checked) + span {
+	background-position: 0px -32px;
+}
+
+@media screen and (max-width: 1083px) {
+    header:before, header:after {
+    	display:none;
+    }
+    header {
+    	width: 1053px;
+   	}
+   	#content {
+   		border: none;
+	}
+}
+@media screen and (max-width: 2000px) {
+	html,body {
+		-webkit-text-size-adjust:none;
+	}
+}
+
+.battle-records .achievements div img.mark {
+	height: 83px;
+    margin-top: 5px;
+    margin-right: -7px;
+    margin-left: 5px;
+}
+.battle-records .achievements div img.mark.full {
+	margin-right: 10px;
+}
+.profile_link {
+	float: right;
+}
+.profile_link img {
+	vertical-align: top;
+	margin-top: 18px;
+}
+.profile_link h2 {
+	display: inline-block;
+	margin-top:15px;
+}
+.profile_link a {
+	color: rgb(70, 70, 70);
+}
+
+.map-stat .stat .stat-tank .select,.replay-filter .select {
+	position: absolute;
+    top: 50px;
+    left: 154px;
+    color: #959586;
+}
+.map-stat .stat .stat-tank .select .custom,.replay-filter .select .custom {
+    width: 180px;
+    margin-top: 5px;
+    background: #101008;
+    position: relative;
+    border: 1px solid #34332e;
+    border-radius: 1px;
+    height: 20px;
+}
+.map-stat .stat .stat-tank .select .custom:hover,.map-stat .stat .stat-tank .select .custom select:hover {
+	cursor:url(../style/images/wot/cursors/cursor-pointer.png),pointer !important;
+}
+.map-stat .stat .stat-tank .select .custom .selected,.replay-filter .select .custom .selected {
+    padding: 0px 25px 0px 5px;
+    border: none;
+    background: none;
+    color: #959586;
+    line-height: 19px;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.map-stat .stat .stat-tank .select i,.replay-filter .select i {
+	display: block;
+	width: 18px;
+	height: 18px;
+	background: url(../style/images/wot/buttons/select.png);
+	position: absolute;
+	right: 1px;
+	top: -1px;
+}
+.map-stat .stat .stat-tank .select .custom .list,.replay-filter .select .custom .list {
+	background: #101008;
+    position: absolute;
+    top: 19px;
+    z-index: 1;
+    border: 1px solid #34332e;
+    border-top: 0px;
+    left: -1px;
+    width: 180px;
+    font-size: 11px;
+    display: none;
+}
+.map-stat .stat .stat-tank .select .custom .list .row,.replay-filter .select .list .row {
+    padding: 4px 25px 4px 5px;
+}
+.map-stat .stat .stat-tank .select .custom .list .row:hover,.replay-filter .select .list .row:hover {
+	background-color: #2e2e24;
+}
+.replay-filter .select {
+	position: static;
+	display: inline-block;
+	vertical-align: top;
+}
+.replay-filter .select .custom {
+	margin-top: 0px;
+	width: 71px;
+	border-left: none;
+}
+.replay-filter .select .custom .list {
+	width: 72px;
+}
+.replay-filter .select .custom .list.act {
+	display: block;
+}
+.replay-filter .player-search {
+	position: relative;
+}
+.replay-filter .player-search input {
+	background: #101008;
+ 	color: #959586;
+ 	border: 1px solid #34332e;
+  	font-size: 11px;
+ 	padding: 0px 5px 0px 5px;
+ 	height: 20px;
+ 	line-height: 20px;
+}
+.player-name-list {
+	width: 155px;
+    position: absolute;
+    left: 0px;
+    top: 52px;
+    background: #101008;
+ 	border: 1px solid #34332e;
+    border-bottom: none;
+    z-index: 10;
+    border-top: 0px;
+}
+.player-name-list .item {
+    padding: 4px;
+    border-bottom: 1px solid #34332e;
+    color: #959586;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.player-name-list .item:hover,.player-name-list .item.selected {
+    background-color: #2e2e24 !important;
+    cursor:url(../style/images/wot/cursors/cursor-pointer.png),pointer;
+}
+
+header .player-search {
+	position: relative;
+    width: 175px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-top: -3px;
+}
+header .player-search input {
+	background: #101008;
+ 	color: #959586;
+ 	border: 1px solid #34332e;
+  	font-size: 11px;
+ 	padding: 0px 5px 0px 5px;
+ 	height: 20px;
+ 	line-height: 20px;
+ 	float:left;
+ 	border-right: 0px;
+ 	width: 105px;
+}
+header .player-search .custom {
+    margin-top: 0px;
+    width: 55px;
+    border-left: none;
+    background: #101008;
+    position: relative;
+    border: 1px solid #34332e;
+    border-radius: 1px;
+    height: 20px;
+    float: left;
+}
+header .player-search .custom .selected {
+    padding: 0px 25px 0px 5px;
+    border: none;
+    background: none;
+    color: #959586;
+    line-height: 19px;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+header .player-search .custom .list {
+    background: #101008;
+    position: absolute;
+    top: 19px;
+    z-index: 1;
+    border: 1px solid #34332e;
+    border-top: 0px;
+    left: -1px;
+    width: 55px;
+    font-size: 11px;
+    display: none;
+}
+header .player-search .custom .list .row {
+    padding: 4px 25px 4px 5px;
+    height: 20px;
+    line-height: 13px;
+    color: #959586;
+}
+header .player-search .custom .list .row:hover {
+	background-color: #2e2e24;
+}
+header .player-search .select i {
+    display: block;
+    width: 18px;
+    height: 18px;
+    background: url(../style/images/wot/buttons/select.png);
+    position: absolute;
+    right: 1px;
+    top: -1px;
+}
+header .player-search .custom .list.act {
+	display: block;
+}
+header .player-search .player-name-list {
+	top: 20px;
+}
+header .player-name-list a {
+	text-decoration: none!important;
+}
+header .player-name-list .item {
+	height: 25px;
+    line-height: 25px;
+    padding: 0px 4px;
+}
+
+body.gb {
+	background-image: url(http://files.vividscreen.info/soft/c5807b6df664c6003941830234313f71/World-of-Tanks-1920x1200.jpg);
+    background-size: cover;
+    background-position: inherit;
+}
+body.gb #content {
+	background-color: rgba(239, 239, 239, 0.8);
+}
+body.gb footer {
+	background-color: rgba(239, 239, 239, 0.8);
+	border-top: 1px dashed rgb(121, 120, 120);
+}
+
+body.phj {
+	background-image: url(images/subdomain/phj/bg.jpg);
+    background-size: cover;
+    background-position: inherit;
+}
+body.phj #content,body.phj footer {
+	background-color: rgba(239, 239, 239, 0.95);
+}
+body.phj header .wrapper .logo img {
+    height: 52px;
+    margin-top: 5px;
+}
+body.phj .right-panel .youtube-button {
+	overflow: hidden;
+    background-size: 100% 132px;
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    margin: 20px auto 0px auto;
+    width: 100%;
+}
+body.phj .right-panel .youtube-button img {
+	height: 65px;
+    margin-right: 8px;
+    vertical-align: top;
+    margin-top: -10px;
+}
+body .right-panel .social {
+	margin-bottom: 25px;
+}
+body .right-panel .social img {
+	width: 50px;
+	height: 50px;
+	margin-right: 10px;
+}
+body .right-panel .social a:last-child img {
+	margin-right: 0px;
+}
+body.scheff header .wrapper .logo img {
+    height: 52px;
+    margin-top: 5px;
+}
+body.dezgamez header .wrapper .logo img {
+    height: 52px;
+    margin-top: 5px;
+}
+body.dezgamez {
+	background-image: url(images/subdomain/dezgamez/bg.jpg);
+    background-size: cover;
+    background-position: inherit;
+}
+body.circon {
+	background: #000;
+}
+body.circon header .wrapper .logo img {
+    height: 52px;
+    margin-top: 5px;
+}
+body.wotnoobians header .wrapper .logo img {
+    height: 52px;
+    margin-top: 5px;
+}
+body.gb header .wrapper .logo img {
+    height: 51px;
+    margin-top: 5px;
+}
+body.gb {
+	background-image: url(images/subdomain/gb/bg.jpg);
+    background-size: cover;
+    background-position: inherit;
+}
+body.nejo12 header .wrapper .logo img {
+    height: 51px;
+    margin-top: 5px;
+}
+body.bodzy header .wrapper .logo img {
+    height: 51px;
+    margin-top: 5px;
+}
+body.bodzy {
+	background-image: url(images/subdomain/bodzy/bg.jpg);
+    background-size: cover;
+    background-position: top center;
+}
+body.ph3lan header .wrapper .logo img {
+    height: 51px;
+    margin-top: 5px;
+}
+body.justforlolzfyi header .wrapper .logo img {
+    height: 51px;
+    margin-top: 5px;
+}
+body.agingjedi header .wrapper .logo img {
+    height: 51px;
+    margin-top: 5px;
+}
+body.sirhavoc {
+	background-image: url(images/subdomain/sirhavoc/bg.jpg);
+    background-position: top center;
+}
+body.sirhavoc header .wrapper .logo img {
+    height: auto;
+    margin-top: 17px;
+}
+body.sirhavoc footer {
+	position: relative;
+}
+body.sirhavoc footer::before {
+	content: ' ';
+	width: 324px;
+	height: 269px;
+	background: url(images/subdomain/sirhavoc/jedi.png) no-repeat;
+	position: absolute;
+	bottom: 0px;
+	left: -300px;
+	display: block;
+}
+body.sirhavoc footer::after {
+	content: ' ';
+	width: 280px;
+	height: 287px;
+	background: url(images/subdomain/sirhavoc/havoc.png) no-repeat;
+	position: absolute;
+	bottom: 0px;
+	right: -290px;
+	display: block;
+}
+body.sirhavoc a.saltyjedi {
+    color: #DE1402;
+    text-decoration: none;
+    font-size: 25px;
+    line-height: 32px;
+    font-family: 'Oswald', sans-serif;
+    font-weight: bold;
+    text-align: center;
+    display: block;
+    margin-bottom: 20px;
+}
+body.wml {
+	background-image: url(http://wotmagyarliga.eu/templates/wotmagyarligaeu/images/page.jpeg);
+    background-position: top center;
+}
+body.wotinfo header .wrapper .logo img {
+    height: 51px;
+    margin-top: 5px;
+}
+body.wotinfo .right-panel .logo {
+    display: block;
+    margin-bottom: 20px;
+    text-decoration: none;
+}
+body.wotinfo .right-panel .logo img {
+    width: 100%;
+    display: block;
+}
+body.wotinfo .right-panel .logo span {
+    font-family: 'Oswald', sans-serif;
+    font-size: 17px;
+    display: block;
+    text-align: center;
+    text-decoration: none!important;
+    color: #f7ba13;
+    text-shadow: 1px 1px 3px black, -1px -1px 3px black, 0px 0px 3px black;
+}
+body.mistercro header .wrapper .logo img {
+    height: 51px;
+    margin-top: 5px;
+}
+body.saltyjedi header .wrapper .logo img {
+    height: 51px;
+    margin-top: 5px;
+}
+body.quickybaby header .wrapper .logo img {
+    height: 51px;
+    margin-top: 5px;
+}
+
+.team-score.convoy table.tank-list td.xp {
+	text-align: center;
+}
+.tanks-image.convoy {
+	background:url(../style/images/wot/battleresults/win_mark1.jpg);
+}
+.tanks-image.convoy .battle-records {
+	background: none;
+	position: relative;
+	z-index: 2;
+}
+.tanks-image.convoy .battle-records:before {
+  content: "";
+  background: url(../style/images/wot/battleresults/battleResults-43.png) no-repeat center;
+  opacity: 0.6;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  position: absolute;
+  z-index: -1;
+}
+
+.right-panel .rss {
+	margin-bottom: 25px;
+}
+
+.right-panel .rss .img {
+	width: 75px;
+	height: 50px;
+	margin-right: 7px;
+	border-radius: 5px;
+	background-size: cover;
+    background-position: center;
+    display: inline-block;
+    vertical-align: middle;
+}
+.right-panel .rss a {
+	text-decoration: none;
+}
+.right-panel .rss .title {
+	font-family: 'Oswald', sans-serif;
+ 	font-size: 13px;
+    line-height: 18px;
+    color: rgb(70, 70, 70);
+    display: inline-block;
+    width: 165px;
+    vertical-align: middle;
+}
+.right-panel .rss .item {
+	padding-bottom: 10px;
+	border-bottom: 1px solid rgba(170, 170, 170,0.5);
+	margin-bottom: 10px;
+	width: 250px;
+
+ 	transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    -o-transform: translateZ(0);
+    transition: all 150ms;
+}
+.right-panel .rss a:last-child .item {
+	border-bottom: none;
+}
+.right-panel .rss .item:hover {
+	margin-left: -5px;
+}
+.right-panel .rss a:hover .title {
+	color: #000;
+}
+
+.tank-profile .vehicle-image-big {
+    overflow:hidden;
+    width:1200px;
+    height:700px;
+    position: fixed;
+    top:0px;
+    left:0px;
+    background:url(style/images/garage_bg.jpg);
+    background-size:1920px 900px;
+    background-position: top -100px left -200px;
+}
+
+#content .right-panel .youtube-list {
+    height: auto;
+}
+#content .right-panel .youtube-list .item {
+    width: 100%;
+}
+
+body.screenshot {
+	overflow-y: visible;
+}
+body.screenshot:before {
+	content: ' ';
+	position: fixed;
+	width: 100vw;
+	height: 100vh;
+	top: 0px;
+	left: 0px;
+	background: url(images/screenshot.jpg);
+	/*background: url(../style/images/wot/ny/background3.jpg);*/
+	background-size: cover;
+	z-index: 10;
+}
+body.screenshot .replay-tabs,body.screenshot .replay-tabs, body.screenshot .replay-tab-wrapper,body.screenshot header .wrapper .logo img {
+	z-index: 11;
+	position: relative;
+}
+body.screenshot header .wrapper .logo img {
+	height: auto;
+	width: auto;
+	margin-left: 20px;
+}
+body.screenshot .replay-tabs {
+	z-index: 20;
+}
+body.screenshot .replay-tab-wrapper {
+	box-shadow: 0px 0px 31px 10px rgba(0, 0, 0, 0.66);
+	border-right: 1px solid black;
+    border-bottom: 1px solid black;
+    border-left: 1px solid black;
+}
+body.screenshot .replay-tab-wrapper .tanks-image {
+    border-top: 1px solid black;
+}
+body.screenshot header .wrapper:before {
+	content: attr(data-domain)"wot-record.com";
+	font-family: 'dharma_gothic_ebold';
+    font-size: 38px;
+    position: absolute;
+    top: 9px;
+    right: 35px;
+    z-index: 10;
+    text-transform: uppercase;
+    text-shadow: 1px 1px 4px #000000;
+    border: none;
+}
+body.screenshot header .wrapper:after {
+	content: attr(data-domain)"wot-record.com";
+	font-family: 'dharma_gothic_ebold';
+    font-size: 38px;
+    color: transparent;
+    background: url(images/text-bg.jpg) repeat;
+    background-size: 100% 100%;
+    -webkit-background-clip: text;
+    position: absolute;
+    top: 9px;
+    right: 35px;
+    z-index: 10;
+    text-transform: uppercase;
+    border: none;
+}
+body.screenshot #content {
+	overflow: visible;
+}
+body.screenshot #content .left-panel.full {
+	position: absolute;
+	top: -38px;
+}
+body.screenshot .half.score {
+	width: 499px;
+}
+body.screenshot .half.score:nth-child(1) {
+    margin-left: 1px;
+}
+body.screenshot header .right {
+	display: none;
+}
+body.screenshot .replay-tab-wrapper,body.screenshot header .wrapper > a:first-child {
+	z-index: 15;
+	position: relative;
+}
+
+
+
+.spark-conatiner {
+	width: 600px;
+	height: 600px;
+	position: fixed;
+	overflow: hidden;
+	z-index: 11;
+}
+.spark {
+	position: absolute;
+	width: 41px;
+	height: 19px;
+	background-image: url(images/spark.png);
+	background-repeat: no-repeat;
+	animation-name: example;
+	animation-duration: 3s;
+	animation-iteration-count: infinite;
+	animation-timing-function: ease-out;
+	transform: rotate(0deg);
+	left: -20%;
+	top: 100%;
+}
+
+@keyframes example {
+	0% {
+		left: -20%;
+		top: 100%;
+		transform: rotate(0);
+		opacity: 0;
+	}
+	10% {
+		transform: rotate(-30deg);
+	}
+	40% {
+		opacity: 0.6;
+	}
+	90% {
+		transform: rotate(10deg);
+		opacity: 0;
+	}
+	100% {
+		left: 100%;
+		top: 0%;
+		transform: rotate(0deg);
+	}
+}
+
+
+.mCS-wotrecord .mCSB_container {
+	margin-right: 15px;
+	margin-right: 0px!important;
+}
+.mCS-wotrecord .mCSB_scrollTools {
+	/*opacity: 1!important;*/
+}
+.mCS-wotrecord .mCSB_scrollTools .mCSB_dragger_bar {
+	background-color: rgba(43, 40, 31, 0.75)!important;
+	width: 13px!important;
+	border-radius: 0px!important;
+	border: 1px solid #5f5d51!important;
+	position: relative;
+}
+.mCS-wotrecord .mCSB_scrollTools .mCSB_dragger_bar:before {
+	content: ' ';
+	height: 1px;
+	border-top: 1px solid #959289;
+	border-bottom: 1px solid #959289;
+	padding: 3px 0px;
+	width: 7px;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	margin-left: -3px;
+	margin-top: -3px;
+}
+.mCS-wotrecord .mCSB_scrollTools .mCSB_dragger_bar:after {
+	content: ' ';
+	height: 1px;
+	margin-top: 1px;
+	background: #959289;
+	width: 7px;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	margin-left: -3px;
+}
+.mCS-wotrecord .mCSB_scrollTools .mCSB_draggerContainer {
+	margin: 13px 0px!important;
+}
+.mCS-wotrecord .mCSB_scrollTools .mCSB_buttonUp,.mCS-wotrecord .mCSB_scrollTools .mCSB_buttonDown {
+	width: 13px!important;
+	height: 13px!important;
+	border: 1px solid #5f5d51!important;
+	opacity: 1!important;
+	background: rgba(43, 40, 31, 0.75) url(../style/images/wot/buttons/buttonUp.png) no-repeat center center!important;
+}
+.mCS-wotrecord .mCSB_scrollTools .mCSB_buttonDown {
+	bottom: 2px!important;
+	background-image: url(../style/images/wot/buttons/buttonDown.png)!important;
+}
+.mCS-wotrecord .mCSB_draggerContainer {
+	width: 13px!important;
+}
+.mCS-wotrecord .mCSB_scrollTools {
+	width: 13px!important;
+	margin-right: 3px!important;
+}
+.mCS-wotrecord .mCSB_scrollTools .mCSB_draggerRail {
+	background: #2f2f27!important;
+	width: 1px!important;
+	border-radius: 0px!important;
+}
+.mCS-wotrecord .mCSB_scrollTools .mCSB_dragger {
+	margin: -1px 0px 0px 0px!important;
+}
+
+.tankopedia-missions .tiles * {
+    user-drag: none;
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+.tankopedia-missions .tiles {
+    text-align: center;
+}
+.tankopedia-missions .tile {
+    display: inline-block;
+    width: 306px;
+    height: 300px;
+    background: #1d1c17;
+    border: 1px solid #2d2c28;
+    position: relative;
+    margin: 0px 13px 26px 13px;
+}
+.tankopedia-missions .gradiant {
+    position: absolute;
+    width: 100%;
+    top: 85px;
+    min-height: 105px;
+    background: -moz-linear-gradient(top, rgba(255,255,255,0) 0%, rgba(29,28,23,1) 100%); /* FF3.6-15 */
+    background: -webkit-linear-gradient(top, rgba(255,255,255,0) 0%,rgba(29,28,23,1) 100%); /* Chrome10-25,Safari5.1-6 */
+    background: linear-gradient(to bottom, rgba(255,255,255,0) 0%,rgba(29,28,23,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ffffff', endColorstr='#1d1c17',GradientType=0 ); /* IE6-9 */
+}
+.tankopedia-missions .tile .details {
+    text-align: left;
+    font-family: 'swiss721_cn_pflnormal';
+    font-size: 17px;
+    color: #818179;
+    line-height: 1.2;
+    margin-top: -25px;
+    position: relative;
+}
+.tankopedia-missions .tile .details .icon {
+    float: left;
+    margin-top: -15px;
+    margin-right: -5px;
+}
+.tankopedia-missions .tile .details .name {
+    color:  #dad3b7;
+    font-family: 'Oswald', sans-serif;
+    font-size: 21px;
+    font-family: 'swiss721_cn_pflbold';
+    margin-bottom: 2px;
+}
+.tankopedia-missions .tile .details .level strong {
+    font-family: 'swiss721_cn_pflbold';
+    color:  #dad3b7;
+}
+.tankopedia-missions .tile .details .goto {
+    display: block;
+    background: url(../style/images/wot/library/cybersport/ribbon.png);
+    text-decoration: none;
+    background-size: 100% 100%;
+    width: 306px;
+    margin: 30px auto 0 auto;
+    text-align: center;
+    color: #f1f1f1;
+    text-shadow: 1px 2px 2px #000;
+    height: 40px;
+    line-height: 37px;
+    position: relative;
+    margin-left: -1px;
+    font-family: 'swiss721_cn_pflbold';
+}
+.tankopedia-missions .missions {
+    height: 600px;
+    background: url(../style/images/wot/windows/flash/image%202.png) no-repeat;
+    background-size: 100% 100%;
+    margin: -30px -20px;
+    padding: 43px 20px 25px 20px;
+    position: relative;
+    color: #87877d;
+}
+.tankopedia-missions .window-title {
+    position: absolute;
+    color: #e2e3d3;
+    font-family: 'swiss721_cn_pflbold';
+    font-weight: normal;
+    font-size: 17px;
+    text-shadow: 0px -1px 2px #000;
+    top: 19px;
+}
+.tankopedia-missions a.back {
+    position: absolute;
+    background: url(../style/images/wot/quests/flash/image%201035.png) no-repeat;
+    height: 35px;
+    padding-left: 22px;
+    line-height: 33px;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: #fbdb98;
+    text-shadow: 1px 1px 8px red, -1px -1px 8px red;
+    top: 50px;
+    z-index: 10;
+}
+.tankopedia-missions .missions .header {
+    height: 95px;
+    position: relative;
+    text-align: center;
+    padding-top: 20px;
+}
+.tankopedia-missions .missions .header .title {
+    font-family: 'swiss721_cn_pflbold';
+    font-size: 24px;
+    color: #e6e2bf;
+    margin-bottom: 5px;
+}
+.tankopedia-missions .missions .header:after {
+    content: ' ';
+    position: absolute;
+    left: 0;
+    top: 3px;
+    width: 100%;
+    height: 100%;
+    background: url(../style/images/wot/quests/flash/image%201.png) no-repeat;
+    background-position: bottom center;
+}
+.tankopedia-missions .missions:before {
+    content: ' ';
+    position: absolute;
+    width: 1011px;
+    height: 535px;
+    top: 40px;
+    left: 15px;
+    background: url(../style/images/wot/windows/flash/image%209.png) no-repeat;
+    background-size: 100% 100%;
+}
+.tankopedia-missions .missions .left,.tankopedia-missions .missions .right {
+    float: left;
+    width: 50%;
+    height: calc(100% - 95px);
+    position: relative;
+    padding: 3px 0 5px 15px;
+}
+.tankopedia-missions .missions .right {
+    width: 50%;
+}
+.tankopedia-missions .missions .right .item {
+    display: none;
+}
+.tankopedia-missions .missions .right .item.active {
+    display: block;
+}
+.tankopedia-missions .missions .left {
+    background: url(../style/images/wot/quests/flash/image%2036.png) no-repeat;
+    background-size: contain;
+    background-position: right center;
+}
+.tankopedia-missions .missions .left .title {
+    height: 38px;
+    background: url(../style/images/wot/quests/flash/image%2064.png) no-repeat;
+    background-size: 100% 100%;
+    position: relative;
+    margin-bottom: 1px;
+    padding: 0 15px;
+    font-family: 'swiss721_cn_pflnormal';
+    font-size: 16px;
+    line-height: 38px;
+}
+.tankopedia-missions .missions .left .title:after {
+    content: ' ';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    background: url(../style/images/wot/quests/flash/image%201.png) no-repeat;
+    background-size: 100% 100%;
+}
+.tankopedia-missions .missions .left .title.active {
+    background: url(../style/images/wot/quests/flash/image%2067.png) no-repeat;
+    background-size: 100% 100%;
+}
+.tankopedia-missions .missions .left .title.active:before {
+    content: ' ';
+    position: absolute;
+    right: 7px;
+    top: 12px;
+    width: 9px;
+    height: 13px;
+    background: url(../style/images/wot/quests/flash/image%2056.png) no-repeat;
+}
+.tankopedia-missions .missions .right .item  .title {
+    color: #e6e2bf;
+    font-family: 'swiss721_cn_pflbold';
+    font-size: 18px;
+    background: url(../style/images/wot/quests/flash/image%20101.png) no-repeat;
+    background-position: bottom center;
+    height: 50px;
+    margin-top: 11px;
+}
+.tankopedia-missions .missions .right .item .descr {
+    line-height: 1.4;
+    height: 225px;
+}
+.tankopedia-missions .missions .right .item h3,.tankopedia-missions .missions .left h2 {
+    font-family: 'swiss721_cn_pflbold';
+    font-size: 16px;
+    font-weight: normal;
+    color: #e6e2bf;
+    margin-bottom: 3px;
+    margin-top: 20px;
+}
+.tankopedia-missions .missions .right .item h3 + p {
+    margin-top: 0;
+}
+.tankopedia-missions .missions .left h2 {
+	font-size: 18px;
+	margin-top: 15px;
+	margin-bottom: 5px;
+	padding-left: 15px;
+}
+.tankopedia-missions .missions .right .item .descr h3:first-child {
+    margin-top: 0;
+}
+.tankopedia-missions .missions .right .awards {
+    height: 145px;
+    background: url(../style/images/wot/quests/flash/image%2050.png) no-repeat;
+    background-position: top center;
+    background-size: cover;
+    margin-left: -14px;
+    padding: 10px 15px;
+}
+.tankopedia-missions .missions .right .awards h3 {
+    display: inline-block;
+}
+.tankopedia-missions .missions .right .award-text.big {
+    color: #fff;
+    font-size: 38px;
+    font-family: 'swiss721_cn_pflbold';
+    vertical-align: top;
+    margin-top: 15px;
+    display: inline-block;
+    padding-left: 10px;
+    text-shadow: 0px 0px 5px #000;
+}
+.tankopedia-missions .missions .right .award-text img {
+    vertical-align: bottom;
+}
+.tankopedia-missions .missions .right .award-text.small {
+    font-size: 15px;
+    font-family: 'swiss721_cn_pflnormal';
+}
+.tankopedia-missions .missions .right .award-text.small img {
+    vertical-align: baseline;
+    margin-left: 4px;
+}
+.tankopedia-missions .missions .right .award-text.small .token {
+    margin-bottom: -15px;
+ }
+.tankopedia-missions .missions .right .awards .orange {
+ 	color: #C57338;
+}
+.tankopedia-missions .mCS-wotrecord .mCSB_container {
+	margin-right: 30px!important;
+}
+.tankopedia-missions .mCS-wotrecord .mCSB_scrollTools {
+	margin-right: 10px!important;
+}
+.tankopedia-missions .missions .right .awards .tooltip,.tankopedia-maps .tooltip {
+    position: relative;
+    display: inline-block;
+}
+.tankopedia-missions .missions .right .awards .tooltip:hover .bubble,.tankopedia-maps .tooltip:hover .bubble {
+	display: block;
+}
+.tankopedia-missions .missions .right .awards .tooltip .bubble,.tankopedia-maps .tooltip .bubble {
+	display: none;
+    background-color: rgba(0,0,0,0.94);
+    border: 1px solid #454648;
+    border-radius: 3px;
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.85), 0 0 20px rgba(0, 0, 0, 0.25), 0 0 7px rgba(0, 0, 0, 0.21), 0 0 11px rgba(255, 255, 255, 0.03) inset;
+    color: #979899;
+    float: left;
+    line-height: 1.3;
+    margin: 0;
+    padding: 8px 10px;
+    position: absolute;
+    z-index: 10;
+    bottom: 50px;
+    left: 50%;
+    box-sizing: border-box;
+    font-size: 15px;
+    font-family: Arial;
+    transform: translateX(-50%);
+    max-width: 250px;
+    width: 200px;
+    width: max-content;
+    width: -moz-max-content;
+    font-size: 12px;
+}
+.tankopedia-maps .tooltip .bubble {
+	width: 150px;
+	width: -moz-max-content;
+    width: max-content;
+    bottom: 78px;
+}
+.tankopedia-missions .missions .right .awards .tooltip .bubble:after,.tankopedia-maps .tooltip .bubble:after {
+    content: ' ';
+    width: 29px;
+    height: 14px;
+    background: url(../style/images/wot/tooltip/bottom.png) no-repeat;
+    display: block;
+    position: absolute;
+    z-index: 11;
+    left: 50%;
+    transform: translateX(-50%);
+}
+.tankopedia-missions .missions .right .awards .tooltip .green {
+	color: #81b457;
+}
+.tankopedia-missions .missions .right .awards .tooltip strong,.tankopedia-maps .tooltip .bubble strong {
+	display: block;
+	font-family: 'swiss721_cn_pflbold';
+	font-weight: normal;
+    color: #e6e2bf;
+    font-size: 16px;
+}
+.tankopedia-missions .missions .right .mCS-wotrecord .mCSB_scrollTools .mCSB_dragger_bar:after,
+.tankopedia-missions .missions .right .mCS-wotrecord .mCSB_scrollTools .mCSB_dragger_bar:before {
+    margin-left: -4px;
+}
+
+a.back.tankopedia {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    margin-top: 13px;
+    text-decoration: none;
+    color: rgb(181, 63, 27);
+    margin-right: 32px;
+}
+a.back.tankopedia i {
+    font-style: normal;
+    display: inline-block;
+    margin-top: -2px;
+    font-size: 12px;
+    vertical-align: top;
+    margin-right: 2px;
+}
+a.back.tankopedia:hover {
+    text-decoration: underline;
+}
+.techtree-scroll a.back.tankopedia {
+    top: -3px;
+    z-index: 10;
+}
+
+.tank-profile .ad_680_90 > ins:not(:empty) {
+    margin-bottom: 25px;
+}
+.tank-profile .ad_680_90.second > ins:not(:empty) {
+    margin-bottom: 10px;
+    margin-top: 5px;
+}
+.tank-profile .ad_300_300 > ins:not(:empty) {
+    margin-top: 25px;
+}
+
+.pop-up.embed-window textarea {
+    padding: 10px ;
+    width: 800px;
+    margin-bottom: 0;
+    -webkit-user-select: text!important;
+    -moz-user-select: text!important;
+    -ms-user-select: text!important;
+    user-select: text!important;
+    display: block;
+    text-align: center;
+    height: 38px;
+}
+
+.embed-open {
+    background: url(../style/images/wot/buttons/red-button-sprite.png);
+    border: none;
+    border-radius: 4px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 20px;
+    color: #F2F2F2;
+    text-shadow: 0px 0px 10px black, 0px 0px 10px black, 0px 0px 1px black, 0px 0px 2px black;
+    padding: 7px 30px;
+    background-size: 160px;
+    position: absolute;
+    z-index: 20;
+    bottom: 20px;
+    left: 23px;
+}
+.embed-open:hover {
+    background-position: 0px -46px;
+    cursor:url(../style/images/wot/cursors/cursor-pointer.png),pointer !important;
+}
+.pop-up[data-name="tank-image"] .content {
+    margin: 0!important;
+    transform: translate(-50%,-50%);
+    padding: 0;
+    width: 95%;
+    height: 90%;
+    text-align: center;
+    background: none;
+    box-shadow: none;
+    border: none;
+}
+.pop-up[data-name="tank-image"] .content img {
+     max-width: 100%;
+     max-height: 100%;
+     display: inline-block;
+     position: relative;
+     top: 50%;
+     transform: translateY(-50%);
+}
+
+/* Стили для табов */
+.replay-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 20px;
+}
+
+.replay-tabs .tab {
+    padding: 12px 24px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.2s ease;
+    border-radius: 8px 8px 0 0;
+    margin-right: 2px;
+}
+
+.replay-tabs .tab:hover {
+    background: var(--panel-2);
+    color: var(--text);
+}
+
+.replay-tabs .tab.active {
+    background: var(--bg);
+    color: var(--text);
+    border-color: var(--accent);
+    position: relative;
+    z-index: 1;
+}
+
+.replay-tabs .tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--bg);
+}
+
+/* Скрытие неактивного контента */
+.replay-tab-wrapper {
+    display: none;
+}
+
+.replay-tab-wrapper.active {
+    display: block;
+}
+
+/* Анимация появления контента */
+.replay-tab-wrapper.active {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

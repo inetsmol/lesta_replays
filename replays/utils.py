@@ -1,4 +1,5 @@
 import json
+from typing import Optional, Dict
 
 
 def extract_all_json_from_mtreplay(file_path: str) -> str:
@@ -61,3 +62,39 @@ def extract_all_json_from_mtreplay(file_path: str) -> str:
         pos = end if brace_count == 0 else start + 1
 
     return json.dumps(combined_data, ensure_ascii=False, indent=2)
+
+
+def get_tank_info_by_type_descr(type_descr: int) -> Optional[Dict[str, str]]:
+    """
+    Получает информацию о танке по typeCompDescr.
+    Пока заглушка - в будущем можно создать маппинг или API.
+    """
+    # Заглушка для определения типа танка по typeCompDescr
+    # В реальном проекте здесь была бы логика сопоставления
+    # с базой данных Tank или внешним API
+
+    tank_types = {
+        'lightTank': 'Лёгкий танк',
+        'mediumTank': 'Средний танк',
+        'heavyTank': 'Тяжёлый танк',
+        'AT-SPG': 'ПТ-САУ',
+        'SPG': 'САУ',
+    }
+
+    # Пока возвращаем неизвестный танк
+    return {
+        'name': 'Неизвестный танк',
+        'type': 'unknown',
+        'level': 1,
+    }
+
+
+def calculate_wn8_rating(damage: int, kills: int, spots: int, defend: int,
+                         tank_expected_values: Dict[str, float]) -> int:
+    """
+    Вычисляет WN8 рейтинг игрока за бой.
+    Требует expected values для танка.
+    """
+    # Заглушка для WN8 - полная формула сложная
+    # В реальном проекте нужна база expected values
+    return 0

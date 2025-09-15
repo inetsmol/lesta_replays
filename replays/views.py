@@ -11,13 +11,14 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
-from django.shortcuts import redirect, render, get_object_or_404
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.dateparse import parse_date
 from django.views import View
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
 
 from .models import Replay, Tank, Nation
+from .parsers import extract_replay_data
 from .utils import extract_all_json_from_mtreplay
 
 FILES_DIR = Path(settings.MEDIA_ROOT)
@@ -398,12 +399,166 @@ class ReplayListView(ListView):
         }
 
 
-# --- пример, как быстро превратить заглушку в настоящую детальную страницу ---
-def replay_detail(request, pk: int):
+class ReplayDetailView(DetailView):
     """
-    Реальная детальная страница (пример).
+    Детальная страница реплея с полным анализом данных боя.
     """
-    replay = get_object_or_404(Replay, pk=pk)
-    # Можно переиспользовать краткий экстрактор:
-    # data = _extract_wot_brief_for_list(replay.payload)
-    return render(request, "replays/detail.html", {"replay": replay})
+    model = Replay
+    template_name = 'replays/detail.html'
+    context_object_name = 'replay'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        replay = self.get_object()
+
+        try:
+            # Извлекаем полные данные реплея
+            replay_data = extract_replay_data(replay.payload)
+            context['replay_data'] = replay_data
+
+            # Добавляем удобные переменные для шаблона
+            context.update({
+                'battle_result_class': self._get_result_class(replay_data['battle_result']),
+                'survival_status': self._get_survival_status(replay_data['survival_status']),
+                'hit_efficiency': self._calculate_hit_efficiency(replay_data),
+                'damage_efficiency': self._calculate_damage_efficiency(replay_data),
+                'armor_efficiency': self._calculate_armor_efficiency(replay_data),
+                'enemy_list': self._prepare_enemy_list(replay_data['detailed_enemy_stats']),
+                'achievements_display': self._prepare_achievements(replay_data['achievements']),
+                'performance_rating': self._calculate_performance_rating(replay_data),
+            })
+
+        except Exception as e:
+            logger.error(f"Ошибка извлечения данных реплея {replay.id}: {e}")
+            context['replay_data'] = {}
+            context['parse_error'] = str(e)
+
+        return context
+
+    def _get_result_class(self, result: str) -> str:
+        """Возвращает CSS класс для результата боя"""
+        return {
+            'victory': 'victory',
+            'defeat': 'defeat',
+            'draw': 'draw'
+        }.get(result, 'unknown')
+
+    def _get_survival_status(self, death_reason: int) -> dict:
+        """Определяет статус выживания"""
+        if death_reason == -1:
+            return {'status': 'survived', 'text': 'Выжил', 'class': 'survived'}
+        else:
+            return {'status': 'died', 'text': 'Погиб', 'class': 'died'}
+
+    def _calculate_hit_efficiency(self, data: dict) -> dict:
+        """Вычисляет эффективность стрельбы"""
+        shots = data.get('shots', 0)
+        hits = data.get('direct_hits', 0)
+        piercings = data.get('piercings', 0)
+
+        return {
+            'hit_rate': data.get('hit_rate', 0),
+            'penetration_rate': round((piercings / hits * 100), 2) if hits > 0 else 0,
+            'shots_per_hit': round(shots / hits, 2) if hits > 0 else 0,
+        }
+
+    def _calculate_damage_efficiency(self, data: dict) -> dict:
+        """Вычисляет эффективность урона"""
+        damage = data.get('damage_dealt', 0)
+        shots = data.get('shots', 0)
+        max_hp = data.get('max_health', 1)
+
+        return {
+            'damage_per_shot': round(damage / shots, 1) if shots > 0 else 0,
+            'damage_ratio': data['battle_performance']['damage_ratio'],
+            'assist_ratio': round(data.get('total_assist', 0) / damage * 100, 1) if damage > 0 else 0,
+        }
+
+    def _calculate_armor_efficiency(self, data: dict) -> dict:
+        """Вычисляет эффективность брони"""
+        potential = data.get('potential_damage_received', 0)
+        received = data.get('damage_received', 0)
+        blocked = data.get('total_blocked_damage', 0)
+
+        return {
+            'damage_blocked': blocked,
+            'armor_use_ratio': round(blocked / potential * 100, 1) if potential > 0 else 0,
+            'ricochets': data.get('ricochets_received', 0),
+            'bounces': data.get('bounces_received', 0),
+        }
+
+    def _prepare_enemy_list(self, enemy_stats: dict) -> list:
+        """Подготавливает список противников для отображения"""
+        enemies = []
+        for enemy_id, stats in enemy_stats.items():
+            if stats['damage_dealt'] > 0 or stats['target_kills'] > 0:
+                enemy_info = stats.get('enemy_vehicle_info', {})
+                enemies.append({
+                    'id': enemy_id,
+                    'damage': stats['damage_dealt'],
+                    'hits': stats['direct_hits'],
+                    'piercings': stats['piercings'],
+                    'kills': stats['target_kills'],
+                    'crits': stats['crits_total'],
+                    'is_killed': enemy_info.get('is_dead', False) if enemy_info else False,
+                    'max_hp': enemy_info.get('max_health', 0) if enemy_info else 0,
+                })
+        return sorted(enemies, key=lambda x: x['damage'], reverse=True)
+
+    def _prepare_achievements(self, achievements: list) -> list:
+        """Подготавливает достижения для отображения"""
+        achievement_names = {
+            1614: 'Заговорённый',
+            521: 'Костолом',
+            148: 'Дуэлянт',
+            523: 'Огонь на поражение',
+            526: 'Воин',
+            228: 'Медаль Николса',
+            34: 'Спартанец',
+        }
+
+        return [
+            {
+                'id': ach_id,
+                'name': achievement_names.get(ach_id, f'Достижение {ach_id}'),
+                'image': f'wot/achievement/big/{ach_id}.png'
+            }
+            for ach_id in achievements
+        ]
+
+    def _calculate_performance_rating(self, data: dict) -> dict:
+        """Вычисляет общую оценку эффективности с готовыми процентами"""
+        damage_rating = min(data.get('damage_dealt', 0) / 1000, 5.0)
+        survival_rating = 1.0 if data.get('survival_status') == -1 else 0.0
+        assist_rating = min(data.get('total_assist', 0) / 500, 2.0)
+        armor_rating = min(data.get('total_blocked_damage', 0) / 1000, 2.0)
+
+        total_rating = damage_rating + survival_rating + assist_rating + armor_rating
+
+        return {
+            'total': round(total_rating, 1),
+            'max': 10.0,
+            'percentage': round(total_rating / 10.0 * 100, 1),
+            'components': {
+                'damage': {
+                    'value': round(damage_rating, 1),
+                    'max': 5.0,
+                    'percentage': round(damage_rating / 5.0 * 100, 1),
+                },
+                'survival': {
+                    'value': round(survival_rating, 1),
+                    'max': 1.0,
+                    'percentage': round(survival_rating * 100, 1),
+                },
+                'assist': {
+                    'value': round(assist_rating, 1),
+                    'max': 2.0,
+                    'percentage': round(assist_rating / 2.0 * 100, 1),
+                },
+                'armor': {
+                    'value': round(armor_rating, 1),
+                    'max': 2.0,
+                    'percentage': round(armor_rating / 2.0 * 100, 1),
+                },
+            }
+        }
