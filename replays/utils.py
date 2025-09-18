@@ -87,14 +87,3 @@ def get_tank_info_by_type_descr(type_descr: int) -> Optional[Dict[str, str]]:
         'type': 'unknown',
         'level': 1,
     }
-
-
-def calculate_wn8_rating(damage: int, kills: int, spots: int, defend: int,
-                         tank_expected_values: Dict[str, float]) -> int:
-    """
-    Вычисляет WN8 рейтинг игрока за бой.
-    Требует expected values для танка.
-    """
-    # Заглушка для WN8 - полная формула сложная
-    # В реальном проекте нужна база expected values
-    return 0

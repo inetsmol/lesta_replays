@@ -7,3 +7,4 @@ db.sqlite3
 /static/maps
 /static/tanks
 /replays/migrations
+replays/management/commands/output

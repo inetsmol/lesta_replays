@@ -25,64 +25,69 @@
 
             <div class="right-ajax">
                 <div class="replay-download">
-                    <a href="download/351352" target="_blank" class="big-red-button">Скачать</a>
+                    <a href="{% url 'replay_download' object.pk %}" target="_blank" class="big-red-button">Скачать</a>
                 </div>
             </div>
             <div class="replay-tab-wrapper active" id="tab-personal">
-                <div class="tanks-image win ">
-                    <div class="winner-team">
-                        <span class="status">Победа!</span>
-                        <div class="reason">Вся техника противника уничтожена</div>
+                <div class="tanks-image {% if battle_outcome.status_class == 'victory' %}win{% else %}{{ battle_outcome.status_class }}{% endif %}">
+                    <div class="winner-team {{ battle_outcome.status_class }}">
+                        <span class="status">{{ battle_outcome.status_text }}</span>
+                        <div class="reason">{{ battle_outcome.reason_text }}</div>
                     </div>
                     <div class="battle-records">
-                        <div class="achievements" data-number="3">
-                            <div>
-                                <img src="{% static 'style/images/wot/achievement/big/shootToKill.png' %}"
-                                     alt="«Огонь на поражение»"
-                                     title="&lt;div class='title'&gt;«Огонь на поражение»&lt;/div&gt;&lt;img src={% static 'style/images/wot/achievement/big/shootToKill.png' %}/&gt;Нанести противнику урона больше, чем прочность собственной машины.&lt;div class='condition'&gt;• Засчитывается также урон, нанесённый тараном и поджогом.&lt;br /&gt;
-                                • Не выдаётся при игре на САУ.&lt;br /&gt;
-                                • Выдаётся только в Случайных боях.&lt;/div&gt;">
-                            </div>
-                            <div>
-                                <img src="{% static 'style/images/wot/achievement/big/armorPiercer.png' %}"
-                                     alt="«Бронебойщик»"
-                                     title="&lt;div class='title'&gt;«Бронебойщик»&lt;/div&gt;&lt;img src='style/images/wot/achievement/big/armorPiercer.png'/&gt;Пробить броню противника не менее 5 раз подряд.&lt;div class='condition'&gt;• Серия прерывается непробитием, рикошетом или промахом.&lt;br /&gt;
-                                • Серия ведётся для каждой машины отдельно и может продолжиться в следующем бою на этой же машине.&lt;br /&gt;
-                                • В общий зачёт идёт максимальная серия.&lt;br /&gt;
-                                • Попадания осколочно-фугасных снарядов, нанёсших урон, но не пробивших броню, не учитываются и прерывают серию.&lt;br /&gt;
-                                • Выдаётся только в Случайных боях.&lt;/div&gt;">
-                            </div>
-                            <div class="mastery">
-                                <img src="{% static 'style/images/wot/achievement/markOfMastery3.png' %}"
-                                     alt="95% — 1 степень"
-                                     title="&lt;div class='title'&gt;Знак классности «95% — 1 степень»&lt;/div&gt;&lt;img class='achi' src='style/images/wot/achievement/markOfMastery3.png' style='width:67px!important;height:71px!important;' alt='95% — 1 степень'/&gt;Присваивается игроку за мастерство владения&lt;/&gt;боевой машиной. Для присвоения необходимо&lt;/&gt;заработать больше опыта за бой, чем средний&lt;/&gt;максимальный опыт за предыдущие 7 дней&lt;/&gt;у  игроков на данной машине.">
-                            </div>
+                        <div class="achievements" data-number="{{ achievements_count_in_badges }}">
+                            {% for ach in achievements_nonbattle %}
+                                <div>
+                                    <img
+                                            src="{% static ach.image_big %}"
+                                            alt="«{{ ach.name }}»"
+                                            title="&lt;div class='title'&gt;«{{ ach.name|escape }}»&lt;/div&gt;&lt;img src={% static ach.image_big %}/&gt;
+                                                    {{ ach.description|default_if_none:''|escape }}{% if ach.condition %}&lt;div class='condition'&gt;{{ ach.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}"
+                                    >
+                                </div>
+                            {% endfor %}
+
+                            {% if has_mastery %}
+                                <div class="mastery">
+                                    <img
+                                            src="{% static mastery_image %}"
+                                            alt="{{ mastery_label }}"
+                                            title="&lt;div class='title'&gt;Знак классности «{{ mastery_label }}»&lt;/div&gt;&lt;img class='achi' src='{% static mastery_image %}' style='width:67px!important;height:71px!important;' alt='{{ mastery_label }}'/&gt;Присваивается игроку за мастерство владения&lt;/&gt;боевой машиной. Для присвоения необходимо&lt;/&gt;заработать больше опыта за бой, чем средний&lt;/&gt;максимальный опыт за предыдущие 7 дней&lt;/&gt;у игроков на данной машине."
+                                    >
+                                </div>
+                            {% endif %}
                         </div>
+
                         <div class="income ">
-                            <div class="credit"><span class="count">91598</span><img
-                                    src="{% static 'style/images/wot/library/CreditsIconBig.png' %}" alt="Credits">
+                            <div class="credit">
+                                <span class="count">{{ details.originalCredits|intcomma }}</span>
+                                <img src="{% static 'style/images/wot/library/CreditsIconBig.png' %}" alt="Credits">
                             </div>
                             <div class="xp">
-                                <span class="count">6171</span><img
-                                    src="{% static 'style/images/wot/library/XpIconBig.png' %}" alt="XP">
+                                <span class="count">{{ details.xp|intcomma }}</span>
+                                <img src="{% static 'style/images/wot/library/XpIconBig.png' %}" alt="XP">
                             </div>
                         </div>
-                        <div class="dossier" data-number="1">
-                            <div class="achi-img-cont">
-                                <img src="{% static 'style/images/wot/achievement/big/mainGun.png' %}"
-                                     alt="«Основной калибр»"
-                                     title="&lt;div class='title'&gt;«Основной калибр»&lt;/div&gt;&lt;img src='style/images/wot/achievement/big/mainGun.png'/&gt;Нанести наибольшее количество урона за бой.&lt;div class='condition'&gt;• Нанесённый урон должен составлять не менее 20% от суммарной прочности техники противника.&lt;br /&gt;
-                                • Нанесённый урон должен составлять не менее 1000 единиц.&lt;br /&gt;
-                                • Нельзя задевать союзников прямыми выстрелами.&lt;br /&gt;
-                                • Выдаётся только в Случайных боях.&lt;/div&gt;">
-                            </div>
+
+                        <div class="dossier" data-number="{{ achievements_battle }}">
+                            {% for ach in achievements_battle %}
+                                <div class="achi-img-cont">
+                                    <img
+                                            src="{% static ach.image_big %}"
+                                            alt="«{{ ach.name }}»"
+                                            title="&lt;div class='title'&gt;«{{ ach.name|escape }}»&lt;/div&gt;&lt;img src={% static ach.image_big %}/&gt;
+                                                    {{ ach.description|default_if_none:''|escape }}{% if ach.condition %}&lt;div class='condition'&gt;{{ ach.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}"
+                                    >
+                                </div>
+                            {% endfor %}
                         </div>
                     </div>
+
                 </div>
                 <div class="titles-line">
                     <div class="half">
                         <div class="battle-type">
-                            <span class="map-name">Монастырь</span>&nbsp;-&nbsp;&nbsp;Стандартный бой
+                            <span class="map-name">{{ replay.map_display_name }}</span>&nbsp;&nbsp;-&nbsp;&nbsp;{{ battle_type_label }}
                         </div>
                     </div>
                     <div class="half">
@@ -91,50 +96,55 @@
                                 <tbody>
                                 <tr class="title  ">
                                     <td class="table-title" colspan="2">Боевая эффективность</td>
-                                    <td class="spotted">
-                                        <img style="opacity:0.1;"
+
+                                    {# Обнаруженные танки (кол-во целей) #}
+                                    <td class="spotted" title="Обнаруженные танки (шт.)">
+                                        <img {% if interactions_summary.spotted_tanks == 0 %}style="opacity:0.1;"{% endif %}
                                              src="{% static 'style/images/wot/battleresults/battleResults-19.png' %}"
-                                             alt="">
+                                             alt="Spotted">
+                                        <div class="info">{{ interactions_summary.spotted_tanks }}</div>
                                     </td>
-                                    <td class="assits">
-                                        <img style="opacity:0.1;"
+
+                                    {# Помощь в уничтожении: число целей, по которым есть ассист-урон #}
+                                    <td class="assits" title="Помощь в уничтожении (число целей)">
+                                        <img {% if interactions_summary.assist_tanks == 0 %}style="opacity:0.1;"{% endif %}
                                              src="{% static 'style/images/wot/battleresults/battleResults-25.png' %}"
-                                             alt="">
+                                             alt="Assist">
+                                        <div class="info">{{ interactions_summary.assist_tanks }}</div>
                                     </td>
+
+                                    {# Использование брони: число целей, от которых был рик/непробитие #}
                                     <td class="assits"
-                                        title="&lt;div class='tooltip'&gt;&lt;div class='title'&gt;&lt;img class='img ribbon v2' src='style/images/wot/library/efficiency/48x48/armor.png'/&gt;Использование брони&lt;/div&gt;&lt;hr&gt;&lt;div class='descr'&gt;Засчитывается:&lt;br /&gt;
-                                        • Рикошет от выстрелов противника&lt;br /&gt;
-                                        • Непробитие&lt;br /&gt;
-                                        &lt;br /&gt;
-                                        Попадания осколочно-фугасными и HESH снарядами не учитываются.&lt;/div&gt;&lt;div class='numbers'&gt;&lt;hr&gt;&lt;span class='dmg_white'&gt;0&lt;/span&gt; &lt;span class='text'&gt;Рикошетов&lt;/span&gt;&lt;span class='dmg_white'&gt;1&lt;/span&gt; &lt;span class='text'&gt;Непробитий&lt;/span&gt;&lt;span class='dmg_white'&gt;115&lt;/span&gt; &lt;span class='text'&gt;Урона, заблокированного бронёй (ед.)&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;">
+                                        title="Использование брони (число целей с рикошетами/непробитиями)">
                                         <img class="bigger"
+                                             {% if interactions_summary.blocked_tanks == 0 %}style="opacity:0.1;"{% endif %}
                                              src="{% static 'style/images/wot/battleresults/teamStatsComponents-12.png' %}"
-                                             alt="">
+                                             alt="Armor use">
+                                        <div class="info">{{ interactions_summary.blocked_tanks }}</div>
                                     </td>
-                                    <td class="crits"
-                                        title="&lt;div class='tooltip'&gt;&lt;div class='title'&gt;&lt;img class='img ribbon v2' src='style/images/wot/library/efficiency/48x48/module.png'/&gt;Критический урон&lt;/div&gt;&lt;hr&gt;&lt;div class='descr'&gt;Засчитывается:&lt;br /&gt;
-                                    • Повреждение внешних и внутренних модулей противника&lt;br /&gt;
-                                    • Выведение из строя внешних и внутренних модулей противника&lt;br /&gt;
-                                    • Ранение членов экипажа противника.&lt;/div&gt;&lt;hr&gt;&lt;div class='sum'&gt;Всего: &lt;span class='white'&gt;4&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;">
-                                        <img src="{% static 'style/images/wot/battleresults/battleResults-21.png' %}"
-                                             alt="">
-                                        <div class="info">4</div>
+
+                                    {# Криты: суммарное количество критов по всем целям #}
+                                    <td class="crits" title="Критические попадания (шт.)">
+                                        <img {% if interactions_summary.crits_total == 0 %}style="opacity:0.1;"{% endif %}
+                                             src="{% static 'style/images/wot/battleresults/battleResults-21.png' %}"
+                                             alt="Crits">
+                                        <div class="info">{{ interactions_summary.crits_total }}</div>
                                     </td>
-                                    <td class="damage"
-                                        title="&lt;div class='tooltip'&gt;&lt;div class='title'&gt;&lt;img class='img ribbon v2' src='style/images/wot/library/efficiency/48x48/damage.png'/&gt;Нанесение урона&lt;/div&gt;&lt;hr&gt;&lt;div class='descr'&gt;Засчитывается урон:&lt;br /&gt;
-                                    • Нанесённый выстрелом&lt;br /&gt;
-                                    • Нанесённый тараном&lt;br /&gt;
-                                    • Причинённый пожаром&lt;br /&gt;
-                                    • В результате сильного удара&lt;/div&gt;&lt;div class='numbers'&gt;&lt;hr&gt;&lt;span class='dmg_white'&gt;2435&lt;/span&gt; &lt;span class='text'&gt;Суммарный урон (ед.)&lt;/span&gt;&lt;span class='dmg_white'&gt;20&lt;/span&gt; &lt;span class='text'&gt;Всего пробитий&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;">
-                                        <img src="{% static 'style/images/wot/battleresults/battleResults-20.png' %}"
-                                             alt="">
-                                        <div class="info">20</div>
+
+                                    {# Попадания, нанесящие урон: суммарное число пробитий #}
+                                    <td class="damage" title="Попадания, нанесящие урон (пробития, шт.)">
+                                        <img {% if interactions_summary.piercings_total == 0 %}style="opacity:0.1;"{% endif %}
+                                             src="{% static 'style/images/wot/battleresults/battleResults-20.png' %}"
+                                             alt="Damaging hits">
+                                        <div class="info">{{ interactions_summary.piercings_total }}</div>
                                     </td>
-                                    <td class="kill"
-                                        title="&lt;div class='tooltip'&gt;&lt;div class='title'&gt;&lt;img class='img ribbon v2' src='style/images/wot/library/efficiency/48x48/destruction.png'/&gt;Уничтожение противника&lt;/div&gt;&lt;hr&gt;&lt;div class='descr'&gt;common/tooltip/kill-1/description&lt;/div&gt;&lt;/div&gt;">
-                                        <img src="{% static 'style/images/wot/battleresults/battleResults-23.png' %}"
-                                             alt="">
-                                        <div class="info">3</div>
+
+                                    {# Уничтоженные танки: суммарно #}
+                                    <td class="kill" title="Уничтоженные танки (шт.)">
+                                        <img {% if interactions_summary.destroyed_tanks == 0 %}style="opacity:0.1;"{% endif %}
+                                             src="{% static 'style/images/wot/battleresults/battleResults-23.png' %}"
+                                             alt="Kills">
+                                        <div class="info">{{ interactions_summary.destroyed_tanks }}</div>
                                     </td>
                                 </tr>
                                 </tbody>
@@ -146,25 +156,25 @@
                     <div class="half">
                         <div class="map-stat">
                             <img class="map"
-                                 src="{% static 'style/images/wot/map/stats/19_monastery.png' %}"
-                                 alt="Монастырь">
+                                 src="{% static 'style/images/wot/map/stats/' %}{{ replay.map_name }}.png"
+                                 alt="{{ replay.map_display_name|default:replay.map_name }}">
                             <div class="stat">
                                 <div class="stat-tank">
                                     <img class="tank new"
-                                         src="{% static 'style/images/wot/shop/vehicles/180x135/A06_M4A3E8_Sherman.png' %}"
+                                         src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ replay.tank.vehicleId }}.png"
+                                         alt="{{ replay.tank.name }}">
+                                    <span class="name ">"{{ replay.tank.name }}"</span>
+                                    <img class="type"
+                                         src="{% static 'style/images/wot/vehicleTypes/' %}{{ replay.tank.type }}.png"
                                          alt="">
-                                    <span class="name ">E8 Sherman</span>
-                                    <img class="type" src="{% static 'style/images/wot/vehicleTypes/mediumTank.png' %}"
-                                         alt="">
-                                    <img class="level" src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
+                                    <img class="level" src="{% static 'style/images/wot/levels/tank_level_' %}{{ replay.tank.level }}.png"
                                          alt="">
                                 </div>
                                 <div class="stat-text">
-                                    <div class="name"><a href="profile/1002815342/herosol" target="_blank">herosol
-                                        [WARHD]</a>
+                                    <div class="name">{{ details.playerName }}
                                     </div>
-                                    2025.09.11 22:26
-                                    <div class="death-reason">Уничтожен выстрелом (Old_Lead_Dirigible)</div>
+                                    {{ replay.battle_date }}
+                                    <div class="death-reason">{{ death_reason_text }}</div>
                                 </div>
                                 <div class="income">
                                     <table>
@@ -174,55 +184,76 @@
                                             <td class="inactive">Базовый аккаунт</td>
                                             <td class="active premium">Танковый премиум</td>
                                         </tr>
+
+                                        {# Кредиты #}
                                         <tr>
                                             <td class="desc">Кредиты</td>
                                             <td class="inactive">
-                                                <span>52 806</span>
+                                                <span>{{ income.credits_base|default:0|intcomma }}</span>
                                                 <img class="credit"
                                                      src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
                                                      alt="Credits">
                                             </td>
                                             <td class="active">
-                                                <span>65 817</span>
+                                                <span>{{ income.credits_premium|default:0|intcomma }}</span>
                                                 <img class="credit"
                                                      src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
                                                      alt="Credits">
                                             </td>
                                         </tr>
-                                        <tr>
-                                            <td class="desc">Опыт <br>Награда за первую победу в день (2x)</td>
-                                            <td class="inactive">4 956<img class="xp"
-                                                                           src="{% static 'style/images/wot/library/XpIcon.png' %}"
-                                                                           alt="XP">
-                                            </td>
-                                            <td class="active">5 947<img class="xp"
-                                                                         src="{% static 'style/images/wot/library/XpIcon.png' %}"
-                                                                         alt="XP">
-                                            </td>
-                                        </tr>
+
+                                        {# Показать только при первой победе дня (x2) #}
+                                        {% if income.is_first_win %}
+                                            <tr>
+                                                <td class="desc">
+                                                    Опыт
+                                                    <br>Награда за первую победу в день (2x)
+                                                </td>
+                                                <td class="inactive">
+                                                    {{ income.xp_with_first_base|default:0|intcomma }}
+                                                    <img class="xp"
+                                                         src="{% static 'style/images/wot/library/XpIcon.png' %}"
+                                                         alt="XP">
+                                                </td>
+                                                <td class="active">
+                                                    {{ income.xp_with_first_premium|default:0|intcomma }}
+                                                    <img class="xp"
+                                                         src="{% static 'style/images/wot/library/XpIcon.png' %}"
+                                                         alt="XP">
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+
+                                        {# Обычный опыт (без первой победы) #}
                                         <tr>
                                             <td class="desc">Опыт</td>
-                                            <td class="inactive">991<img class="xp"
-                                                                         src="{% static 'style/images/wot/library/XpIcon.png' %}"
-                                                                         alt="XP">
+                                            <td class="inactive">
+                                                {{ income.xp_base|default:0|intcomma }}
+                                                <img class="xp" src="{% static 'style/images/wot/library/XpIcon.png' %}"
+                                                     alt="XP">
                                             </td>
-                                            <td class="active">1 487<img class="xp"
-                                                                         src="{% static 'style/images/wot/library/XpIcon.png' %}"
-                                                                         alt="XP">
+                                            <td class="active">
+                                                {{ income.xp_premium|default:0|intcomma }}
+                                                <img class="xp" src="{% static 'style/images/wot/library/XpIcon.png' %}"
+                                                     alt="XP">
                                             </td>
                                         </tr>
+
+                                        {# Меткость #}
                                         <tr class="no-border">
                                             <td class="desc">Процент попаданий</td>
-                                            <td>20/21</td>
-                                            <td>95,24%</td>
+                                            <td>{{ income.hits }}/{{ income.shots }}</td>
+                                            <td>{{ income.hit_percent|floatformat:2 }}%</td>
                                         </tr>
+
+                                        {# Ассист-урон (слева) и нанесённый урон (справа) #}
                                         <tr class="no-border">
                                             <td class="desc"></td>
                                             <td>
-                                                <span style="color:#6183a6;">0</span>
+                                                <span style="color:#6183a6;">{{ income.assist_total|default:0|intcomma }}</span>
                                             </td>
                                             <td>
-                                                <span style="color:#d9aa66;">2 435</span>
+                                                <span style="color:#d9aa66;">{{ income.damage_total|default:0|intcomma }}</span>
                                             </td>
                                         </tr>
                                         </tbody>
@@ -233,263 +264,75 @@
                         </div>
                     </div>
                     <div class="half" style="padding-bottom: 15px;">
-                        <div class="hit-list ">
+                        <div class="hit-list">
                             <table style="width:100%;">
                                 <tbody>
-                                <tr class="row dead">
-                                    <td class="name">undeadbeast37</td>
-                                    <td class="vehicle">
-                                        <img class="tank new"
-                                             src="{% static 'style/images/wot/shop/vehicles/180x135/G02_Hummel.png' %}"
-                                             alt="">
-                                        <span>Hummel</span>
-                                    </td>
-                                    <td class="spotted">
-                                        <img style="opacity:0.1;"
-                                             src="{% static 'style/images/wot/battleresults/battleResults-19.png' %}">
-                                    </td>
-                                    <td class="assist">
-                                        <img style="opacity:0.1;"
-                                             src="{% static 'style/images/wot/battleresults/battleResults-25.png' %}">
-                                    </td>
-                                    <td class="assist">
-                                        <img style="opacity:0.1;" class="bigger"
-                                             src="{% static 'style/images/wot/battleresults/teamStatsComponents-12.png' %}">
-                                    </td>
-                                    <td class="crits">
-                                        <img style="opacity:0.1;"
-                                             src="{% static 'style/images/wot/battleresults/battleResults-21.png' %}">
-                                    </td>
-                                    <td class="damage"
-                                        title="&lt;div class='tooltip'&gt;&lt;div class='title'&gt;&lt;img class='img ribbon v2' src='style/images/wot/library/efficiency/48x48/damage.png'/&gt;Нанесение урона&lt;/div&gt;&lt;hr&gt;&lt;div class='descr'&gt;Засчитывается урон:&lt;br /&gt;
-                                                • Нанесённый выстрелом&lt;br /&gt;
-                                                • Нанесённый тараном&lt;br /&gt;
-                                                • Причинённый пожаром&lt;br /&gt;
-                                                • В результате сильного удара&lt;/div&gt;&lt;div class='numbers'&gt;&lt;hr&gt;&lt;span class='dmg_white'&gt;279&lt;/span&gt; &lt;span class='text'&gt;Суммарный урон (ед.)&lt;/span&gt;&lt;span class='dmg_white'&gt;2&lt;/span&gt; &lt;span class='text'&gt;Всего пробитий&lt;/span&gt;&lt;/div&gt;">
-                                        <img src="{% static 'style/images/wot/battleresults/battleResults-20.png' %}">
-                                        <div class="info">2</div>
-                                    </td>
-                                    <td class="kill"
-                                        title="&lt;div class='tooltip'&gt;&lt;div class='title'&gt;&lt;img class='img ribbon v2' src='style/images/wot/library/efficiency/48x48/destruction.png'/&gt;Уничтожение противника&lt;/div&gt;&lt;hr&gt;&lt;div class='descr'&gt;common/tooltip/kill-1/description&lt;/div&gt;&lt;div class='gray'&gt;&lt;hr&gt;Машина противника уничтожена выстрелом&lt;/div&gt;&lt;/div&gt;">
-                                        <img src="{% static 'style/images/wot/battleresults/battleResults-23.png' %}">
-                                    </td>
-                                </tr>
-                                <tr class="space"></tr>
-                                <tr class="row dead">
-                                    <td class="name">Tomasz_Nowak2</td>
-                                    <td class="vehicle">
-                                        <img class="tank new"
-                                             src="{% static 'style/images/wot/shop/vehicles/180x135/S08_Ikv_65_Alt_2.png' %}"
-                                             alt="">
-                                        <span>Ikv 65 II</span>
-                                    </td>
-                                    <td class="spotted">
-                                        <img style="opacity:0.1;"
-                                             src="{% static 'style/images/wot/battleresults/battleResults-19.png' %}">
-                                    </td>
-                                    <td class="assist">
-                                        <img style="opacity:0.1;"
-                                             src="{% static 'style/images/wot/battleresults/battleResults-25.png' %}">
-                                    </td>
-                                    <td class="assist">
-                                        <img style="opacity:0.1;" class="bigger"
-                                             src="{% static 'style/images/wot/battleresults/teamStatsComponents-12.png' %}">
-                                    </td>
-                                    <td class="crits">
-                                        <img style="opacity:0.1;"
-                                             src="{% static 'style/images/wot/battleresults/battleResults-21.png' %}">
-                                    </td>
-                                    <td class="damage">
-                                        <img style="opacity:0.1;"
-                                             src="{% static 'style/images/wot/battleresults/battleResults-20.png' %}">
-                                    </td>
-                                    <td class="kill">
-                                        <img style="opacity:0.1;"
-                                             src="{% static 'style/images/wot/battleresults/battleResults-23.png' %}">
-                                    </td>
-                                </tr>
-                                <tr class="space"></tr>
-                                <tr class="row dead">
-                                    <td class="name">thorKAOS</td>
-                                    <td class="vehicle">
-                                        <img class="tank new"
-                                             src="{% static 'style/images/wot/shop/vehicles/180x135/A06_M4A3E8_Sherman.png' %}"
-                                             alt="">
-                                        <span>E8 Sherman</span>
-                                    </td>
-                                    <td class="spotted">
-                                        <img style="opacity:0.1;"
-                                             src="{% static 'style/images/wot/battleresults/battleResults-19.png' %}">
-                                    </td>
-                                    <td class="assist">
-                                        <img style="opacity:0.1;"
-                                             src="{% static 'style/images/wot/battleresults/battleResults-25.png' %}">
-                                    </td>
-                                    <td class="assist"
-                                        title="&lt;div class='tooltip'&gt;&lt;div class='title'&gt;&lt;img class='img ribbon v2' src='style/images/wot/library/efficiency/48x48/armor.png'/&gt;Использование брони&lt;/div&gt;&lt;hr&gt;&lt;div class='descr'&gt;Засчитывается:&lt;br /&gt;
-                                                    • Рикошет от выстрелов противника&lt;br /&gt;
-                                                    • Непробитие&lt;br /&gt;
-                                                    &lt;br /&gt;
-                                                    Попадания осколочно-фугасными и HESH снарядами не учитываются.&lt;/div&gt;&lt;div class='numbers'&gt;&lt;hr&gt;&lt;span class='dmg_white'&gt;0&lt;/span&gt; &lt;span class='text'&gt;Рикошетов&lt;/span&gt;&lt;span class='dmg_white'&gt;1&lt;/span&gt; &lt;span class='text'&gt;Непробитий&lt;/span&gt;&lt;span class='dmg_white'&gt;115&lt;/span&gt; &lt;span class='text'&gt;Урона, заблокированного бронёй (ед.)&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;">
-                                        <img class="bigger"
-                                             src="{% static 'style/images/wot/battleresults/teamStatsComponents-12.png' %}">
-                                    </td>
-                                    <td class="crits"
-                                        title="&lt;div class='tooltip'&gt;&lt;div class='title'&gt;&lt;img class='img ribbon v2' src='style/images/wot/library/efficiency/48x48/module.png'/&gt;Критический урон&lt;/div&gt;&lt;hr&gt;&lt;div class='descr'&gt;Засчитывается:&lt;br /&gt;
-                                                • Повреждение внешних и внутренних модулей противника&lt;br /&gt;
-                                                • Выведение из строя внешних и внутренних модулей противника&lt;br /&gt;
-                                                • Ранение членов экипажа противника.&lt;/div&gt;&lt;hr&gt;&lt;div class='crit_title'&gt;Ранения экипажа:&lt;/div&gt;&lt;div class='crit_info'&gt;&lt;img src='style/images/wot/library/crits/radiomanDestroyedSmall.png'&gt;Радист&lt;br&gt;&lt;/div&gt;&lt;div class='sum'&gt;&lt;hr&gt;Всего: &lt;span class='white'&gt;1&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;">
-                                        <img src="{% static 'style/images/wot/battleresults/battleResults-21.png' %}">
-                                    </td>
-                                    <td class="damage"
-                                        title="&lt;div class='tooltip'&gt;&lt;div class='title'&gt;&lt;img class='img ribbon v2' src='style/images/wot/library/efficiency/48x48/damage.png'/&gt;Нанесение урона&lt;/div&gt;&lt;hr&gt;&lt;div class='descr'&gt;Засчитывается урон:&lt;br /&gt;
-                                                    • Нанесённый выстрелом&lt;br /&gt;
-                                                    • Нанесённый тараном&lt;br /&gt;
-                                                    • Причинённый пожаром&lt;br /&gt;
-                                                    • В результате сильного удара&lt;/div&gt;&lt;div class='numbers'&gt;&lt;hr&gt;&lt;span class='dmg_white'&gt;738&lt;/span&gt; &lt;span class='text'&gt;Суммарный урон (ед.)&lt;/span&gt;&lt;span class='dmg_white'&gt;7&lt;/span&gt; &lt;span class='text'&gt;Всего пробитий&lt;/span&gt;&lt;/div&gt;">
-                                        <img src="{% static 'style/images/wot/battleresults/battleResults-20.png' %}">
-                                        <div class="info">7</div>
-                                    </td>
-                                    <td class="kill"
-                                        title="&lt;div class='tooltip'&gt;&lt;div class='title'&gt;&lt;img class='img ribbon v2' src='style/images/wot/library/efficiency/48x48/destruction.png'/&gt;Уничтожение противника&lt;/div&gt;&lt;hr&gt;&lt;div class='descr'&gt;common/tooltip/kill-1/description&lt;/div&gt;&lt;div class='gray'&gt;&lt;hr&gt;Машина противника уничтожена выстрелом&lt;/div&gt;&lt;/div&gt;">
-                                        <img src="{% static 'style/images/wot/battleresults/battleResults-23.png' %}">
-                                    </td>
-                                </tr>
-                                <tr class="space"></tr>
-                                <tr class="row dead">
-                                    <td class="name">HypercarDriver [PLOW]</td>
-                                    <td class="vehicle">
-                                        <img class="tank new"
-                                             src="{% static 'style/images/wot/shop/vehicles/180x135/J44_Type_3_Ju_Nu.png' %}"
-                                             alt="">
-                                        <span>Ju-Nu</span>
-                                    </td>
-                                    <td class="spotted">
-                                        <img style="opacity:0.1;"
-                                             src="{% static 'style/images/wot/battleresults/battleResults-19.png' %}">
-                                    </td>
-                                    <td class="assist">
-                                        <img style="opacity:0.1;"
-                                             src="{% static 'style/images/wot/battleresults/battleResults-25.png' %}">
-                                    </td>
-                                    <td class="assist">
-                                        <img style="opacity:0.1;" class="bigger"
-                                             src="{% static 'style/images/wot/battleresults/teamStatsComponents-12.png' %}">
-                                    </td>
-                                    <td class="crits"
-                                        title="&lt;div class='tooltip'&gt;&lt;div class='title'&gt;&lt;img class='img ribbon v2' src='style/images/wot/library/efficiency/48x48/module.png'/&gt;Критический урон&lt;/div&gt;&lt;hr&gt;&lt;div class='descr'&gt;Засчитывается:&lt;br /&gt;
-                                                • Повреждение внешних и внутренних модулей противника&lt;br /&gt;
-                                                • Выведение из строя внешних и внутренних модулей противника&lt;br /&gt;
-                                                • Ранение членов экипажа противника.&lt;/div&gt;&lt;hr&gt;&lt;div class='crit_title'&gt;Повреждения:&lt;/div&gt;&lt;div class='crit_info'&gt;&lt;img src='style/images/wot/library/crits/engineCriticalSmall.png'&gt;Двигатель&lt;br&gt;&lt;/div&gt;&lt;hr&gt;&lt;div class='crit_title'&gt;Выведения из строя:&lt;/div&gt;&lt;div class='crit_info'&gt;&lt;img src='style/images/wot/library/crits/fuelTankDestroyedSmall.png'&gt;Топливный бак&lt;br&gt;&lt;/div&gt;&lt;div class='sum'&gt;&lt;hr&gt;Всего: &lt;span class='white'&gt;2&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;">
-                                        <img src="{% static 'style/images/wot/battleresults/battleResults-21.png' %}">
-                                        <div class="info">2</div>
-                                    </td>
-                                    <td class="damage"
-                                        title="&lt;div class='tooltip'&gt;&lt;div class='title'&gt;&lt;img class='img ribbon v2' src='style/images/wot/library/efficiency/48x48/damage.png'/&gt;Нанесение урона&lt;/div&gt;&lt;hr&gt;&lt;div class='descr'&gt;Засчитывается урон:&lt;br /&gt;
-                                                • Нанесённый выстрелом&lt;br /&gt;
-                                                • Нанесённый тараном&lt;br /&gt;
-                                                • Причинённый пожаром&lt;br /&gt;
-                                                • В результате сильного удара&lt;/div&gt;&lt;div class='numbers'&gt;&lt;hr&gt;&lt;span class='dmg_white'&gt;584&lt;/span&gt; &lt;span class='text'&gt;Суммарный урон (ед.)&lt;/span&gt;&lt;span class='dmg_white'&gt;4&lt;/span&gt; &lt;span class='text'&gt;Всего пробитий&lt;/span&gt;&lt;/div&gt;">
-                                        <img src="{% static 'style/images/wot/battleresults/battleResults-20.png' %}">
-                                        <div class="info">4</div>
-                                    </td>
-                                    <td class="kill"
-                                        title="&lt;div class='tooltip'&gt;&lt;div class='title'&gt;&lt;img class='img ribbon v2' src='style/images/wot/library/efficiency/48x48/destruction.png'/&gt;Уничтожение противника&lt;/div&gt;&lt;hr&gt;&lt;div class='descr'&gt;common/tooltip/kill-1/description&lt;/div&gt;&lt;div class='gray'&gt;&lt;hr&gt;Машина противника уничтожена выстрелом&lt;/div&gt;&lt;/div&gt;">
-                                        <img src="{% static 'style/images/wot/battleresults/battleResults-23.png' %}">
-                                    </td>
-                                </tr>
-                                <tr class="space"></tr>
-                                <tr class="row dead">
-                                    <td class="name">ArsenalGear</td>
-                                    <td class="vehicle"><img class="tank new"
-                                                             src="{% static 'style/images/wot/shop/vehicles/180x135/J19_Tiger_I_Jpn.png' %}"
-                                                             alt=""><span>HT No. VI</span></td>
-                                    <td class="spotted"><img style="opacity:0.1;"
-                                                             src="{% static 'style/images/wot/battleresults/battleResults-19.png' %}">
-                                    </td>
-                                    <td class="assist"><img style="opacity:0.1;"
-                                                            src="{% static 'style/images/wot/battleresults/battleResults-25.png' %}">
-                                    </td>
-                                    <td class="assist"><img style="opacity:0.1;" class="bigger"
-                                                            src="{% static 'style/images/wot/battleresults/teamStatsComponents-12.png' %}">
-                                    </td>
-                                    <td class="crits"><img style="opacity:0.1;"
-                                                           src="{% static 'style/images/wot/battleresults/battleResults-21.png' %}">
-                                    </td>
-                                    <td class="damage"
-                                        title="&lt;div class='tooltip'&gt;&lt;div class='title'&gt;&lt;img class='img ribbon v2' src='style/images/wot/library/efficiency/48x48/damage.png'/&gt;Нанесение урона&lt;/div&gt;&lt;hr&gt;&lt;div class='descr'&gt;Засчитывается урон:&lt;br /&gt;
-• Нанесённый выстрелом&lt;br /&gt;
-• Нанесённый тараном&lt;br /&gt;
-• Причинённый пожаром&lt;br /&gt;
-• В результате сильного удара&lt;/div&gt;&lt;div class='numbers'&gt;&lt;hr&gt;&lt;span class='dmg_white'&gt;358&lt;/span&gt; &lt;span class='text'&gt;Суммарный урон (ед.)&lt;/span&gt;&lt;span class='dmg_white'&gt;3&lt;/span&gt; &lt;span class='text'&gt;Всего пробитий&lt;/span&gt;&lt;/div&gt;">
-                                        <img src="{% static 'style/images/wot/battleresults/battleResults-20.png' %}">
-                                        <div class="info">3</div>
-                                    </td>
-                                    <td class="kill"><img style="opacity:0.1;"
-                                                          src="{% static 'style/images/wot/battleresults/battleResults-23.png' %}">
-                                    </td>
-                                </tr>
-                                <tr class="space"></tr>
-                                <tr class="row dead">
-                                    <td class="name">Lennongrad [AAFF]</td>
-                                    <td class="vehicle"><img class="tank new"
-                                                             src="{% static 'style/images/wot/shop/vehicles/180x135/F109_AMD_Panhard_178B.png' %}"
-                                                             alt=""><span>AMD 178B</span></td>
-                                    <td class="spotted"><img style="opacity:0.1;"
-                                                             src="{% static 'style/images/wot/battleresults/battleResults-19.png' %}">
-                                    </td>
-                                    <td class="assist"><img style="opacity:0.1;"
-                                                            src="{% static 'style/images/wot/battleresults/battleResults-25.png' %}">
-                                    </td>
-                                    <td class="assist"><img style="opacity:0.1;" class="bigger"
-                                                            src="{% static 'style/images/wot/battleresults/teamStatsComponents-12.png' %}">
-                                    </td>
-                                    <td class="crits"><img style="opacity:0.1;"
-                                                           src="{% static 'style/images/wot/battleresults/battleResults-21.png' %}">
-                                    </td>
-                                    <td class="damage"><img style="opacity:0.1;"
-                                                            src="{% static 'style/images/wot/battleresults/battleResults-20.png' %}">
-                                    </td>
-                                    <td class="kill"><img style="opacity:0.1;"
-                                                          src="{% static 'style/images/wot/battleresults/battleResults-23.png' %}">
-                                    </td>
-                                </tr>
-                                <tr class="space"></tr>
-                                <tr class="row dead">
-                                    <td class="name">Old_Lead_Dirigible</td>
-                                    <td class="vehicle"><img class="tank new"
-                                                             src="{% static 'style/images/wot/shop/vehicles/180x135/G41_DickerMax.png' %}"
-                                                             alt=""><span>Dicker Max</span></td>
-                                    <td class="spotted"><img style="opacity:0.1;"
-                                                             src="{% static 'style/images/wot/battleresults/battleResults-19.png' %}">
-                                    </td>
-                                    <td class="assist"><img style="opacity:0.1;"
-                                                            src="{% static 'style/images/wot/battleresults/battleResults-25.png' %}">
-                                    </td>
-                                    <td class="assist"><img style="opacity:0.1;" class="bigger"
-                                                            src="{% static 'style/images/wot/battleresults/teamStatsComponents-12.png' %}">
-                                    </td>
-                                    <td class="crits"
-                                        title="&lt;div class='tooltip'&gt;&lt;div class='title'&gt;&lt;img class='img ribbon v2' src='style/images/wot/library/efficiency/48x48/module.png'/&gt;Критический урон&lt;/div&gt;&lt;hr&gt;&lt;div class='descr'&gt;Засчитывается:&lt;br /&gt;
-• Повреждение внешних и внутренних модулей противника&lt;br /&gt;
-• Выведение из строя внешних и внутренних модулей противника&lt;br /&gt;
-• Ранение членов экипажа противника.&lt;/div&gt;&lt;hr&gt;&lt;div class='crit_title'&gt;Ранения экипажа:&lt;/div&gt;&lt;div class='crit_info'&gt;&lt;img src='style/images/wot/library/crits/driverDestroyedSmall.png'&gt;Механик-водитель&lt;br&gt;&lt;/div&gt;&lt;div class='sum'&gt;&lt;hr&gt;Всего: &lt;span class='white'&gt;1&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;">
-                                        <img src="{% static 'style/images/wot/battleresults/battleResults-21.png' %}">
-                                    </td>
-                                    <td class="damage"
-                                        title="&lt;div class='tooltip'&gt;&lt;div class='title'&gt;&lt;img class='img ribbon v2' src='style/images/wot/library/efficiency/48x48/damage.png'/&gt;Нанесение урона&lt;/div&gt;&lt;hr&gt;&lt;div class='descr'&gt;Засчитывается урон:&lt;br /&gt;
-• Нанесённый выстрелом&lt;br /&gt;
-• Нанесённый тараном&lt;br /&gt;
-• Причинённый пожаром&lt;br /&gt;
-• В результате сильного удара&lt;/div&gt;&lt;div class='numbers'&gt;&lt;hr&gt;&lt;span class='dmg_white'&gt;476&lt;/span&gt; &lt;span class='text'&gt;Суммарный урон (ед.)&lt;/span&gt;&lt;span class='dmg_white'&gt;4&lt;/span&gt; &lt;span class='text'&gt;Всего пробитий&lt;/span&gt;&lt;/div&gt;">
-                                        <img src="{% static 'style/images/wot/battleresults/battleResults-20.png' %}">
-                                        <div class="info">4</div>
-                                    </td>
-                                    <td class="kill"><img style="opacity:0.1;"
-                                                          src="{% static 'style/images/wot/battleresults/battleResults-23.png' %}">
-                                    </td>
-                                </tr>
-                                <tr class="space"></tr>
+
+                                {# Идём по подготовленным строкам #}
+                                {% for row in interaction_rows %}
+                                    <tr class="row {% if row.destroyed %}dead{% endif %}">
+                                        <td class="name">{{ row.name }}</td>
+
+                                        <td class="vehicle">
+                                            {% if row.vehicle_img %}
+                                                <img class="tank new"
+                                                     src="{% static row.vehicle_img %}"
+                                                     alt="{{ row.vehicle_tag }}">
+                                            {% endif %}
+                                            <span>{{ row.vehicle_tag }}</span>
+                                        </td>
+
+                                        {# Обнаружил #}
+                                        <td class="spotted">
+                                            <img {% if not row.spotted %}style="opacity:0.1;"{% endif %}
+                                                 src="{% static 'style/images/wot/battleresults/battleResults-19.png' %}">
+                                        </td>
+
+                                        {# Помог в уничтожении #}
+                                        <td class="assist">
+                                            <img {% if not row.assist %}style="opacity:0.1;"{% endif %}
+                                                 src="{% static 'style/images/wot/battleresults/battleResults-25.png' %}">
+                                        </td>
+
+                                        {# Заблокировал урон (броня) #}
+                                        <td class="assist">
+                                            <img class="bigger" {% if not row.blocked %}style="opacity:0.1;"{% endif %}
+                                                 src="{% static 'style/images/wot/battleresults/teamStatsComponents-12.png' %}">
+                                        </td>
+
+                                        {# Критические попадания #}
+                                        <td class="crits">
+                                            <img {% if not row.crits %}style="opacity:0.1;"{% endif %}
+                                                 src="{% static 'style/images/wot/battleresults/battleResults-21.png' %}">
+                                            {% if row.crits_count %}
+                                                <div class="info">{{ row.crits_count }}</div>
+                                            {% endif %}
+                                        </td>
+
+                                        {# Нанёс урон #}
+                                        <td class="damage">
+                                            <img {% if not row.damaged %}style="opacity:0.1;"{% endif %}
+                                                 src="{% static 'style/images/wot/battleresults/battleResults-20.png' %}">
+                                            {# если захочешь показывать цифры, добавь сюда div.info с данными #}
+                                            {% if row.damage_piercings %}
+                                                <div class="info">{{ row.damage_piercings }}</div>
+                                            {% endif %}
+                                        </td>
+
+                                        {# Уничтожил #}
+                                        <td class="kill">
+                                            <img {% if not row.destroyed %}style="opacity:0.1;"{% endif %}
+                                                 src="{% static 'style/images/wot/battleresults/battleResults-23.png' %}">
+                                        </td>
+                                    </tr>
+
+                                    <tr class="space"></tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted">Нет взаимодействий</td>
+                                    </tr>
+                                {% endfor %}
+
                                 </tbody>
                             </table>
                         </div>
@@ -2474,9 +2317,9 @@
                     </div>
                 </div>
             </div>
-            <div class="right down-info"><span class="gray">Сервер:</span>NA<span class="gray">Режим боя:</span>Случайный
-                бой<span class="gray">Текущая версия:</span>2.0.0.0<span class="gray">Отправитель:</span><a
-                        href="uploader/1002815342/herosol">herosol</a></div>
+            <div class="right down-info"><span class="gray">Сервер:</span>{{ details.serverName }}<span class="gray">Режим боя:</span>Случайный
+                бой<span class="gray">Текущая версия:</span>{{ details.clientVersion }}<span
+                        class="gray">Отправитель:</span>{{ details.playerName }}</div>
         </div>
     {% endif %}
     <script>

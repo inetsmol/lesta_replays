@@ -1,7 +1,11 @@
+# replays/views.py
 from __future__ import annotations
 
 import json
 import logging
+import mimetypes
+import os
+import urllib.parse
 from datetime import datetime
 from pathlib import Path
 
@@ -10,16 +14,16 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
-from django.http import JsonResponse
-from django.shortcuts import redirect
+from django.http import JsonResponse, Http404, FileResponse
+from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse
 from django.utils.dateparse import parse_date
 from django.views import View
 from django.views.generic import ListView, DetailView
 
-from .models import Replay, Tank, Nation
-from .parsers import extract_replay_data
-from .utils import extract_all_json_from_mtreplay
+from wotreplay.helper.extractor import Extractor
+from wotreplay.mtreplay import Replay as Rpl
+from .models import Replay, Tank, Nation, Achievement
 
 FILES_DIR = Path(settings.MEDIA_ROOT)
 FILES_DIR.mkdir(parents=True, exist_ok=True)
@@ -29,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 class ReplayUploadView(View):
     """
-    View для загрузки файлов реплеев World of Tanks.
+    View для загрузки файлов реплеев Мир Танков.
     Принимает .mtreplay файлы, извлекает данные и создает объект Replay.
     """
 
@@ -132,35 +136,43 @@ class ReplayUploadView(View):
         # Сохраняем файл
         file_path = self._save_file(uploaded_file)
 
+        r = Rpl(file_path)
+
+        r.get_replay_fields()
+
+        replay_fields = r.replay_fields
+
         try:
             # Извлекаем JSON данные из файла
-            json_str = extract_all_json_from_mtreplay(str(file_path))
-            if not json_str.strip():
-                raise ValueError("Файл не содержит данных реплея")
-
-            payload = json.loads(json_str)
-
-            # Парсим данные для создания реплея
-            replay_data = self._parse_replay_data(payload)
+            #
+            # json_str = extract_all_json_from_mtreplay(str(file_path))
+            # if not json_str.strip():
+            #     raise ValueError("Файл не содержит данных реплея")
+            #
+            # payload = json.loads(json_str)
+            #
+            # # Парсим данные для создания реплея
+            # replay_data = self._parse_replay_data(payload)
 
             # Находим или создаем танк
-            tank = self._get_or_create_tank(replay_data['vehicle_id'])
+            # tank = self._get_or_create_tank(replay_data['vehicle_id'])
+            tank = self._get_or_create_tank(replay_fields.get('tank_tag'))
 
             # Создаем объект реплея
             replay = Replay.objects.create(
-                file_name=uploaded_file.name,
-                payload=payload,
+                file_name=replay_fields.get('file_name'),
+                payload=replay_fields.get('payload'),
                 tank=tank,
-                battle_date=replay_data.get('battle_date'),
-                map_name=replay_data.get('map_name'),
-                map_display_name=replay_data.get('map_display_name'),
-                mastery=replay_data.get('mastery'),
-                credits=replay_data.get('credits', 0),
-                xp=replay_data.get('xp', 0),
-                kills=replay_data.get('kills', 0),
-                damage=replay_data.get('damage', 0),
-                assist=replay_data.get('assist', 0),
-                block=replay_data.get('block', 0)
+                battle_date=replay_fields.get('battle_date'),
+                map_name=replay_fields.get('map_name'),
+                map_display_name=replay_fields.get('map_display_name'),
+                mastery=replay_fields.get('mastery'),
+                credits=replay_fields.get('credits', 0),
+                xp=replay_fields.get('xp', 0),
+                kills=replay_fields.get('kills', 0),
+                damage=replay_fields.get('damage', 0),
+                assist=replay_fields.get('assist', 0),
+                block=replay_fields.get('block', 0)
             )
 
             logger.info(f"Реплей создан: {replay.id} - {uploaded_file.name}")
@@ -409,29 +421,63 @@ class ReplayDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        replay = self.get_object()
 
         try:
-            # Извлекаем полные данные реплея
-            replay_data = extract_replay_data(replay.payload)
-            context['replay_data'] = replay_data
+            # Парсим данные реплея
+            replay_data = self.object.payload
 
-            # Добавляем удобные переменные для шаблона
-            context.update({
-                'battle_result_class': self._get_result_class(replay_data['battle_result']),
-                'survival_status': self._get_survival_status(replay_data['survival_status']),
-                'hit_efficiency': self._calculate_hit_efficiency(replay_data),
-                'damage_efficiency': self._calculate_damage_efficiency(replay_data),
-                'armor_efficiency': self._calculate_armor_efficiency(replay_data),
-                'enemy_list': self._prepare_enemy_list(replay_data['detailed_enemy_stats']),
-                'achievements_display': self._prepare_achievements(replay_data['achievements']),
-                'performance_rating': self._calculate_performance_rating(replay_data),
-            })
+            # === ДОСТИЖЕНИЯ ===
+            achievements_ids = Extractor.get_achievements(replay_data)
+            if achievements_ids:
+                ach_nonbattle, ach_battle = Extractor.split_achievements_by_type(achievements_ids)
 
-        except Exception as e:
-            logger.error(f"Ошибка извлечения данных реплея {replay.id}: {e}")
-            context['replay_data'] = {}
-            context['parse_error'] = str(e)
+                print(ach_nonbattle)
+                print(ach_battle)
+
+                context['achievements_nonbattle'] = ach_nonbattle
+                context['achievements_battle'] = ach_battle
+
+                # мастерство — как и было
+                m = int(self.object.mastery or 0)
+                label_map = {
+                    4: "100% — Мастер",
+                    3: "95% — 1 степень",
+                    2: "80% — 2 степень",
+                    1: "50% — 3 степень",
+                }
+                context['has_mastery'] = m > 0
+                context['mastery'] = m
+                context['mastery_label'] = label_map.get(m, "")
+                context['mastery_image'] = f"style/images/wot/achievement/markOfMastery{m}.png" if m else ""
+
+                # сколько значков показать в «бейджах»
+                context['achievements_count_in_badges'] = ach_nonbattle.count() + (1 if m > 0 else 0)
+            else:
+                context['achievements_nonbattle'] = Achievement.objects.none()
+                context['achievements_battle'] = Achievement.objects.none()
+                context['achievements_count_in_badges'] = 0
+
+            # кладём как вложенный словарь, чтобы в шаблоне обращаться: {{ details.playerName }}
+            context['details'] = Extractor.get_details_data(replay_data)
+
+            context["interactions"] = Extractor.get_player_interactions(replay_data)
+
+            interaction_rows = Extractor.build_interaction_rows(replay_data)
+            context["interaction_rows"] = interaction_rows
+
+            context["interactions_summary"] = Extractor.build_interactions_summary(interaction_rows)
+
+            context['death_reason_text'] = Extractor.get_death_text(replay_data)
+
+            context['income'] = Extractor.build_income_summary(replay_data)
+
+            context["battle_type_label"] = Extractor.get_battle_type_label(replay_data)
+
+            context["battle_outcome"] = Extractor.get_battle_outcome(replay_data)
+
+        except (KeyError, TypeError, ValueError) as e:
+            logger.error(f"Ошибка парсинга реплея {self.object.id}: {str(e)}")
+            context['parse_error'] = f"Ошибка обработки данных реплея: {str(e)}"
 
         return context
 
@@ -505,27 +551,6 @@ class ReplayDetailView(DetailView):
                 })
         return sorted(enemies, key=lambda x: x['damage'], reverse=True)
 
-    def _prepare_achievements(self, achievements: list) -> list:
-        """Подготавливает достижения для отображения"""
-        achievement_names = {
-            1614: 'Заговорённый',
-            521: 'Костолом',
-            148: 'Дуэлянт',
-            523: 'Огонь на поражение',
-            526: 'Воин',
-            228: 'Медаль Николса',
-            34: 'Спартанец',
-        }
-
-        return [
-            {
-                'id': ach_id,
-                'name': achievement_names.get(ach_id, f'Достижение {ach_id}'),
-                'image': f'wot/achievement/big/{ach_id}.png'
-            }
-            for ach_id in achievements
-        ]
-
     def _calculate_performance_rating(self, data: dict) -> dict:
         """Вычисляет общую оценку эффективности с готовыми процентами"""
         damage_rating = min(data.get('damage_dealt', 0) / 1000, 5.0)
@@ -562,3 +587,14 @@ class ReplayDetailView(DetailView):
                 },
             }
         }
+
+
+class ReplayDownloadView(View):
+    """
+    Отдаёт .mtreplay  из каталога с файлами по полю Replay.file_name.
+    Базовый каталог берётся из settings.REPLAYS_DIR, иначе ./files рядом с manage.py.
+    """
+
+    model = Replay
+
+

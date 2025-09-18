@@ -95,21 +95,6 @@ class Replay(models.Model):
             return f"{self.tank.name} - {self.battle_date.strftime('%d.%m.%Y %H:%M')}"
         return self.file_name
 
-    @property
-    def wn8_components(self) -> dict:
-        """Компоненты для расчета WN8"""
-        return {
-            'damage': self.damage,
-            'kills': self.kills,
-            'xp': self.xp,
-            'assist': self.assist,
-        }
-
-    @property
-    def is_victory(self) -> bool:
-        """Проверка победы по заработанным кредитам"""
-        return self.credits > 0
-
 
 class Nation(models.TextChoices):
     """
@@ -147,3 +132,45 @@ class Tank(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name} (lvl {self.level}, {self.type}, {self.nation or '?'})"
+
+
+class Achievement(models.Model):
+    """Модель для хранения информации о достижениях"""
+    achievement_id = models.IntegerField(unique=True, primary_key=True)  # числовой ID из клиента/реплея
+    token = models.CharField(max_length=100, unique=True, null=True, blank=True)  # текстовый ключ из API: shootToKill
+
+    # Основное
+    name = models.CharField(max_length=200, verbose_name="Название")
+    description = models.TextField(blank=True, verbose_name="Описание")
+    condition = models.TextField(blank=True, verbose_name="Условия получения")
+
+    # Доп. сведения из API
+    section = models.CharField(max_length=50, blank=True, verbose_name="Секция")          # e.g. achievements, singleAchievements
+    api_type = models.CharField(max_length=50, blank=True, verbose_name="Тип из API")     # чтобы не пересекаться с choices
+    hero_info = models.TextField(blank=True, verbose_name="Ист. справка")
+    outdated = models.BooleanField(default=False, verbose_name="Снято из получения")
+    order = models.IntegerField(null=True, blank=True, verbose_name="Порядок в секции")
+    section_order = models.IntegerField(null=True, blank=True, verbose_name="Порядок секции")
+
+    # Пути к ЛОКАЛЬНЫМ изображениям
+    image_big = models.CharField(max_length=500, blank=True, verbose_name="Большое изображение")
+    image_small = models.CharField(max_length=500, blank=True, verbose_name="Маленькое изображение")
+
+    # Тип для ваших отображений/фильтров
+    achievement_type = models.CharField(max_length=50, choices=[
+        ('battle', 'Боевое'),
+        ('mastery', 'Мастерство'),
+        ('epic', 'Эпическое'),
+        ('special', 'Специальное'),
+    ], default='battle')
+
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Достижение"
+        verbose_name_plural = "Достижения"
+        ordering = ['name']
+
+    def __str__(self):
+        return f"{self.name} (ID: {self.achievement_id}, section: {self.section})"
