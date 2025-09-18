@@ -14,10 +14,11 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
-from django.http import JsonResponse, Http404, FileResponse
+from django.http import JsonResponse, Http404, FileResponse, HttpResponse, StreamingHttpResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse
 from django.utils.dateparse import parse_date
+from django.utils.encoding import escape_uri_path
 from django.views import View
 from django.views.generic import ListView, DetailView
 
@@ -591,10 +592,220 @@ class ReplayDetailView(DetailView):
 
 class ReplayDownloadView(View):
     """
-    Отдаёт .mtreplay  из каталога с файлами по полю Replay.file_name.
-    Базовый каталог берётся из settings.REPLAYS_DIR, иначе ./files рядом с manage.py.
+    View для скачивания файлов реплеев World of Tanks.
+    Возвращает .mtreplay файл по ID реплея с оптимизацией для больших файлов.
     """
 
-    model = Replay
+    # Максимальный размер файла для скачивания (100MB)
+    MAX_FILE_SIZE = 10 * 1024 * 1024
+
+    # Размер чанка для потокового чтения (1MB)
+    CHUNK_SIZE = 1024 * 1024
+
+    def get(self, request, pk):
+        """
+        Обрабатывает GET запрос для скачивания реплея.
+
+        Args:
+            request: HTTP запрос
+            pk: ID реплея для скачивания
+
+        Returns:
+            HttpResponse с файлом или Http404
+        """
+        try:
+            # Получаем объект реплея
+            replay = self._get_replay_object(pk)
+
+            # Формируем путь к файлу
+            file_path = self._get_file_path(replay.file_name)
+
+            # Валидация безопасности и существования
+            self._validate_file_security(file_path)
+            self._validate_file_exists(file_path)
+
+            # Возвращаем файл для скачивания
+            return self._create_optimized_file_response(file_path, replay.file_name)
+
+        except Replay.DoesNotExist:
+            logger.warning(f"Попытка скачать несуществующий реплей: {pk}")
+            raise Http404("Реплей не найден")
+        except FileNotFoundError as e:
+            logger.error(f"Файл реплея не найден для ID {pk}: {str(e)}")
+            raise Http404("Файл реплея не найден")
+        except PermissionError:
+            logger.error(f"Нет прав доступа к файлу реплея ID {pk}")
+            raise Http404("Нет доступа к файлу")
+        except Exception as e:
+            logger.error(f"Неожиданная ошибка при скачивании реплея {pk}: {str(e)}")
+            raise Http404("Ошибка при обработке файла")
+
+    def _get_replay_object(self, pk):
+        """
+        Получает объект реплея по ID с оптимизированным запросом.
+
+        Args:
+            pk: ID реплея
+
+        Returns:
+            Replay: объект реплея
+
+        Raises:
+            Replay.DoesNotExist: если реплей не найден
+        """
+        try:
+            # Оптимизированный запрос - нам нужно только file_name
+            return Replay.objects.only('file_name').get(pk=pk)
+        except Replay.DoesNotExist:
+            raise
+
+    def _get_file_path(self, file_name):
+        """
+        Формирует полный путь к файлу реплея.
+
+        Args:
+            file_name: имя файла реплея
+
+        Returns:
+            Path: полный путь к файлу
+        """
+        return Path(settings.MEDIA_ROOT) / file_name
+
+    def _validate_file_security(self, file_path):
+        """
+        Проверяет безопасность пути к файлу (защита от path traversal).
+
+        Args:
+            file_path: путь к файлу
+
+        Raises:
+            PermissionError: если путь небезопасен
+        """
+        media_root = Path(settings.MEDIA_ROOT).resolve()
+        resolved_file_path = file_path.resolve()
+
+        # Проверяем, что файл находится в MEDIA_ROOT
+        if not str(resolved_file_path).startswith(str(media_root)):
+            logger.warning(f"Попытка доступа к файлу вне MEDIA_ROOT: {resolved_file_path}")
+            raise PermissionError("Недопустимый путь к файлу")
+
+    def _validate_file_exists(self, file_path):
+        """
+        Проверяет существование файла на диске и его размер.
+
+        Args:
+            file_path: путь к файлу
+
+        Raises:
+            FileNotFoundError: если файл не найден или слишком большой
+        """
+        if not file_path.exists():
+            raise FileNotFoundError(f"Файл не найден: {file_path}")
+
+        if not file_path.is_file():
+            raise FileNotFoundError(f"Путь не является файлом: {file_path}")
+
+        # Проверяем размер файла
+        file_size = file_path.stat().st_size
+        if file_size > self.MAX_FILE_SIZE:
+            logger.warning(f"Попытка скачать слишком большой файл: {file_path} ({file_size} bytes)")
+            raise FileNotFoundError("Файл слишком большой для скачивания")
+
+    def _create_optimized_file_response(self, file_path, file_name):
+        """
+        Создает оптимизированный HTTP ответ с файлом для скачивания.
+        Использует потоковый ответ для больших файлов.
+
+        Args:
+            file_path: путь к файлу
+            file_name: оригинальное имя файла
+
+        Returns:
+            HttpResponse или StreamingHttpResponse: ответ с файлом
+        """
+        try:
+            file_size = file_path.stat().st_size
+            content_type = self._get_content_type(file_name)
+
+            # Для файлов больше 5MB используем потоковый ответ
+            if file_size > 5 * 1024 * 1024:
+                response = self._create_streaming_response(file_path, content_type)
+            else:
+                response = self._create_regular_response(file_path, content_type)
+
+            # Устанавливаем общие заголовки
+            safe_filename = escape_uri_path(file_name)
+            response['Content-Disposition'] = f'attachment; filename="{safe_filename}"'
+            response['Content-Length'] = file_size
+            response['Cache-Control'] = 'public, max-age=3600'  # Кэш на 1 час
+
+            logger.info(f"Файл реплея отправлен: {file_name} (размер: {file_size} bytes)")
+            return response
+
+        except IOError as e:
+            logger.error(f"Ошибка чтения файла {file_path}: {str(e)}")
+            raise FileNotFoundError("Ошибка чтения файла")
+
+    def _create_streaming_response(self, file_path, content_type):
+        """
+        Создает потоковый HTTP ответ для больших файлов.
+
+        Args:
+            file_path: путь к файлу
+            content_type: MIME-тип
+
+        Returns:
+            StreamingHttpResponse: потоковый ответ
+        """
+
+        def file_iterator():
+            with open(file_path, 'rb') as file:
+                while True:
+                    chunk = file.read(self.CHUNK_SIZE)
+                    if not chunk:
+                        break
+                    yield chunk
+
+        return StreamingHttpResponse(
+            file_iterator(),
+            content_type=content_type
+        )
+
+    def _create_regular_response(self, file_path, content_type):
+        """
+        Создает обычный HTTP ответ для небольших файлов.
+
+        Args:
+            file_path: путь к файлу
+            content_type: MIME-тип
+
+        Returns:
+            HttpResponse: ответ с файлом
+        """
+        with open(file_path, 'rb') as file:
+            file_content = file.read()
+
+        return HttpResponse(
+            file_content,
+            content_type=content_type
+        )
+
+    def _get_content_type(self, file_name):
+        """
+        Определяет MIME-тип файла.
+
+        Args:
+            file_name: имя файла
+
+        Returns:
+            str: MIME-тип
+        """
+        # Для .mtreplay файлов используем специальный тип
+        if file_name.lower().endswith('.mtreplay'):
+            return 'application/octet-stream'
+
+        # Для других файлов пытаемся определить автоматически
+        content_type, _ = mimetypes.guess_type(file_name)
+        return content_type or 'application/octet-stream'
 
 

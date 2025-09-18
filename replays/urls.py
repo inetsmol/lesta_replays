@@ -7,9 +7,7 @@ urlpatterns = [
     path('', ReplayListView.as_view(), name='replay_list'),
     path('<int:pk>/', ReplayDetailView.as_view(), name='replay_detail'),
     path('upload/', ReplayUploadView.as_view(), name='replay_upload'),
-    path("download/<int:replay_id>/", ReplayDownloadView.as_view(), name="replay_download"),
-    # Если хотите поддержать ссылку без завершающего слэша (как у вас), добавьте и этот:
-    path("download/<int:replay_id>", ReplayDownloadView.as_view()),
+    path('<int:pk>/download/', ReplayDownloadView.as_view(), name='replay_download'),
 ]
 
 # dev-раздача файлов /files/<file_name>
