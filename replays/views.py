@@ -20,7 +20,7 @@ from django.urls import reverse
 from django.utils.dateparse import parse_date
 from django.utils.encoding import escape_uri_path
 from django.views import View
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, TemplateView
 
 from wotreplay.helper.extractor import Extractor
 from wotreplay.mtreplay import Replay as Rpl
@@ -430,10 +430,10 @@ class ReplayDetailView(DetailView):
             # === ДОСТИЖЕНИЯ ===
             achievements_ids = Extractor.get_achievements(replay_data)
             if achievements_ids:
-                ach_nonbattle, ach_battle = Extractor.split_achievements_by_type(achievements_ids)
+                ach_nonbattle, ach_battle = Extractor.split_achievements_by_section(achievements_ids)
 
-                print(ach_nonbattle)
-                print(ach_battle)
+                print(f"ach_nonbattle {ach_nonbattle}")
+                print(f"ach_battle {ach_battle}")
 
                 context['achievements_nonbattle'] = ach_nonbattle
                 context['achievements_battle'] = ach_battle
@@ -453,6 +453,8 @@ class ReplayDetailView(DetailView):
 
                 # сколько значков показать в «бейджах»
                 context['achievements_count_in_badges'] = ach_nonbattle.count() + (1 if m > 0 else 0)
+                context['achievements_battle_count'] = ach_battle.count()
+
             else:
                 context['achievements_nonbattle'] = Achievement.objects.none()
                 context['achievements_battle'] = Achievement.objects.none()
@@ -475,6 +477,8 @@ class ReplayDetailView(DetailView):
             context["battle_type_label"] = Extractor.get_battle_type_label(replay_data)
 
             context["battle_outcome"] = Extractor.get_battle_outcome(replay_data)
+
+            context['team_results'] = Extractor.get_team_results(replay_data)
 
         except (KeyError, TypeError, ValueError) as e:
             logger.error(f"Ошибка парсинга реплея {self.object.id}: {str(e)}")
@@ -809,3 +813,5 @@ class ReplayDownloadView(View):
         return content_type or 'application/octet-stream'
 
 
+class AboutView(TemplateView):
+    template_name = "about.html"

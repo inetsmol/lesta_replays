@@ -38,19 +38,17 @@
                         <div class="achievements" data-number="{{ achievements_count_in_badges }}">
                             {% for ach in achievements_nonbattle %}
                                 <div>
-                                    <img
-                                            src="{% static ach.image_big %}"
+                                    <img src="{% static ach.image_big %}"
                                             alt="«{{ ach.name }}»"
                                             title="&lt;div class='title'&gt;«{{ ach.name|escape }}»&lt;/div&gt;&lt;img src={% static ach.image_big %}/&gt;
-                                                    {{ ach.description|default_if_none:''|escape }}{% if ach.condition %}&lt;div class='condition'&gt;{{ ach.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}"
+                                            {{ ach.description|default_if_none:''|escape }}{% if ach.condition %}&lt;div class='condition'&gt;{{ ach.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}"
                                     >
                                 </div>
                             {% endfor %}
 
                             {% if has_mastery %}
                                 <div class="mastery">
-                                    <img
-                                            src="{% static mastery_image %}"
+                                    <img src="{% static mastery_image %}"
                                             alt="{{ mastery_label }}"
                                             title="&lt;div class='title'&gt;Знак классности «{{ mastery_label }}»&lt;/div&gt;&lt;img class='achi' src='{% static mastery_image %}' style='width:67px!important;height:71px!important;' alt='{{ mastery_label }}'/&gt;Присваивается игроку за мастерство владения&lt;/&gt;боевой машиной. Для присвоения необходимо&lt;/&gt;заработать больше опыта за бой, чем средний&lt;/&gt;максимальный опыт за предыдущие 7 дней&lt;/&gt;у игроков на данной машине."
                                     >
@@ -69,14 +67,14 @@
                             </div>
                         </div>
 
-                        <div class="dossier" data-number="{{ achievements_battle }}">
+                        <div class="dossier" data-number="{{ achievements_battle_count }}">
                             {% for ach in achievements_battle %}
                                 <div class="achi-img-cont">
                                     <img
                                             src="{% static ach.image_big %}"
                                             alt="«{{ ach.name }}»"
                                             title="&lt;div class='title'&gt;«{{ ach.name|escape }}»&lt;/div&gt;&lt;img src={% static ach.image_big %}/&gt;
-                                                    {{ ach.description|default_if_none:''|escape }}{% if ach.condition %}&lt;div class='condition'&gt;{{ ach.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}"
+                                        {{ ach.description|default_if_none:''|escape }}{% if ach.condition %}&lt;div class='condition'&gt;{{ ach.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}"
                                     >
                                 </div>
                             {% endfor %}
@@ -161,13 +159,19 @@
                             <div class="stat">
                                 <div class="stat-tank">
                                     <img class="tank new"
-                                         src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ replay.tank.vehicleId }}.png"
+                                         src="
+
+
+                                                 {% static 'style/images/wot/shop/vehicles/180x135/' %}{{ replay.tank.vehicleId }}.png"
                                          alt="{{ replay.tank.name }}">
                                     <span class="name ">"{{ replay.tank.name }}"</span>
                                     <img class="type"
                                          src="{% static 'style/images/wot/vehicleTypes/' %}{{ replay.tank.type }}.png"
                                          alt="">
-                                    <img class="level" src="{% static 'style/images/wot/levels/tank_level_' %}{{ replay.tank.level }}.png"
+                                    <img class="level" src="
+
+
+                                            {% static 'style/images/wot/levels/tank_level_' %}{{ replay.tank.level }}.png"
                                          alt="">
                                 </div>
                                 <div class="stat-text">
@@ -342,1815 +346,281 @@
             <!-- Командный результат -->
             <div class="replay-tab-wrapper" id="tab-team">
                 <div class="team-score">
+                    <!-- Команда 1 - всегда союзники -->
                     <div class="half score">
-                        <div class="team-name">Союзники</div>
-                        <div class="personal-data" data-player="1055913408">
-                            <div class="header dead">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/F109_AMD_Panhard_178B.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/lightTank.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1055913408/Serejames006" target="_blank">Serejames006 </a>
+                        <div class="team-name">{{ team_results.allies_name }}</div>
+
+                        {% for player in team_results.allies_players %}
+                            <div class="personal-data" data-player="{{ player.avatar_id }}">
+                                <div class="header {% if not player.is_alive %}dead{% endif %}">
+                                    <div class="tank">
+                                        <img class="tank new"
+                                             src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ player.vehicle_tag }}.png"
+                                             alt="{{ player.vehicle_display_name }}">
+                                        <img class="type"
+                                             src="{% static player.tank_type_icon %}"
+                                             alt="">
+                                        <img class="level"
+                                             src="{% static 'style/images/wot/levels/tank_level_' %}{{ player.tank_level }}.png"
+                                             alt="">
                                     </div>
-                                    <span>AMD 178B</span>
-                                    <div>Уничтожен выстрелом (TankerMG1964)</div>
-                                    <div class="wn8">WN8: <span style="color:#930D0D;">278</span></div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">2</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">1/1</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">114</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">0</span></div>
-                                <div class="row">Получено попаданий<span class="right">2</span></div>
-                                <div class="row padding"> пробитий<span class="right">2</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">1</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">1</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">1/0</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">424</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">0,98</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data" data-player="1025980162">
-                            <div class="header ">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/J19_Tiger_I_Jpn.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/heavyTank.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1025980162/Ti_One_On" target="_blank">Ti_One_On
-                                        [PLN_B]</a></div>
-                                    <span>HT No. VI</span>
-                                    <div>Выжил</div>
-                                    <div class="wn8">WN8: <span style="color:#3972C6;">2 085</span></div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">10</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">6/5</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">952</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">0</span></div>
-                                <div class="row">Получено попаданий<span class="right">7</span></div>
-                                <div class="row padding"> пробитий<span class="right">6</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">1</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">0</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">125</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">2</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">4/2</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">615</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">1,47</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data" data-player="1011778121">
-                            <div class="header ">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/GB77_FV304.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/SPG.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1011778121/deadagainjr2010" target="_blank">deadagainjr2010
-                                        [DEI]</a></div>
-                                    <span>FV304</span>
-                                    <div>Выжил</div>
-                                    <div class="wn8">WN8: <span style="color:#930D0D;">261</span></div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">12</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">0/0</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">3</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">124</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">124</span></div>
-                                <div class="row">Получено попаданий<span class="right">0</span></div>
-                                <div class="row padding"> пробитий<span class="right">0</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">0</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">0</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">1/0</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">0</span>
-                                </div>
-                                <div class="row"><span class="left">Урон по оглушённым вами целям</span><span
-                                        class="right">0</span></div>
-                                <div class="row"><span class="left">Нанесено оглушений</span><span
-                                        class="right">0</span></div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">0,40</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data" data-player="1003112330">
-                            <div class="header ">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/A87_M44.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/SPG.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1003112330/warhorse500" target="_blank">warhorse500 </a>
+                                    <div class="info">
+                                        <div class="name">
+                                            <a href="profile/{{ player.avatar_id }}/{{ player.player_name }}"
+                                               target="_blank">
+                                                {{ player.display_name }}
+                                            </a>
+                                        </div>
+                                        <span>{{ player.vehicle_display_name }}</span>
+                                        <div>{{ player.death_text }}</div>
                                     </div>
-                                    <span>M44</span>
-                                    <div>Выжил</div>
-                                    <div class="wn8">WN8: <span style="color:#930D0D;">296</span></div>
                                 </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">6</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">1/0</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">3</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">199</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">199</span></div>
-                                <div class="row">Получено попаданий<span class="right">0</span></div>
-                                <div class="row padding"> пробитий<span class="right">0</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">0</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">0</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">3/0</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">0</span>
-                                </div>
-                                <div class="row"><span class="left">Урон по оглушённым вами целям</span><span
-                                        class="right">386</span></div>
-                                <div class="row"><span class="left">Нанесено оглушений</span><span
-                                        class="right">3</span></div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">0,11</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data" data-player="1062959632">
-                            <div class="header ">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/A142_Pawlack_Tank.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/heavyTank.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1062959632/Carmalmouth" target="_blank">Carmalmouth </a>
+
+                                <div class="data-wrapper">
+                                    <div class="row">Произведено выстрелов<span class="right">{{ player.shots }}</span>
                                     </div>
-                                    <span>Pawlack Tank</span>
-                                    <div>Выжил</div>
-                                    <div class="wn8">WN8: <span style="color:#3972C6;">2 276</span></div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">7</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">5/5</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">1 160</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">0</span></div>
-                                <div class="row">Получено попаданий<span class="right">5</span></div>
-                                <div class="row padding"> пробитий<span class="right">3</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">2</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">0</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">560</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">3</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">3/1</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">970</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">1,50</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data" data-player="1032266769">
-                            <div class="header ">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/G158_VK2801_105_SPXXI.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/lightTank.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1032266769/Brynar" target="_blank">Brynar </a>
+                                    <div class="row padding"> прямых попаданий/пробитий<span
+                                            class="right">{{ player.direct_hits }}/{{ player.piercings }}</span></div>
+                                    <div class="row padding"> осколочно-фугасных повреждений<span
+                                            class="right">{{ player.explosion_hits }}</span></div>
+                                    <div class="row">Нанесение урона<span
+                                            class="right">{{ player.damage_dealt|floatformat:0 }}</span></div>
+                                    <div class="row padding"> с дистанции свыше 300 м<span
+                                            class="right">{{ player.sniper_damage|floatformat:0 }}</span></div>
+                                    <div class="row">Получено попаданий<span
+                                            class="right">{{ player.hits_received }}</span></div>
+                                    <div class="row padding"> пробитий<span
+                                            class="right">{{ player.piercings_received }}</span></div>
+                                    <div class="row padding"> не нанёсших урон<span
+                                            class="right">{{ player.no_damage_hits_received }}</span></div>
+                                    <div class="row">Получено попаданий осколками<span
+                                            class="right">{{ player.explosion_hits_received }}</span></div>
+                                    <div class="row">Урон, заблокированный бронёй<span
+                                            class="right">{{ player.damage_blocked|floatformat:0 }}</span></div>
+                                    <div class="row">Урон союзникам (уничтожено/повреждений)<span
+                                            class="right">{{ player.team_kills }}/{{ player.team_damage|floatformat:0 }}</span>
                                     </div>
-                                    <span>VK 28.01 105</span>
-                                    <div>Выжил</div>
-                                    <div class="wn8">WN8: <span style="color:#793DB6;">2 791</span></div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">6</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">3/2</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">1</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">920</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">0</span></div>
-                                <div class="row">Получено попаданий<span class="right">2</span></div>
-                                <div class="row padding"> пробитий<span class="right">2</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">0</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">4</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">3/1</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">580</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">1,63</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data" data-player="1062977557">
-                            <div class="header ">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/S07_Strv_74.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/mediumTank.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1062977557/LazarusAN94" target="_blank">LazarusAN94 </a>
+                                    <div class="row">Обнаружено машин противника<span
+                                            class="right">{{ player.spotted }}</span></div>
+                                    <div class="row">Повреждено/уничтожено машин противника<span
+                                            class="right">{{ player.damaged_count }}/{{ player.kills }}</span></div>
+                                    <div class="row">Урон, нанесённый с помощью данного игрока<span
+                                            class="right">{{ player.assist_damage|floatformat:0 }}</span></div>
+
+                                    {% if player.stun_damage > 0 %}
+                                        <div class="row"><span class="left">Урон по оглушённым вами целям</span><span
+                                                class="right">{{ player.stun_damage|floatformat:0 }}</span></div>
+                                        <div class="row"><span class="left">Нанесено оглушений</span><span
+                                                class="right">{{ player.stun_count }}</span></div>
+                                    {% endif %}
+
+                                    <div class="row">Очки захвата/защиты базы<span
+                                            class="right">{{ player.capture_points }}/{{ player.defense_points }}</span>
                                     </div>
-                                    <span>Strv 74</span>
-                                    <div>Выжил</div>
-                                    <div class="wn8">WN8: <span style="color:#930D0D;">261</span></div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">2</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">0/0</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">0</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">0</span></div>
-                                <div class="row">Получено попаданий<span class="right">4</span></div>
-                                <div class="row padding"> пробитий<span class="right">2</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">2</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">0</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">53</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">1,51</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data" data-player="1071346327">
-                            <div class="header ">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/Cz01_Skoda_T40.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/mediumTank.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1071346327/icantreadbooks" target="_blank">icantreadbooks </a>
+                                    <div class="row">Пройдено километров<span class="right">{{ player.distance }}</span>
                                     </div>
-                                    <span>Škoda T 40</span>
-                                    <div>Выжил</div>
-                                    <div class="wn8">WN8: <span style="color:#3972C6;">2 169</span></div>
                                 </div>
+                                <div class="close">Закрыть</div>
                             </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">8</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">5/5</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">992</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">351</span></div>
-                                <div class="row">Получено попаданий<span class="right">2</span></div>
-                                <div class="row padding"> пробитий<span class="right">2</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">1</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">0</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">3/2</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">27</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">1,41</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data" data-player="1055399776">
-                            <div class="header dead">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/GB85_Cromwell_Berlin.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/mediumTank.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1055399776/Zippy_93" target="_blank">Zippy_93
-                                        [_AIM_]</a></div>
-                                    <span>Cromwell B</span>
-                                    <div>Уничтожен выстрелом (paetersen)</div>
-                                    <div class="wn8">WN8: <span style="color:#CCB800;">809</span></div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">3</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">2/2</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">488</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">0</span></div>
-                                <div class="row">Получено попаданий<span class="right">3</span></div>
-                                <div class="row padding"> пробитий<span class="right">3</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">0</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">1</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">1/0</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">0</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">0,63</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data" data-player="1032347946">
-                            <div class="header dead">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/S08_Ikv_65_Alt_2.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/AT-SPG.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1032347946/Tomasz_Nowak2" target="_blank">Tomasz_Nowak2 </a>
-                                    </div>
-                                    <span>Ikv 65 II</span>
-                                    <div>Уничтожен выстрелом (Old_Lead_Dirigible)</div>
-                                    <div class="wn8">WN8: <span style="color:#4D7326;">1 200</span></div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">7</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">4/3</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">736</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">0</span></div>
-                                <div class="row">Получено попаданий<span class="right">3</span></div>
-                                <div class="row padding"> пробитий<span class="right">3</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">0</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">3</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">2/0</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">0</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">1,39</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data" data-player="1002815342">
-                            <div class="header dead">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/A06_M4A3E8_Sherman.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/mediumTank.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1002815342/herosol" target="_blank">herosol
-                                        [WARHD]</a></div>
-                                    <span>E8 Sherman</span>
-                                    <div>Уничтожен выстрелом (Old_Lead_Dirigible)</div>
-                                    <div class="wn8">WN8: <span style="color:#7122C0;">7 404</span></div>
-                                </div>
-                            </div>
-                            <div class="medals"><img src="{% static 'style/images/wot/achievement/big/mainGun.png' %}"
-                                                     alt="«Основной калибр»"
-                                                     title="&lt;div class='title'&gt;«Основной калибр»&lt;/div&gt;&lt;img src='style/images/wot/achievement/big/mainGun.png'/&gt;Нанести наибольшее количество урона за бой.&lt;div class='condition'&gt;• Нанесённый урон должен составлять не менее 20% от суммарной прочности техники противника.&lt;br /&gt;
-• Нанесённый урон должен составлять не менее 1000 единиц.&lt;br /&gt;
-• Нельзя задевать союзников прямыми выстрелами.&lt;br /&gt;
-• Выдаётся только в Случайных боях.&lt;/div&gt;"></div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов
-                                    <span class="right">21</span>
-                                </div>
-                                <div class="row padding"> прямых попаданий/пробитий
-                                    <span class="right">20/20</span>
-                                </div>
-                                <div class="row padding"> осколочно-фугасных повреждений
-                                    <span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона
-                                    <span class="right">2 435</span>
-                                </div>
-                                <div class="row padding"> с дистанции свыше 300 м
-                                    <span class="right">0</span>
-                                </div>
-                                <div class="row">Получено попаданий
-                                    <span class="right">7</span>
-                                </div>
-                                <div class="row padding"> пробитий
-                                    <span class="right">6</span>
-                                </div>
-                                <div class="row padding"> не нанёсших урон
-                                    <span class="right">1</span>
-                                </div>
-                                <div class="row">Получено попаданий осколками
-                                    <span class="right">0</span>
-                                </div>
-                                <div class="row">Урон, заблокированный бронёй
-                                    <span class="right">115</span>
-                                </div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)
-                                    <span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника
-                                    <span class="right">0</span>
-                                </div>
-                                <div class="row">Повреждено/уничтожено машин противника
-                                    <span class="right">5/3</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока
-                                    <span class="right">0</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы
-                                    <span class="right">0/0</span>
-                                </div>
-                                <div class="row">Пройдено километров
-                                    <span class="right">1,55</span>
-                                </div>
-                            </div>
-                            <div class="close">Закрыть
-                            </div>
-                        </div>
-                        <div class="personal-data" data-player="1002100473">
-                            <div class="header ">
-                                <div class="tank">
-                                    <img class="tank new"
-                                         src="{% static 'style/images/wot/shop/vehicles/180x135/R17_SU-100.png' %}"
-                                         alt="">
-                                    <img class="type"
-                                         src="{% static 'style/images/wot/vehicleTypes/AT-SPG.png' %}"
-                                         alt="">
-                                    <img class="level"
-                                         src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                         alt="">
-                                </div>
-                                <div class="info">
-                                    <div class="name">
-                                        <a href="profile/1002100473/jalamor" target="_blank">jalamor </a>
-                                    </div>
-                                    <span>СУ-100</span>
-                                    <div>Выжил</div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов
-                                    <span class="right">3</span>
-                                </div>
-                                <div class="row padding"> прямых попаданий/пробитий
-                                    <span class="right">1/1</span>
-                                </div>
-                                <div class="row padding"> осколочно-фугасных повреждений
-                                    <span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона
-                                    <span class="right">386</span>
-                                </div>
-                                <div class="row padding"> с дистанции свыше 300 м
-                                    <span class="right">386</span>
-                                </div>
-                                <div class="row">Получено попаданий
-                                    <span class="right">0</span>
-                                </div>
-                                <div class="row padding"> пробитий
-                                    <span class="right">0</span>
-                                </div>
-                                <div class="row padding"> не нанёсших урон
-                                    <span class="right">0</span>
-                                </div>
-                                <div class="row">Получено попаданий осколками
-                                    <span class="right">0</span>
-                                </div>
-                                <div class="row">Урон, заблокированный бронёй
-                                    <span class="right">0</span>
-                                </div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)
-                                    <span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника
-                                    <span class="right">0</span>
-                                </div>
-                                <div class="row">Повреждено/уничтожено машин противника
-                                    <span class="right">1/0</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока
-                                    <span class="right">0</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы
-                                    <span class="right">0/0</span>
-                                </div>
-                                <div class="row">Пройдено километров
-                                    <span class="right">1,43</span>
-                                </div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data" data-player="1001286499">
-                            <div class="header ">
-                                <div class="tank">
-                                    <img class="tank new"
-                                         src="{% static 'style/images/wot/shop/vehicles/180x135/A123_T78.png' %}"
-                                         alt="">
-                                    <img class="type" src="{% static 'style/images/wot/vehicleTypes/AT-SPG.png' %}"
-                                         alt="">
-                                    <img class="level" src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                         alt="">
-                                </div>
-                                <div class="info">
-                                    <div class="name">
-                                        <a href="profile/1001286499/meegz" target="_blank">meegz [DEI]</a>
-                                    </div>
-                                    <span>T78</span>
-                                    <div>Выжил</div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов
-                                    <span class="right">10</span>
-                                </div>
-                                <div class="row padding"> прямых попаданий/пробитий
-                                    <span class="right">6/6</span>
-                                </div>
-                                <div class="row padding"> осколочно-фугасных повреждений
-                                    <span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона
-                                    <span class="right">1 222</span>
-                                </div>
-                                <div class="row padding"> с дистанции свыше 300 м
-                                    <span class="right">0</span>
-                                </div>
-                                <div class="row">Получено попаданий
-                                    <span class="right">1</span>
-                                </div>
-                                <div class="row padding"> пробитий
-                                    <span class="right">1</span>
-                                </div>
-                                <div class="row padding"> не нанёсших урон
-                                    <span class="right">0</span>
-                                </div>
-                                <div class="row">Получено попаданий осколками
-                                    <span class="right">0</span>
-                                </div>
-                                <div class="row">Урон, заблокированный бронёй
-                                    <span class="right">0</span>
-                                </div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)
-                                    <span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника
-                                    <span class="right">1</span>
-                                </div>
-                                <div class="row">Повреждено/уничтожено машин противника
-                                    <span class="right">4/2</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока
-                                    <span class="right">60</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы
-                                    <span class="right">0/0</span>
-                                </div>
-                                <div class="row">Пройдено километров
-                                    <span class="right">1,11</span>
-                                </div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data" data-player="1032557546">
-                            <div class="header ">
-                                <div class="tank">
-                                    <img class="tank new"
-                                         src="{% static 'style/images/wot/shop/vehicles/180x135/A10_M6.png' %}" alt="">
-                                    <img class="type" src="{% static 'style/images/wot/vehicleTypes/heavyTank.png' %}"
-                                         alt="">
-                                    <img class="level" src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                         alt="">
-                                </div>
-                                <div class="info">
-                                    <div class="name">
-                                        <a href="profile/1032557546/Big_Tank_18" target="_blank">Big_Tank_18 [B00YA]</a>
-                                    </div>
-                                    <span>M6</span>
-                                    <div>Выжил</div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">7</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">4/4</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">501</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">250</span></div>
-                                <div class="row">Получено попаданий<span class="right">0</span></div>
-                                <div class="row padding"> пробитий<span class="right">0</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">0</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">0</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">4/2</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">0</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">1,27</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data" data-player="1034059838">
-                            <div class="header ">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/R07_T-34-85.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/mediumTank.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1034059838/Benja_queti" target="_blank">Benja_queti </a>
-                                    </div>
-                                    <span>Т-34-85</span>
-                                    <div>Выжил</div>
-                                    <div class="wn8">WN8: <span style="color:#4D7326;">1 572</span></div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">11</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">5/5</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">755</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">250</span></div>
-                                <div class="row">Получено попаданий<span class="right">0</span></div>
-                                <div class="row padding"> пробитий<span class="right">0</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">1</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">0</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">4/1</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">0</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">1,34</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper no-footer">
-                            <table class="tank-list score dataTable no-footer" id="DataTables_Table_0" role="grid">
+                        {% endfor %}
+
+                        <!-- Сводная таблица союзников -->
+                        <div class="dataTables_wrapper no-footer">
+                            <table class="tank-list score dataTable no-footer">
                                 <thead>
-                                <tr role="row">
-                                    <th class="player-platoon sorting" tabindex="0" aria-controls="DataTables_Table_0"
-                                        rowspan="1" colspan="1"
-                                        aria-label="&amp;nbsp;: activate to sort column descending"
-                                        style="width: 28px;">
+                                <tr>
+                                    <th class="player-platoon">
                                         <div>&nbsp;</div>
                                     </th>
-                                    <th class="player-names sorting" tabindex="0" aria-controls="DataTables_Table_0"
-                                        rowspan="1" colspan="1"
-                                        aria-label="&amp;nbsp;: activate to sort column descending"
-                                        style="width: 127px;">
+                                    <th class="player-names">
                                         <div>&nbsp;</div>
                                     </th>
-                                    <th class="tanks-name sorting" tabindex="0" aria-controls="DataTables_Table_0"
-                                        rowspan="1" colspan="1"
-                                        aria-label="&amp;nbsp;: activate to sort column descending"
-                                        style="width: 137px;">
+                                    <th class="tanks-name">
                                         <div>&nbsp;</div>
                                     </th>
-                                    <th class="damage sorting_desc" tabindex="0" aria-controls="DataTables_Table_0"
-                                        rowspan="1" colspan="1" aria-sort="descending"
-                                        aria-label="&amp;nbsp;: activate to sort column ascending" style="width: 57px;">
+                                    <th class="damage sorting_desc">
                                         <div>&nbsp;</div>
                                     </th>
-                                    <th class="kills sorting" tabindex="0" aria-controls="DataTables_Table_0"
-                                        rowspan="1" colspan="1"
-                                        aria-label="&amp;nbsp;: activate to sort column descending"
-                                        style="width: 47px;">
+                                    <th class="kills">
                                         <div>&nbsp;</div>
                                     </th>
-                                    <th class="xp sorting" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1"
-                                        colspan="1" aria-label="&amp;nbsp;: activate to sort column descending"
-                                        style="width: 55px;">
+                                    <th class="xp">
                                         <div>&nbsp;</div>
                                     </th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr class="dead odd" style="color: rgba(254, 194, 100, 0.63);" data-player="1002815342"
-                                    role="row">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">herosol [WARHD]</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/A06_M4A3E8_Sherman.png' %}"
-                                                                alt=""><span>E8 Sherman</span>
-                                        <div class="medal" title="«Основной калибр»&lt;br&gt;"></div>
-                                    </td>
-                                    <td class="damage sorting_1">2435</td>
-                                    <td class="kills">3</td>
-                                    <td class="xp">991
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr data-player="1001286499" role="row" class="even">
-                                    <td class="player-platoon">
-                                        <div class="number ">1</div>
-                                    </td>
-                                    <td class="player-names">meegz [DEI]</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/A123_T78.png' %}"
-                                                                alt=""><span>T78</span></td>
-                                    <td class="damage sorting_1">1222</td>
-                                    <td class="kills">2</td>
-                                    <td class="xp">655
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr data-player="1062959632" role="row" class="odd">
-                                    <td class="player-platoon">
-                                        <div class="number ">2</div>
-                                    </td>
-                                    <td class="player-names">Carmalmouth</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/A142_Pawlack_Tank.png' %}"
-                                                                alt=""><span>Pawlack Tank</span></td>
-                                    <td class="damage sorting_1">1160</td>
-                                    <td class="kills">1</td>
-                                    <td class="xp">761
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr data-player="1071346327" role="row" class="even">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">icantreadbooks</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/Cz01_Skoda_T40.png' %}"
-                                                                alt=""><span>Škoda T 40</span></td>
-                                    <td class="damage sorting_1">992</td>
-                                    <td class="kills">2</td>
-                                    <td class="xp">561
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr data-player="1025980162" role="row" class="odd">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">Ti_One_On [PLN_B]</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/J19_Tiger_I_Jpn.png' %}"
-                                                                alt=""><span>HT No. VI</span></td>
-                                    <td class="damage sorting_1">952</td>
-                                    <td class="kills">2</td>
-                                    <td class="xp">730
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr data-player="1032266769" role="row" class="even">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">Brynar</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/G158_VK2801_105_SPXXI.png' %}"
-                                                                alt=""><span>VK 28.01 105</span></td>
-                                    <td class="damage sorting_1">920</td>
-                                    <td class="kills">1</td>
-                                    <td class="xp">661
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr data-player="1034059838" role="row" class="odd">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">Benja_queti</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/R07_T-34-85.png' %}"
-                                                                alt=""><span>Т-34-85</span></td>
-                                    <td class="damage sorting_1">755</td>
-                                    <td class="kills">1</td>
-                                    <td class="xp">446
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr class="dead even" data-player="1032347946" role="row">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">Tomasz_Nowak2</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/S08_Ikv_65_Alt_2.png' %}"
-                                                                alt=""><span>Ikv 65 II</span></td>
-                                    <td class="damage sorting_1">736</td>
-                                    <td class="kills">0</td>
-                                    <td class="xp">459
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr data-player="1032557546" role="row" class="odd">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">Big_Tank_18 [B00YA]</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/A10_M6.png' %}"
-                                                                alt=""><span>M6</span></td>
-                                    <td class="damage sorting_1">501</td>
-                                    <td class="kills">2</td>
-                                    <td class="xp">442
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr class="dead even" data-player="1055399776" role="row">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">Zippy_93 [_AIM_]</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/GB85_Cromwell_Berlin.png' %}"
-                                                                alt=""><span>Cromwell B</span></td>
-                                    <td class="damage sorting_1">488</td>
-                                    <td class="kills">0</td>
-                                    <td class="xp">359
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr data-player="1002100473" role="row" class="odd">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">jalamor</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/R17_SU-100.png' %}"
-                                                                alt=""><span>СУ-100</span></td>
-                                    <td class="damage sorting_1">386</td>
-                                    <td class="kills">0</td>
-                                    <td class="xp">293
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr data-player="1003112330" role="row" class="even">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">warhorse500</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/A87_M44.png' %}"
-                                                                alt=""><span>M44</span></td>
-                                    <td class="damage sorting_1">199</td>
-                                    <td class="kills">0</td>
-                                    <td class="xp">349
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr data-player="1011778121" role="row" class="odd">
-                                    <td class="player-platoon">
-                                        <div class="number ">1</div>
-                                    </td>
-                                    <td class="player-names">deadagainjr2010 [DEI]</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/GB77_FV304.png' %}"
-                                                                alt=""><span>FV304</span></td>
-                                    <td class="damage sorting_1">124</td>
-                                    <td class="kills">0</td>
-                                    <td class="xp">247
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr class="dead even" data-player="1055913408" role="row">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">Serejames006</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/F109_AMD_Panhard_178B.png' %}"
-                                                                alt=""><span>AMD 178B</span></td>
-                                    <td class="damage sorting_1">114</td>
-                                    <td class="kills">0</td>
-                                    <td class="xp">328
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr data-player="1062977557" role="row" class="odd">
-                                    <td class="player-platoon">
-                                        <div class="number ">2</div>
-                                    </td>
-                                    <td class="player-names">LazarusAN94</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/S07_Strv_74.png' %}"
-                                                                alt=""><span>Strv 74</span></td>
-                                    <td class="damage sorting_1">0</td>
-                                    <td class="kills">0</td>
-                                    <td class="xp">241
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
+                                {% for player in team_results.allies_players %}
+                                    <tr {% if player.is_current_player %} class=current-player{% endif %} {% if not player.is_alive %}class="dead"{% endif %}
+
+                                        data-player="{{ player.avatar_id }}">
+                                        <td class="player-platoon">
+                                            {% if player.platoon_id %}
+                                                <div class="number">{{ player.platoon_id }}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="player-names">{{ player.display_name }}</td>
+                                        <td class="tanks-name">
+                                            <img class="tank new"
+                                                 src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ player.vehicle_tag }}.png"
+                                                 alt="">
+                                            <span>{{ player.vehicle_display_name }}</span>
+                                            {% if player.medals.has_medals %}
+                                                <div class="medal" title="{{ player.medals.title|safe }}">
+                                                    {% if player.medals.count > 1 %}
+                                                        <div class="num">{{ player.medals.count }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="damage sorting_1">{{ player.damage_dealt|floatformat:0 }}</td>
+                                        <td class="kills">{{ player.kills }}</td>
+                                        <td class="xp">{{ player.xp }}</td>
+                                    </tr>
+                                {% endfor %}
                                 </tbody>
                             </table>
                         </div>
                     </div>
+
+                    <!-- Команда 2 - всегда противники -->
                     <div class="half score">
-                        <div class="team-name">Противник</div>
-                        <div class="personal-data left" data-player="1000712451">
-                            <div class="header dead">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/GB122_Staghound_Mk_III.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/mediumTank.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1000712451/majorman8"
-                                                         target="_blank">majorman8 </a></div>
-                                    <span>Staghound</span>
-                                    <div>Уничтожен выстрелом (Ti_One_On)</div>
-                                    <div class="wn8">WN8: <span style="color:#CD3333;">351</span></div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">4</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">4/3</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">372</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">0</span></div>
-                                <div class="row">Получено попаданий<span class="right">4</span></div>
-                                <div class="row padding"> пробитий<span class="right">4</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">0</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">0</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">1/0</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">0</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">1,58</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data left" data-player="1041114820">
-                            <div class="header dead">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/J44_Type_3_Ju_Nu.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/heavyTank.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1041114820/HypercarDriver" target="_blank">HypercarDriver
-                                        [PLOW]</a></div>
-                                    <span>Ju-Nu</span>
-                                    <div>Уничтожен выстрелом (herosol)</div>
-                                    <div class="wn8">WN8: <span style="color:#930D0D;">163</span></div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">2</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">2/2</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">321</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">0</span></div>
-                                <div class="row">Получено попаданий<span class="right">6</span></div>
-                                <div class="row padding"> пробитий<span class="right">6</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">0</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">2</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">1/0</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">0</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">0,79</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data left" data-player="1002845395">
-                            <div class="header dead">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/G41_DickerMax.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/AT-SPG.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1002845395/Old_Lead_Dirigible" target="_blank">Old_Lead_Dirigible </a>
+                        <div class="team-name">{{ team_results.enemies_name }}</div>
+
+                        {% for player in team_results.enemies_players %}
+                            <div class="personal-data left" data-player="{{ player.avatar_id }}">
+                                <div class="header {% if not player.is_alive %}dead{% endif %}">
+                                    <div class="tank">
+                                        <img class="tank new"
+                                             src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ player.vehicle_tag }}.png"
+                                             alt="{{ player.vehicle_display_name }}">
+                                        <img class="type"
+                                             src="{% static player.tank_type_icon %}"
+                                             alt="">
+                                        <img class="level"
+                                             src="{% static 'style/images/wot/levels/tank_level_' %}{{ player.tank_level }}.png"
+                                             alt="">
                                     </div>
-                                    <span>Dicker Max</span>
-                                    <div>Уничтожен выстрелом (meegz)</div>
-                                    <div class="wn8">WN8: <span style="color:#4D7326;">1 437</span></div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">4</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">4/4</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">881</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">0</span></div>
-                                <div class="row">Получено попаданий<span class="right">5</span></div>
-                                <div class="row padding"> пробитий<span class="right">5</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">0</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">0</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">2/2</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">0</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">0,76</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data left" data-player="1004693913">
-                            <div class="header dead">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/GB21_Cromwell.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/mediumTank.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1004693913/paetersen" target="_blank">paetersen
-                                        [EDA]</a></div>
-                                    <span>Cromwell</span>
-                                    <div>Уничтожен выстрелом (icantreadbooks)</div>
-                                    <div class="wn8">WN8: <span style="color:#4099BF;">1 726</span></div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">5</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">3/3</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">840</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">0</span></div>
-                                <div class="row">Получено попаданий<span class="right">5</span></div>
-                                <div class="row padding"> пробитий<span class="right">5</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">0</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">5</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">1/1</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span
-                                        class="right">1 610</span></div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">0,72</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data left" data-player="1013696412">
-                            <div class="header dead">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/R108_T34_85M.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/mediumTank.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1013696412/sler99" target="_blank">sler99 </a>
+                                    <div class="info">
+                                        <div class="name">
+                                            <a href="profile/{{ player.avatar_id }}/{{ player.player_name }}"
+                                               target="_blank">
+                                                {{ player.display_name }}
+                                            </a>
+                                        </div>
+                                        <span>{{ player.vehicle_display_name }}</span>
+                                        {% if player.medals.has_medals %}
+                                            <div class="medal" title="{{ player.medals.title|safe }}">
+                                                {% if player.medals.count > 1 %}
+                                                    <div class="num">{{ player.medals.count }}</div>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                        <div>{{ player.death_text }}</div>
                                     </div>
-                                    <span>Т-34-85М</span>
-                                    <div>Уничтожен пожаром (Brynar)</div>
-                                    <div class="wn8">WN8: <span style="color:#930D0D;">0</span></div>
                                 </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">2</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">0/0</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">0</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">0</span></div>
-                                <div class="row">Получено попаданий<span class="right">4</span></div>
-                                <div class="row padding"> пробитий<span class="right">3</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">1</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">0</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">0</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">1,11</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data left" data-player="1001958559">
-                            <div class="header dead">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/G02_Hummel.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/SPG.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1001958559/undeadbeast37" target="_blank">undeadbeast37 </a>
+
+                                <div class="data-wrapper">
+                                    <!-- Аналогичная структура данных -->
+                                    <div class="row">Произведено выстрелов<span class="right">{{ player.shots }}</span>
                                     </div>
-                                    <span>Hummel</span>
-                                    <div>Уничтожен выстрелом (herosol)</div>
-                                    <div class="wn8">WN8: <span style="color:#930D0D;">228</span></div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">2</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">1/1</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">364</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">0</span></div>
-                                <div class="row">Получено попаданий<span class="right">2</span></div>
-                                <div class="row padding"> пробитий<span class="right">2</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">0</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">0</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">1/0</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">0</span>
-                                </div>
-                                <div class="row"><span class="left">Урон по оглушённым вами целям</span><span
-                                        class="right">0</span></div>
-                                <div class="row"><span class="left">Нанесено оглушений</span><span
-                                        class="right">0</span></div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">0,46</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data left" data-player="1071285347">
-                            <div class="header dead">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/S08_Ikv_65_Alt_2.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/AT-SPG.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1071285347/Radiel_3"
-                                                         target="_blank">Radiel_3 </a></div>
-                                    <span>Ikv 65 II</span>
-                                    <div>Затоплен</div>
-                                    <div class="wn8">WN8: <span style="color:#849B24;">980</span></div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">4</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">3/3</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">761</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">761</span></div>
-                                <div class="row">Получено попаданий<span class="right">0</span></div>
-                                <div class="row padding"> пробитий<span class="right">0</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">0</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">0</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">2/0</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">0</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">0,46</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data left" data-player="1002973777">
-                            <div class="header dead">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/A87_M44.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/SPG.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1002973777/TankerMG1964" target="_blank">TankerMG1964
-                                        [-MW-]</a></div>
-                                    <span>M44</span>
-                                    <div>Уничтожен выстрелом (Benja_queti)</div>
-                                    <div class="wn8">WN8: <span style="color:#CCB800;">884</span></div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">7</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">1/1</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">2</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">647</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">647</span></div>
-                                <div class="row">Получено попаданий<span class="right">2</span></div>
-                                <div class="row padding"> пробитий<span class="right">2</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">0</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">0</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">1/1</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">0</span>
-                                </div>
-                                <div class="row"><span class="left">Урон по оглушённым вами целям</span><span
-                                        class="right">287</span></div>
-                                <div class="row"><span class="left">Нанесено оглушений</span><span
-                                        class="right">2</span></div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">0,20</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data left" data-player="1009833516">
-                            <div class="header dead">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/F127_AMX_ELC_901.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/lightTank.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1009833516/NIUTAN_ARMI" target="_blank">NIUTAN_ARMI </a>
+                                    <div class="row padding"> прямых попаданий/пробитий<span
+                                            class="right">{{ player.direct_hits }}/{{ player.piercings }}</span></div>
+                                    <div class="row padding"> осколочно-фугасных повреждений<span
+                                            class="right">{{ player.explosion_hits }}</span></div>
+                                    <div class="row">Нанесение урона<span
+                                            class="right">{{ player.damage_dealt|floatformat:0 }}</span></div>
+                                    <div class="row padding"> с дистанции свыше 300 м<span
+                                            class="right">{{ player.sniper_damage|floatformat:0 }}</span></div>
+                                    <div class="row">Получено попаданий<span
+                                            class="right">{{ player.hits_received }}</span></div>
+                                    <div class="row padding"> пробитий<span
+                                            class="right">{{ player.piercings_received }}</span></div>
+                                    <div class="row padding"> не нанёсших урон<span
+                                            class="right">{{ player.no_damage_hits_received }}</span></div>
+                                    <div class="row">Получено попаданий осколками<span
+                                            class="right">{{ player.explosion_hits_received }}</span></div>
+                                    <div class="row">Урон, заблокированный бронёй<span
+                                            class="right">{{ player.damage_blocked|floatformat:0 }}</span></div>
+                                    <div class="row">Урон союзникам (уничтожено/повреждений)<span
+                                            class="right">{{ player.team_kills }}/{{ player.team_damage|floatformat:0 }}</span>
                                     </div>
-                                    <span>AMX ELC 901</span>
-                                    <div>Уничтожен выстрелом (meegz)</div>
-                                    <div class="wn8">WN8: Данные недоступны</div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">1</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">0/0</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">0</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">0</span></div>
-                                <div class="row">Получено попаданий<span class="right">3</span></div>
-                                <div class="row padding"> пробитий<span class="right">3</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">1</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">0</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">101</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">0,74</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data left" data-player="1070304562">
-                            <div class="header dead">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/R13_KV-1s.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/heavyTank.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1070304562/kitty450" target="_blank">kitty450
-                                        [127FA]</a></div>
-                                    <span>КВ-1С</span>
-                                    <div>Уничтожен выстрелом (icantreadbooks)</div>
-                                    <div class="wn8">WN8: <span style="color:#930D0D;">234</span></div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">4</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">2/0</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">3</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">290</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">290</span></div>
-                                <div class="row">Получено попаданий<span class="right">5</span></div>
-                                <div class="row padding"> пробитий<span class="right">4</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">1</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">0</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">1/0</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">0</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">0,47</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data left" data-player="1004113391">
-                            <div class="header dead">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/J19_Tiger_I_Jpn.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/heavyTank.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1004113391/ArsenalGear" target="_blank">ArsenalGear </a>
+                                    <div class="row">Обнаружено машин противника<span
+                                            class="right">{{ player.spotted }}</span></div>
+                                    <div class="row">Повреждено/уничтожено машин противника<span
+                                            class="right">{{ player.damaged_count }}/{{ player.kills }}</span></div>
+                                    <div class="row">Урон, нанесённый с помощью данного игрока<span
+                                            class="right">{{ player.assist_damage|floatformat:0 }}</span></div>
+
+                                    {% if player.stun_damage > 0 %}
+                                        <div class="row"><span class="left">Урон по оглушённым вами целям</span><span
+                                                class="right">{{ player.stun_damage|floatformat:0 }}</span></div>
+                                        <div class="row"><span class="left">Нанесено оглушений</span><span
+                                                class="right">{{ player.stun_count }}</span></div>
+                                    {% endif %}
+
+                                    <div class="row">Очки захвата/защиты базы<span
+                                            class="right">{{ player.capture_points }}/{{ player.defense_points }}</span>
                                     </div>
-                                    <span>HT No. VI</span>
-                                    <div>Уничтожен выстрелом (Ti_One_On)</div>
-                                    <div class="wn8">WN8: <span style="color:#930D0D;">61</span></div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">1</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">1/1</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">220</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">0</span></div>
-                                <div class="row">Получено попаданий<span class="right">6</span></div>
-                                <div class="row padding"> пробитий<span class="right">6</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">0</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">1</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">1/0</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">321</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">0,93</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data left" data-player="1025736625">
-                            <div class="header dead">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/Pl32_SDP_Wz_44.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/AT-SPG.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1025736625/LordCyriuslovi4ok" target="_blank">LordCyriuslovi4ok </a>
+                                    <div class="row">Пройдено километров<span class="right">{{ player.distance }}</span>
                                     </div>
-                                    <span>Burza</span>
-                                    <div>Уничтожен выстрелом (Carmalmouth)</div>
-                                    <div class="wn8">WN8: <span style="color:#4D7326;">1 392</span></div>
                                 </div>
+                                <div class="close">Закрыть</div>
                             </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">7</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">6/4</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">1 097</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">559</span></div>
-                                <div class="row">Получено попаданий<span class="right">3</span></div>
-                                <div class="row padding"> пробитий<span class="right">3</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">1</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">0</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">2/0</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">0</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">0,50</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data left" data-player="1004168434">
-                            <div class="header dead">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/A06_M4A3E8_Sherman.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/mediumTank.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1004168434/thorKAOS"
-                                                         target="_blank">thorKAOS </a></div>
-                                    <span>E8 Sherman</span>
-                                    <div>Уничтожен выстрелом (herosol)</div>
-                                    <div class="wn8">WN8: <span style="color:#CD3333;">355</span></div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">5</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">4/3</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">347</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">0</span></div>
-                                <div class="row">Получено попаданий<span class="right">9</span></div>
-                                <div class="row padding"> пробитий<span class="right">8</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">1</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">0</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">0</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">1/0</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">0</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">0,86</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data left" data-player="1040732346">
-                            <div class="header dead">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/F109_AMD_Panhard_178B.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/lightTank.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1040732346/Lennongrad" target="_blank">Lennongrad
-                                        [AAFF]</a></div>
-                                    <span>AMD 178B</span>
-                                    <div>Уничтожен выстрелом (Big_Tank_18)</div>
-                                    <div class="wn8">WN8: <span style="color:#930D0D;">160</span></div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">9</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">3/3</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">170</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">0</span></div>
-                                <div class="row">Получено попаданий<span class="right">4</span></div>
-                                <div class="row padding"> пробитий<span class="right">4</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">2</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">1</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">3/0</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">546</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">2,14</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div class="personal-data left" data-player="1001213205">
-                            <div class="header dead">
-                                <div class="tank"><img class="tank new"
-                                                       src="{% static 'style/images/wot/shop/vehicles/180x135/GB85_Cromwell_Berlin.png' %}"
-                                                       alt=""><img class="type"
-                                                                   src="{% static 'style/images/wot/vehicleTypes/mediumTank.png' %}"
-                                                                   alt=""><img class="level"
-                                                                               src="{% static 'style/images/wot/levels/tank_level_6.png' %}"
-                                                                               alt=""></div>
-                                <div class="info">
-                                    <div class="name"><a href="profile/1001213205/Bedwyr" target="_blank">Bedwyr
-                                        [R0YAL]</a></div>
-                                    <span>Cromwell B</span>
-                                    <div>Уничтожен выстрелом (Big_Tank_18)</div>
-                                    <div class="wn8">WN8: <span style="color:#930D0D;">156</span></div>
-                                </div>
-                            </div>
-                            <div class="data-wrapper">
-                                <div class="row">Произведено выстрелов<span class="right">3</span></div>
-                                <div class="row padding"> прямых попаданий/пробитий<span class="right">2/2</span></div>
-                                <div class="row padding"> осколочно-фугасных повреждений<span class="right">0</span>
-                                </div>
-                                <div class="row">Нанесение урона<span class="right">256</span></div>
-                                <div class="row padding"> с дистанции свыше 300 м<span class="right">0</span></div>
-                                <div class="row">Получено попаданий<span class="right">4</span></div>
-                                <div class="row padding"> пробитий<span class="right">4</span></div>
-                                <div class="row padding"> не нанёсших урон<span class="right">0</span></div>
-                                <div class="row">Получено попаданий осколками<span class="right">1</span></div>
-                                <div class="row">Урон, заблокированный бронёй<span class="right">0</span></div>
-                                <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">0/0</span>
-                                </div>
-                                <div class="row">Обнаружено машин противника<span class="right">3</span></div>
-                                <div class="row">Повреждено/уничтожено машин противника<span class="right">1/0</span>
-                                </div>
-                                <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">0</span>
-                                </div>
-                                <div class="row">Очки захвата/защиты базы<span class="right">0/0</span></div>
-                                <div class="row">Пройдено километров<span class="right">0,78</span></div>
-                            </div>
-                            <div class="close">Закрыть</div>
-                        </div>
-                        <div id="DataTables_Table_1_wrapper" class="dataTables_wrapper no-footer">
-                            <table class="tank-list score dataTable no-footer" id="DataTables_Table_1" role="grid">
+                        {% endfor %}
+
+                        <!-- Сводная таблица противников -->
+                        <div class="dataTables_wrapper no-footer">
+                            <table class="tank-list score dataTable no-footer">
                                 <thead>
-                                <tr role="row">
-                                    <th class="player-platoon sorting" tabindex="0" aria-controls="DataTables_Table_1"
-                                        rowspan="1" colspan="1"
-                                        aria-label="&amp;nbsp;: activate to sort column descending"
-                                        style="width: 28px;">
+                                <tr>
+                                    <th class="player-platoon">
                                         <div>&nbsp;</div>
                                     </th>
-                                    <th class="player-names sorting" tabindex="0" aria-controls="DataTables_Table_1"
-                                        rowspan="1" colspan="1"
-                                        aria-label="&amp;nbsp;: activate to sort column descending"
-                                        style="width: 127px;">
+                                    <th class="player-names">
                                         <div>&nbsp;</div>
                                     </th>
-                                    <th class="tanks-name sorting" tabindex="0" aria-controls="DataTables_Table_1"
-                                        rowspan="1" colspan="1"
-                                        aria-label="&amp;nbsp;: activate to sort column descending"
-                                        style="width: 137px;">
+                                    <th class="tanks-name">
                                         <div>&nbsp;</div>
                                     </th>
-                                    <th class="damage sorting_desc" tabindex="0" aria-controls="DataTables_Table_1"
-                                        rowspan="1" colspan="1" aria-sort="descending"
-                                        aria-label="&amp;nbsp;: activate to sort column ascending" style="width: 57px;">
+                                    <th class="damage sorting_desc">
                                         <div>&nbsp;</div>
                                     </th>
-                                    <th class="kills sorting" tabindex="0" aria-controls="DataTables_Table_1"
-                                        rowspan="1" colspan="1"
-                                        aria-label="&amp;nbsp;: activate to sort column descending"
-                                        style="width: 47px;">
+                                    <th class="kills">
                                         <div>&nbsp;</div>
                                     </th>
-                                    <th class="xp sorting" tabindex="0" aria-controls="DataTables_Table_1" rowspan="1"
-                                        colspan="1" aria-label="&amp;nbsp;: activate to sort column descending"
-                                        style="width: 55px;">
+                                    <th class="xp">
                                         <div>&nbsp;</div>
                                     </th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr class="dead odd" data-player="1025736625" role="row">
-                                    <td class="player-platoon">
-                                        <div class="number ">1</div>
-                                    </td>
-                                    <td class="player-names">LordCyriuslovi4ok</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/Pl32_SDP_Wz_44.png' %}"
-                                                                alt=""><span>Burza</span></td>
-                                    <td class="damage sorting_1">1097</td>
-                                    <td class="kills">0</td>
-                                    <td class="xp">196
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr class="dead even" data-player="1002845395" role="row">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">Old_Lead_Dirigible</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/G41_DickerMax.png' %}"
-                                                                alt=""><span>Dicker Max</span></td>
-                                    <td class="damage sorting_1">881</td>
-                                    <td class="kills">2</td>
-                                    <td class="xp">266
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr class="dead odd" data-player="1004693913" role="row">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">paetersen [EDA]</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/GB21_Cromwell.png' %}"
-                                                                alt=""><span>Cromwell</span></td>
-                                    <td class="damage sorting_1">840</td>
-                                    <td class="kills">1</td>
-                                    <td class="xp">352
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr class="dead even" data-player="1071285347" role="row">
-                                    <td class="player-platoon">
-                                        <div class="number ">1</div>
-                                    </td>
-                                    <td class="player-names">Radiel_3</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/S08_Ikv_65_Alt_2.png' %}"
-                                                                alt=""><span>Ikv 65 II</span></td>
-                                    <td class="damage sorting_1">761</td>
-                                    <td class="kills">0</td>
-                                    <td class="xp">121
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr class="dead odd" data-player="1002973777" role="row">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">TankerMG1964 [-MW-]</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/A87_M44.png' %}"
-                                                                alt=""><span>M44</span></td>
-                                    <td class="damage sorting_1">647</td>
-                                    <td class="kills">1</td>
-                                    <td class="xp">170
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr class="dead even" data-player="1000712451" role="row">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">majorman8</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/GB122_Staghound_Mk_III.png' %}"
-                                                                alt=""><span>Staghound</span></td>
-                                    <td class="damage sorting_1">372</td>
-                                    <td class="kills">0</td>
-                                    <td class="xp">108
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr class="dead odd" data-player="1001958559" role="row">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">undeadbeast37</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/G02_Hummel.png' %}"
-                                                                alt=""><span>Hummel</span></td>
-                                    <td class="damage sorting_1">364</td>
-                                    <td class="kills">0</td>
-                                    <td class="xp">90
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr class="dead even" data-player="1004168434" role="row">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">thorKAOS</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/A06_M4A3E8_Sherman.png' %}"
-                                                                alt=""><span>E8 Sherman</span></td>
-                                    <td class="damage sorting_1">347</td>
-                                    <td class="kills">0</td>
-                                    <td class="xp">118
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr class="dead odd" data-player="1041114820" role="row">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">HypercarDriver [PLOW]</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/J44_Type_3_Ju_Nu.png' %}"
-                                                                alt=""><span>Ju-Nu</span></td>
-                                    <td class="damage sorting_1">321</td>
-                                    <td class="kills">0</td>
-                                    <td class="xp">85
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr class="dead even" data-player="1070304562" role="row">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">kitty450 [127FA]</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/R13_KV-1s.png' %}"
-                                                                alt=""><span>КВ-1С</span></td>
-                                    <td class="damage sorting_1">290</td>
-                                    <td class="kills">0</td>
-                                    <td class="xp">84
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr class="dead odd" data-player="1001213205" role="row">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">Bedwyr [R0YAL]</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/GB85_Cromwell_Berlin.png' %}"
-                                                                alt=""><span>Cromwell B</span></td>
-                                    <td class="damage sorting_1">256</td>
-                                    <td class="kills">0</td>
-                                    <td class="xp">99
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr class="dead even" data-player="1004113391" role="row">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">ArsenalGear</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/J19_Tiger_I_Jpn.png' %}"
-                                                                alt=""><span>HT No. VI</span></td>
-                                    <td class="damage sorting_1">220</td>
-                                    <td class="kills">0</td>
-                                    <td class="xp">150
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr class="dead odd" data-player="1040732346" role="row">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">Lennongrad [AAFF]</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/F109_AMD_Panhard_178B.png' %}"
-                                                                alt=""><span>AMD 178B</span></td>
-                                    <td class="damage sorting_1">170</td>
-                                    <td class="kills">0</td>
-                                    <td class="xp">156
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr class="dead even" data-player="1013696412" role="row">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">sler99</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/R108_T34_85M.png' %}"
-                                                                alt=""><span>Т-34-85М</span></td>
-                                    <td class="damage sorting_1">0</td>
-                                    <td class="kills">0</td>
-                                    <td class="xp">36
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
-                                <tr class="dead odd" data-player="1009833516" role="row">
-                                    <td class="player-platoon"></td>
-                                    <td class="player-names">NIUTAN_ARMI</td>
-                                    <td class="tanks-name"><img class="tank new"
-                                                                src="{% static 'style/images/wot/shop/vehicles/180x135/F127_AMX_ELC_901.png' %}"
-                                                                alt=""><span>AMX ELC 901</span></td>
-                                    <td class="damage sorting_1">0</td>
-                                    <td class="kills">0</td>
-                                    <td class="xp">53
-                                        <div class="xp"></div>
-                                    </td>
-                                </tr>
+                                {% for player in team_results.enemies_players %}
+                                    <tr {% if not player.is_alive %}class="dead"{% endif %}
+                                        data-player="{{ player.avatar_id }}">
+                                        <td class="player-platoon">
+                                            {% if player.platoon_id %}
+                                                <div class="number">{{ player.platoon_id }}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="player-names">{{ player.display_name }}</td>
+                                        <td class="tanks-name">
+                                            <img class="tank new"
+                                                 src="
+
+
+                                                         {% static 'style/images/wot/shop/vehicles/180x135/' %}{{ player.vehicle_tag }}.png"
+                                                 alt="">
+                                            <span>{{ player.vehicle_display_name }}</span>
+                                            {% if player.achievements %}
+                                                <div class="medal" title="Медали"></div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="damage sorting_1">{{ player.damage_dealt|floatformat:0 }}</td>
+                                        <td class="kills">{{ player.kills }}</td>
+                                        <td class="xp">{{ player.xp }}</td>
+                                    </tr>
+                                {% endfor %}
                                 </tbody>
                             </table>
                         </div>

@@ -604,7 +604,6 @@ class Extractor:
             "team": top.get("team"),
         }
 
-    # --- ОСНОВНАЯ ЛОГИКА ---------------------------------------------------------
     @staticmethod
     def get_player_interactions(payload: Mapping[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
         """
@@ -1030,33 +1029,351 @@ class Extractor:
         }
 
     @staticmethod
-    def split_achievements_by_type(achievements_ids: Iterable[int]):
+    def split_achievements_by_section(achievement_ids: Iterable[int]):
         """
-        Делит достижения на небoевые и боевые по полю `achievement_type`,
-        сортирует по весу (`order` DESC) и названию. Возвращает (nonbattle_qs, battle_qs).
+        Возвращает (ach_nonbattle_qs, ach_battle_qs):
+        - battle:  section == 'battle'
+        - nonbattle: section != 'battle'
+        Сортировка: по weight (order) DESC, затем по name ASC.
         """
-        from replays.models import Achievement  # чтобы избежать циклического импорта
+        from replays.models import Achievement  # локальный импорт во избежание циклических
 
-        ids = list({int(x) for x in (achievements_ids or [])})
+        ids = [int(x) for x in (achievement_ids or []) if x is not None]
         if not ids:
             empty = Achievement.objects.none()
             return empty, empty
 
-        # ВАЖНО: кастим order к Float, чтобы не было смешения типов в Coalesce
         qs = (
             Achievement.objects
             .filter(achievement_id__in=ids, is_active=True)
             .annotate(
                 weight=Coalesce(
-                    Cast('order', FloatField()),
+                    Cast('order', FloatField()),  # order может быть INT/NULL -> приводим к float
                     Value(0.0),
                     output_field=FloatField(),
                 )
             )
         )
 
-        battle_types = ('battle', 'epic')  # добавь 'mastery', если надо относить к боевым
-        ach_battle_qs = qs.filter(achievement_type__in=battle_types).order_by('-weight', 'name')
-        ach_nonbattle_qs = qs.exclude(achievement_type__in=battle_types).order_by('-weight', 'name')
+        battle_sections = ('battle', 'epic')
+        ach_battle_qs = qs.filter(section__in=battle_sections).order_by('-weight', 'name')
+        ach_nonbattle_qs = qs.exclude(section__in=battle_sections).order_by('-weight', 'name')
 
         return ach_nonbattle_qs, ach_battle_qs
+
+    @staticmethod
+    def get_team_results(payload: Mapping[str, Any]) -> Dict[str, Any]:
+        """
+        Извлекает командные результаты для отображения в шаблоне.
+        Союзники игрока всегда в allies_players, противники в enemies_players.
+
+        Returns:
+            Dict с ключами:
+            - 'allies_players': список игроков команды союзников (команда игрока)
+            - 'enemies_players': список игроков команды противников
+            - 'allies_name': "Союзники"
+            - 'enemies_name': "Противник"
+        """
+        vehicles_stats = payload.get("vehicles") or {}
+        players_info = payload.get("players") or {}
+
+        # Определяем команду текущего игрока
+        player_team = Extractor._get_player_team(payload)
+        if player_team is None:
+            # Фолбэк: если не можем определить команду игрока
+            player_team = 1
+
+        allies_players = []
+        enemies_players = []
+
+        # Обходим всех игроков
+        for avatar_id, raw in payload.items():
+            if not (isinstance(avatar_id, str) and avatar_id.isdigit() and isinstance(raw, Mapping)):
+                continue
+            if "vehicleType" not in raw:
+                continue
+
+            player_data = Extractor._build_player_data(avatar_id, raw, vehicles_stats, players_info, payload)
+            if not player_data:
+                continue
+
+            team = player_data.get("team")
+            if team == player_team:
+                # Команда игрока = союзники
+                allies_players.append(player_data)
+            else:
+                # Другая команда = противники
+                enemies_players.append(player_data)
+
+        # Сортируем по урону (убыванию)
+        allies_players.sort(key=lambda x: x.get("damage_dealt", 0), reverse=True)
+        enemies_players.sort(key=lambda x: x.get("damage_dealt", 0), reverse=True)
+
+        return {
+            'allies_players': allies_players,
+            'enemies_players': enemies_players,
+            'allies_name': "Союзники",
+            'enemies_name': "Противник",
+        }
+
+    @staticmethod
+    def _build_player_data(avatar_id: str, raw: Mapping[str, Any], vehicles_stats: Mapping[str, Any],
+                           players_info: Mapping[str, Any], payload: Mapping[str, Any]) -> Dict[str, Any]:
+        """
+        Формирует данные игрока для командного результата.
+        """
+        # Базовая информация
+        vehicle_type = str(raw.get("vehicleType", ""))
+        if ":" in vehicle_type:
+            vehicle_nation, vehicle_tag = vehicle_type.split(":", 1)
+        else:
+            vehicle_nation, vehicle_tag = "", vehicle_type
+
+        # Статистика из vehicles
+        vstats = {}
+        vehicle_list = vehicles_stats.get(avatar_id, [])
+        if isinstance(vehicle_list, list) and vehicle_list:
+            vstats = vehicle_list[0] if isinstance(vehicle_list[0], dict) else {}
+
+        # Информация об игроке
+        player_info = players_info.get(avatar_id, {})
+        if not isinstance(player_info, dict):
+            # Ищем по accountDBID в players
+            account_id = vstats.get("accountDBID")
+            if account_id:
+                for pid, pinfo in players_info.items():
+                    if isinstance(pinfo, dict) and pinfo.get("accountDBID") == account_id:
+                        player_info = pinfo
+                        break
+
+        # Определяем статус жизни
+        death_reason = vstats.get("deathReason", -1)
+        is_alive = death_reason == -1
+        killer_id = vstats.get("killerID", 0)
+
+        # Текст причины смерти
+        death_text = ""
+        if not is_alive and killer_id > 0:
+            killer_data = payload.get(str(killer_id), {})
+            killer_name = killer_data.get("name") or killer_data.get("fakeName", "")
+            if death_reason == 0:
+                death_text = f"Уничтожен выстрелом ({killer_name})"
+            elif death_reason == 2:
+                death_text = f"Уничтожен пожаром ({killer_name})"
+            elif death_reason == 3:
+                death_text = "Затоплен"
+            else:
+                death_text = f"Уничтожен ({killer_name})" if killer_name else "Уничтожен"
+        elif not is_alive:
+            death_text = "Уничтожен"
+        else:
+            death_text = "Выжил"
+
+        # Получаем уровень танка и тип
+        tank_level = Extractor._extract_tank_level(vehicle_tag)
+        tank_type_icon = Extractor._get_tank_type_icon(vehicle_tag)
+
+        # Клан
+        clan_tag = player_info.get("clanAbbrev", "")
+        player_name = raw.get("name") or raw.get("fakeName", avatar_id)
+        display_name = f"{player_name} [{clan_tag}]" if clan_tag else player_name
+
+        # Ассисты
+        total_assist = (
+                int(vstats.get("damageAssistedRadio", 0)) +
+                int(vstats.get("damageAssistedTrack", 0)) +
+                int(vstats.get("damageAssistedStun", 0)) +
+                int(vstats.get("damageAssistedSmoke", 0)) +
+                int(vstats.get("damageAssistedInspire", 0))
+        )
+
+        medals_data = Extractor._get_player_medals(vstats.get("achievements", []))
+
+        # Определяем, является ли это текущим игроком (владельцем реплея)
+        current_player_id = payload.get("playerID")  # ID текущего игрока
+        player_account_id = vstats.get("accountDBID")  # ID этого игрока
+
+        is_current_player = (
+                current_player_id is not None and
+                player_account_id is not None and
+                int(current_player_id) == int(player_account_id)
+        )
+
+        return {
+            "avatar_id": avatar_id,
+            "player_name": player_name,
+            "display_name": display_name,
+            "clan_tag": clan_tag,
+            "team": raw.get("team"),
+            "vehicle_type": vehicle_type,
+            "vehicle_tag": vehicle_tag,
+            "vehicle_nation": vehicle_nation,
+            "vehicle_display_name": Extractor._get_vehicle_display_name(vehicle_tag),
+            "tank_level": tank_level,
+            "tank_type_icon": tank_type_icon,
+            "is_alive": is_alive,
+            "death_text": death_text,
+            "medals": medals_data,
+            "is_current_player": is_current_player,
+
+            # Основная статистика
+            "shots": int(vstats.get("shots", 0)),
+            "direct_hits": int(vstats.get("directHits", 0)),
+            "piercings": int(vstats.get("piercings", 0)),
+            "explosion_hits": int(vstats.get("explosionHits", 0)),
+            "damage_dealt": int(vstats.get("damageDealt", 0)),
+            "sniper_damage": int(vstats.get("sniperDamageDealt", 0)),
+            "hits_received": int(vstats.get("directHitsReceived", 0)),
+            "piercings_received": int(vstats.get("piercingsReceived", 0)),
+            "no_damage_hits_received": int(vstats.get("noDamageDirectHitsReceived", 0)),
+            "explosion_hits_received": int(vstats.get("explosionHitsReceived", 0)),
+            "damage_blocked": int(vstats.get("damageBlockedByArmor", 0)),
+            "team_damage": int(vstats.get("tdamageDealt", 0)),
+            "team_kills": int(vstats.get("tkills", 0)),
+            "spotted": int(vstats.get("spotted", 0)),
+            "damaged_count": int(vstats.get("damaged", 0)),
+            "kills": int(vstats.get("kills", 0)),
+            "assist_damage": total_assist,
+            "capture_points": int(vstats.get("capturePoints", 0)),
+            "defense_points": int(vstats.get("droppedCapturePoints", 0)),
+            "distance": round(int(vstats.get("mileage", 0)) / 1000, 2),  # в км
+            "xp": int(vstats.get("xp", 0)),
+
+            # Специальные поля для арты
+            "stun_damage": int(vstats.get("damageAssistedStun", 0)),
+            "stun_count": int(vstats.get("stunNum", 0)),
+
+            # Достижения
+            "achievements": vstats.get("achievements", []),
+
+            # Взвод
+            "platoon_id": Extractor._get_platoon_id(avatar_id, payload),
+        }
+
+    @staticmethod
+    def _get_player_medals(achievement_ids: list) -> Dict[str, Any]:
+        """
+        Получает информацию о медалях игрока из базы данных.
+        Возвращает только боевые и эпические достижения.
+        """
+        if not achievement_ids:
+            return {
+                "count": 0,
+                "title": "",
+                "has_medals": False
+            }
+
+        try:
+            # Импортируем модель здесь, чтобы избежать циклических импортов
+            from replays.models import Achievement
+
+            # Нормализуем ID к int
+            ids = []
+            for aid in achievement_ids:
+                try:
+                    ids.append(int(aid))
+                except (TypeError, ValueError):
+                    continue
+
+            if not ids:
+                return {
+                    "count": 0,
+                    "title": "",
+                    "has_medals": False
+                }
+
+            # Получаем только боевые и эпические достижения
+            achievements = Achievement.objects.filter(
+                achievement_id__in=ids,
+                is_active=True,
+                achievement_type__in=['battle', 'epic']
+            ).values('name').order_by('name')
+
+            count = len(achievements)
+
+            if count == 0:
+                return {
+                    "count": 0,
+                    "title": "",
+                    "has_medals": False
+                }
+
+            # Формируем title для tooltip
+            medal_names = [f"«{ach['name']}»" for ach in achievements]
+            title = "&lt;br&gt;".join(medal_names)
+
+            return {
+                "count": count,
+                "title": title,
+                "has_medals": True
+            }
+
+        except Exception as e:
+            # В случае ошибки возвращаем пустые данные
+            return {
+                "count": 0,
+                "title": "",
+                "has_medals": False
+            }
+
+    @staticmethod
+    def _extract_tank_level(vehicle_tag: str) -> int:
+        """Извлекает уровень танка из тега (примерная логика)."""
+        # Простая логика - в реальности нужна база данных танков
+        level_patterns = {
+            '_T1_': 1, '_T2_': 2, '_T3_': 3, '_T4_': 4, '_T5_': 5,
+            '_T6_': 6, '_T7_': 7, '_T8_': 8, '_T9_': 9, '_T10_': 10
+        }
+        for pattern, level in level_patterns.items():
+            if pattern in vehicle_tag:
+                return level
+        return 6  # по умолчанию
+
+    @staticmethod
+    def _get_tank_type_icon(vehicle_tag: str) -> str:
+        """Возвращает иконку типа танка."""
+        if 'SPG' in vehicle_tag.upper() or 'arty' in vehicle_tag.lower():
+            return 'style/images/wot/vehicleTypes/SPG.png'
+        elif 'AT' in vehicle_tag.upper() or 'TD' in vehicle_tag.upper():
+            return 'style/images/wot/vehicleTypes/AT-SPG.png'
+        elif 'heavy' in vehicle_tag.lower() or 'HT' in vehicle_tag.upper():
+            return 'style/images/wot/vehicleTypes/heavyTank.png'
+        elif 'light' in vehicle_tag.lower() or 'LT' in vehicle_tag.upper():
+            return 'style/images/wot/vehicleTypes/lightTank.png'
+        else:
+            return 'style/images/wot/vehicleTypes/mediumTank.png'
+
+    @staticmethod
+    def _get_vehicle_display_name(vehicle_tag: str) -> str:
+        """Преобразует тег танка в отображаемое имя."""
+        # Убираем префиксы стран и технические суффиксы
+        name = vehicle_tag
+        if name.startswith(('A', 'G', 'R', 'F', 'GB', 'Ch', 'J', 'S')):
+            parts = name.split('_')
+            if len(parts) > 1:
+                name = '_'.join(parts[1:])
+
+        # Заменяем подчеркивания на пробелы и убираем технические суффиксы
+        name = name.replace('_', ' ').strip()
+        for suffix in [' SH', ' Berlin', ' test', ' premium']:
+            if name.endswith(suffix):
+                name = name[:-len(suffix)]
+
+        return name.title()
+
+    @staticmethod
+    def _get_platoon_id(avatar_id: str, payload: Mapping[str, Any]) -> Optional[int]:
+        """Определяет ID взвода игрока."""
+        # В реплеях информация о взводах может быть в разных местах
+        # Это примерная логика - нужно изучить конкретную структуру
+
+        # Поиск в common.bots или других местах
+        bots = (payload.get("common") or {}).get("bots") or {}
+        if avatar_id in bots:
+            bot_data = bots[avatar_id]
+            if isinstance(bot_data, list) and len(bot_data) > 0:
+                # Возможно здесь есть информация о группировке
+                pass
+
+        # Пока возвращаем None - нужна дополнительная логика
+        return None

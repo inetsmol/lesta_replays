@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}О проекте — Реплеи{% endblock %}
+
+{% block content %}
+<div id="content">
+  <div class="container content content--solo about-page">
+
+    <!-- hero -->
+    <section class="mb-24">
+      <h1 class="mt-0 mb-8">Реплеи Мир танков от Лесты</h1>
+      <p class="mb-0">
+        Портал для загрузки, просмотра и анализа статистики реплеев.
+      </p>
+    </section>
+
+    <!-- цели -->
+    <section class="mb-24">
+      <h2 class="mt-0">Цели проекта</h2>
+      <div class="card">
+        <ul class="mb-0">
+          <li>Быстрая загрузка и удобный поиск и просмотр результатов реплеев прямо в браузере.</li>
+          <li>Аккуратные страницы боя: карта, техника, результаты, достижения.</li>
+          <li>Единый стиль и читаемые подсказки к медалям/условиям.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- как это работает -->
+    <section class="mb-24">
+      <h2 class="mt-0">Как это работает</h2>
+      <div class="card">
+        <ol class="mb-0">
+          <li>Нажмите «Загрузить» в шапке и выберите файл реплея.</li>
+          <li>Мы парсим данные боя и сохраняем их в базу.</li>
+          <li>Готовая страница боя открывается с картинками, цифрами и достижениями.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- приватность -->
+    <section class="mb-24">
+      <h2 class="mt-0">Приватность</h2>
+      <div class="card">
+        <p class="mb-0">
+          Мы храним только те данные, которые содержатся в самом реплее. Личные данные
+          аккаунта не запрашиваем и не обрабатываем.
+        </p>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="mb-24">
+      <h2 class="mt-0">FAQ</h2>
+
+      <div class="grid">
+        <div class="card">
+          <details>
+            <summary><strong>Какие файлы поддерживаются?</strong></summary>
+            <p class="mb-0 mt-12">Оригинальные файлы реплеев <code>.mtreplay</code> из клиента Лесты.</p>
+          </details>
+        </div>
+
+        <div class="card">
+          <details>
+            <summary><strong>Почему названия медалей совпадают с игрой?</strong></summary>
+            <p class="mb-0 mt-12">Мы используем переводы и метаданные из клиентских файлов, чтобы всё выглядело знакомо игрокам.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- контакты -->
+    <section class="mb-24">
+      <h2 class="mt-0">Контакты</h2>
+      <div class="card">
+        <ul class="mb-0 contact-list">
+          <li>
+            <!-- envelope -->
+            <svg class="icon" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                 aria-hidden="true" focusable="false">
+              <rect x="3" y="5" width="18" height="14" rx="2" ry="2"></rect>
+              <path d="M3 7l9 6 9-6"></path>
+            </svg>
+            <span>Почта: <a href="mailto:inetsmol@gmail.com">inetsmol@gmail.com</a></span>
+          </li>
+
+          <li>
+            <!-- paper-plane / telegram -->
+            <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+              <path d="M21 3L3 10l6 2 2 6 10-15z"></path>
+            </svg>
+            <span>Telegram: <a href="https://t.me/inetsmol" target="_blank" rel="noopener">@inetsmol</a></span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- дисклеймер -->
+    <section class="mb-24">
+        <p class="mb-0 text-muted-sm">
+          Дисклеймер: названия, логотипы, изображения карт и техники являются собственностью их правообладателей.
+          Проект не аффилирован с Lesta Games. Реплеи загружаются пользователями по собственной инициативе.
+        </p>
+    </section>
+
+  </div>
+</div>
+{% endblock %}

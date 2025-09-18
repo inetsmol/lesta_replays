@@ -765,3 +765,25 @@ body{
 	background-position: 0px -44px;
 	color: #fff;
 }
+
+.text-muted-sm{
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* === Контакты на странице "О проекте" === */
+.contact-list{ list-style: none; padding-left: 0; display: grid; gap: 8px; }
+.contact-list li{ display: flex; align-items: center; gap: 8px; }
+
+/* Универсальный размер иконок */
+.icon{ width: 18px; height: 18px; flex-shrink: 0; opacity: .9; }
+
+/* Жёсткий размер иконок, перекрывает возможные глобальные правила svg */
+svg.icon{
+  width: 18px !important;
+  height: 18px !important;
+  flex: 0 0 18px;
+  display: inline-block;
+  max-width: none;
+  vertical-align: middle;
+}
