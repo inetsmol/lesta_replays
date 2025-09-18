@@ -1,171 +1,292 @@
-{# replays/templates/replays/_filters_panel.html #}
+{# replays/templates/replays/includes/_filters_panel.html #}
 {% load static %}
 
-<style>
-  .replay-filters { margin-bottom: 12px; }
-  .replay-filters .filters-card { padding: 16px; }
-  .replay-filters .filters-row { display: grid; gap: 12px; margin-top: 8px; }
-  @media (min-width: 880px){ .replay-filters .filters-row.grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; } }
-  @media (min-width: 880px){ .replay-filters .filters-row.grid-3 { grid-template-columns: 1fr 1fr 1fr; } }
-  .replay-filters .col .title { font-weight: 700; margin-bottom: 6px; }
-  .replay-filters label { display: inline-flex; align-items: center; gap: 6px; margin: 4px 8px 4px 0; }
-  .replay-filters .chip-line { display:flex; flex-wrap:wrap; gap:6px; }
-  .replay-filters details { border:1px solid var(--border); border-radius: var(--radius-sm); padding:8px 10px; }
-  .replay-filters summary { cursor: pointer; font-weight: 600; }
-  .replay-filters .actions { display:flex; gap:8px; flex-wrap:wrap; margin-top: 8px; }
-</style>
+<div class="container mb-12" id="filters-container">
 
-<section class="replay-filters card filters-card" id="filters-panel" {% if not params %}style="display:none"{% endif %}>
-  <form method="get" action="">
-    {# --- верхняя строка: быстрый поиск/даты --- #}
-    <div class="filters-row grid-3">
-      <div class="field">
-        <label for="map_search">Карта</label>
-        <input type="search" id="map_search" name="map_search"
-               placeholder="Название карты"
-               value="{{ params.map_search|default:'' }}">
-      </div>
+  {# Кнопка показа/скрытия фильтров #}
+  <div class="filters-actions" style="justify-content:flex-end;">
+    <input type="button"
+           id="replay-filter-button"
+           class="big-red-button replay-filter-button right"
+           value="Фильтр"
+           style="margin-left:15px;">
+  </div>
 
-      <div class="field">
-        <label for="date_from">Дата боя — от</label>
-        <input type="date" id="date_from" name="date_from" value="{{ params.date_from|default:'' }}">
-      </div>
+  {# Панель фильтров (по умолчанию скрыта, если нет активных фильтров) #}
+  {% with has_active=current_filters %}
+  <section id="filters-panel"
+           class="card filters-card mt-12"
+           style="display:{% if has_active %}block{% else %}none{% endif %};">
 
-      <div class="field">
-        <label for="date_to">Дата боя — до</label>
-        <input type="date" id="date_to" name="date_to" value="{{ params.date_to|default:'' }}">
-      </div>
-    </div>
+    <form class="form" method="get" action="">
 
-    {# --- базовые чекбоксы: нации, уровни (level), типы, мастерство --- #}
-    <div class="filters-row grid-4 mt-12">
-      <div class="col">
-        <div class="title">Нация</div>
-        <div class="chip-line">
-          {% for value,label in filter_data.nations %}
-            {% with v=value|stringformat:"s" %}
-              <label>
-                <input type="checkbox" name="nation" value="{{ v }}"
-                       {% if v in selected.nation %}checked{% endif %}>
-                <span class="checkbox"></span>{{ label }}
-              </label>
-            {% endwith %}
-          {% endfor %}
+      {# Быстрые поля #}
+      <div class="form-row grid-3">
+        <div class="field">
+          <label for="map_search">Карта</label>
+          <input type="search" id="map_search" name="map_search"
+                 placeholder="Название карты"
+                 value="{{ current_filters.map_search.0|default_if_none:'' }}">
+        </div>
+        <div class="field">
+          <label for="date_from">Дата боя — с</label>
+          <input type="date" id="date_from" name="date_from"
+                 value="{{ current_filters.date_from.0|default_if_none:'' }}">
+        </div>
+        <div class="field">
+          <label for="date_to">Дата боя — по</label>
+          <input type="date" id="date_to" name="date_to"
+                 value="{{ current_filters.date_to.0|default_if_none:'' }}">
         </div>
       </div>
 
-      <div class="col">
-        <div class="title">Уровень техники</div>
-        <div class="chip-line">
-          {% for l in filter_data.levels %}
-            {% with v=l|stringformat:"s" %}
-              <label>
-                <input type="checkbox" name="level" value="{{ v }}"
-                       {% if v in selected.level %}checked{% endif %}>
-                <span class="checkbox"></span>{{ l }}
-              </label>
-            {% endwith %}
-          {% endfor %}
+      {# Числовые диапазоны #}
+      <div class="form-row grid-3">
+        <div class="field">
+          <label>Урон</label>
+          <div class="grid grid-2">
+            <input type="number" inputmode="numeric" name="damage_min" placeholder="от"
+                   value="{{ current_filters.damage_min.0|default_if_none:'' }}">
+            <input type="number" inputmode="numeric" name="damage_max" placeholder="до"
+                   value="{{ current_filters.damage_max.0|default_if_none:'' }}">
+          </div>
+        </div>
+        <div class="field">
+          <label>Опыт</label>
+          <div class="grid grid-2">
+            <input type="number" inputmode="numeric" name="xp_min" placeholder="от"
+                   value="{{ current_filters.xp_min.0|default_if_none:'' }}">
+            <input type="number" inputmode="numeric" name="xp_max" placeholder="до"
+                   value="{{ current_filters.xp_max.0|default_if_none:'' }}">
+          </div>
+        </div>
+        <div class="field">
+          <label>Кредиты</label>
+          <div class="grid grid-2">
+            <input type="number" inputmode="numeric" name="credits_min" placeholder="от"
+                   value="{{ current_filters.credits_min.0|default_if_none:'' }}">
+            <input type="number" inputmode="numeric" name="credits_max" placeholder="до"
+                   value="{{ current_filters.credits_max.0|default_if_none:'' }}">
+          </div>
         </div>
       </div>
 
-      <div class="col">
-        <div class="title">Тип техники</div>
-        <div class="chip-line">
-          {% for t in filter_data.tank_types %}
-            {% with v=t|stringformat:"s" %}
-              <label>
-                <input type="checkbox" name="type" value="{{ v }}"
-                       {% if v in selected.type %}checked{% endif %}>
-                <span class="checkbox"></span>{{ v }}
-              </label>
-            {% endwith %}
-          {% endfor %}
+      <div class="form-row grid-3">
+        <div class="field">
+          <label>Фраги</label>
+          <div class="grid grid-2">
+            <input type="number" inputmode="numeric" name="kills_min" placeholder="от"
+                   value="{{ current_filters.kills_min.0|default_if_none:'' }}">
+            <input type="number" inputmode="numeric" name="kills_max" placeholder="до"
+                   value="{{ current_filters.kills_max.0|default_if_none:'' }}">
+          </div>
+        </div>
+        <div class="field">
+          <label>Ассист</label>
+          <div class="grid grid-2">
+            <input type="number" inputmode="numeric" name="assist_min" placeholder="от"
+                   value="{{ current_filters.assist_min.0|default_if_none:'' }}">
+            <input type="number" inputmode="numeric" name="assist_max" placeholder="до"
+                   value="{{ current_filters.assist_max.0|default_if_none:'' }}">
+          </div>
+        </div>
+        <div class="field">
+          <label>Заблокировано</label>
+          <div class="grid grid-2">
+            <input type="number" inputmode="numeric" name="block_min" placeholder="от"
+                   value="{{ current_filters.block_min.0|default_if_none:'' }}">
+            <input type="number" inputmode="numeric" name="block_max" placeholder="до"
+                   value="{{ current_filters.block_max.0|default_if_none:'' }}">
+          </div>
         </div>
       </div>
 
-      <div class="col">
-        <div class="title">Знак мастерства</div>
-        <div class="chip-line">
-          {% for m,val in filter_data.mastery_choices %}
-            {% with v=val|stringformat:"s" %}
-              <label>
-                <input type="checkbox" name="mastery" value="{{ v }}"
-                       {% if v in selected.mastery %}checked{% endif %}>
-                <span class="checkbox"></span>{{ m }}
-              </label>
-            {% endwith %}
-          {% endfor %}
+      {# Победа/поражение #}
+      <div class="form-row">
+        {% with vic=current_filters.victory.0 %}
+        <div class="field">
+          <label>Результат боя</label>
+          <div class="chips">
+            <label class="chip">
+              <input type="radio" name="victory" value=""
+                     {% if not vic %}checked{% endif %}>
+              Любой
+            </label>
+            <label class="chip">
+              <input type="radio" name="victory" value="win"
+                     {% if vic == 'win' %}checked{% endif %}>
+              Победа
+            </label>
+            <label class="chip">
+              <input type="radio" name="victory" value="loss"
+                     {% if vic == 'loss' %}checked{% endif %}>
+              Поражение
+            </label>
+          </div>
         </div>
+        {% endwith %}
       </div>
-    </div>
 
-    {# --- числовые диапазоны --- #}
-    <details class="mt-12">
-      <summary>Расширенные числовые фильтры</summary>
-      <div class="filters-row grid-4 mt-8">
-        {% for f,label in 'damage,Урон;xp,Опыт;kills,Фраги;credits,Кредиты;assist,Ассист;block,Заблокировано'|cut:' '|split:';' %}
-          {% with p=f|split:',' %}
-            {% with key=p.0 lbl=p.1 %}
-              <div class="field">
-                <label>{{ lbl }}</label>
-                <div style="display:flex; gap:8px;">
-                  <input type="number" name="{{ key }}_min" placeholder="мин"
-                         value="{{ params|get_item:key|default:''|default:''|yesno:'', '' }}">
-                  <input type="number" name="{{ key }}_max" placeholder="макс"
-                         value="{{ params|get_item:key|default:'' }}"
-                         style="display:none">
-                  <input type="number" name="{{ key }}_max" placeholder="макс"
-                         value="{{ params|get_item:key|stringformat:'s'|default:''|default:'' }}">
-                </div>
-              </div>
-            {% endwith %}
+      <hr class="mt-8 mb-8" style="border:none;border-top:1px solid var(--border);" />
+
+      {# Чипы: Нации, Уровни, Типы, Мастерство #}
+      <div class="form-row grid-3">
+        {# Нации #}
+        <div class="field">
+          <label>Нации</label>
+          {% with selected=current_filters.nation|default:"" %}
+          <div class="chips">
+            {% for val,label in filter_data.nations %}
+              {% with sval=val|stringformat:"s" %}
+                <label class="chip">
+                  <input type="checkbox" name="nation" value="{{ sval }}"
+                         {% if sval in selected %}checked{% endif %}>
+                  {{ label }}
+                </label>
+              {% endwith %}
+            {% endfor %}
+          </div>
           {% endwith %}
-        {% endfor %}
-      </div>
-    </details>
+        </div>
 
-    {# --- победа/поражение --- #}
-    <div class="filters-row mt-12">
-      <div class="field">
-        <label>Результат боя</label>
-        <div class="chip-line">
-          <label>
-            <input type="radio" name="victory" value=""
-                   {% if not selected.victory %}checked{% endif %}>
-            Все
-          </label>
-          <label>
-            <input type="radio" name="victory" value="win"
-                   {% if selected.victory == 'win' %}checked{% endif %}>
-            Победы
-          </label>
-          <label>
-            <input type="radio" name="victory" value="loss"
-                   {% if selected.victory == 'loss' %}checked{% endif %}>
-            Поражения
-          </label>
+        {# Уровни #}
+        <div class="field">
+          <label>Уровни</label>
+          {% with selected=current_filters.level|default:current_filters.tier|default:"" %}
+          <div class="chips">
+            {% for lvl in filter_data.levels %}
+              {% with slvl=lvl|stringformat:"s" %}
+                <label class="chip">
+                  <input type="checkbox" name="level" value="{{ slvl }}"
+                         {% if slvl in selected %}checked{% endif %}>
+                  {{ lvl }}
+                </label>
+              {% endwith %}
+            {% endfor %}
+          </div>
+          {% endwith %}
+        </div>
+
+        {# Типы техники #}
+        <div class="field">
+          <label>Типы</label>
+          {% with selected=current_filters.type|default:"" %}
+          <div class="chips">
+            {% for t in filter_data.tank_types %}
+              {% with st=t|stringformat:"s" %}
+                <label class="chip">
+                  <input type="checkbox" name="type" value="{{ st }}"
+                         {% if st in selected %}checked{% endif %}>
+                  {# Человекочитаемое имя типа #}
+                  {% if t == 'lightTank' %}Лёгкий танк
+                  {% elif t == 'mediumTank' %}Средний танк
+                  {% elif t == 'heavyTank' %}Тяжёлый танк
+                  {% elif t == 'AT-SPG' %}ПТ-САУ
+                  {% elif t == 'SPG' %}САУ
+                  {% else %}{{ t }}{% endif %}
+                </label>
+              {% endwith %}
+            {% endfor %}
+          </div>
+          {% endwith %}
         </div>
       </div>
-    </div>
 
-    {# --- действия --- #}
-    <div class="actions">
-      <button class="btn btn--accent" type="submit">Применить</button>
-      <a class="btn btn--ghost" href="{% url 'replay_list' %}">Сбросить</a>
-    </div>
-  </form>
-</section>
+      {# Мастерство #}
+      <div class="form-row">
+        <div class="field">
+          <label>Степени мастерства</label>
+          {% with selected=current_filters.mastery|default:"" %}
+          <div class="chips">
+            {% for val,label in filter_data.mastery_choices %}
+              {% with sval=val|stringformat:"s" %}
+                <label class="chip">
+                  <input type="checkbox" name="mastery" value="{{ sval }}"
+                         {% if sval in selected %}checked{% endif %}>
+                  {% if val == 4 %}Мастер
+                  {% elif val == 3 %}1 степень
+                  {% elif val == 2 %}2 степень
+                  {% elif val == 1 %}3 степень
+                  {% else %}Без знака{% endif %}
+                </label>
+              {% endwith %}
+            {% endfor %}
+          </div>
+          {% endwith %}
+        </div>
+      </div>
 
+      <hr class="mt-8 mb-8" style="border:none;border-top:1px solid var(--border);" />
+
+      {# Список танков с поиском #}
+      <div class="form-row">
+        <div class="field">
+          <label for="tank-search">Техника</label>
+          <input type="search" id="tank-search" placeholder="Поиск по названию…">
+          <div class="text-muted-sm mt-8">Количество машин: <span class="tank-count">{{ filter_data.tanks|length }}</span></div>
+
+          {% with selected=current_filters.tank|default:"" %}
+          <div id="tank-list" class="mt-8"
+               style="max-height:320px; overflow:auto; border:1px solid var(--border); border-radius: var(--radius-sm); padding:8px; background:var(--panel-2);">
+            {% for t in filter_data.tanks %}
+              {% with tid=t.id|stringformat:"s" %}
+                <label class="tank-item"
+                       data-name="{{ t.name|lower }}"
+                       data-nation="{{ t.nation }}"
+                       data-level="{{ t.level }}"
+                       data-type="{{ t.type }}"
+                       style="display:block; padding:4px 2px;">
+                  <input type="checkbox" name="tank" value="{{ tid }}"
+                         {% if tid in selected %}checked{% endif %}>
+                  <span class="checkbox"></span> {{ t.name }}
+                </label>
+              {% endwith %}
+            {% endfor %}
+          </div>
+          {% endwith %}
+        </div>
+      </div>
+
+      {# Кнопки действий #}
+      <div class="filters-actions">
+        <a class="btn btn--ghost" href="{% url 'replay_list' %}">Сбросить</a>
+        <button type="submit" class="btn btn--accent">Применить</button>
+      </div>
+
+    </form>
+  </section>
+  {% endwith %}
+</div>
+
+{# Небольшой JS для сворачивания панели и поиска по списку танков #}
 <script>
-  // Переключение панели фильтров кнопкой "Фильтр"
-  (function(){
-    var btn = document.querySelector('.replay-filter-button');
-    var panel = document.getElementById('filters-panel');
-    if(btn && panel){
-      btn.addEventListener('click', function(){
-        panel.style.display = (panel.style.display === 'none' || !panel.style.display) ? 'block' : 'none';
+(function(){
+  const btn = document.getElementById('replay-filter-button');
+  const panel = document.getElementById('filters-panel');
+  if (btn && panel) {
+    btn.addEventListener('click', () => {
+      const isHidden = getComputedStyle(panel).display === 'none';
+      panel.style.display = isHidden ? 'block' : 'none';
+    });
+  }
+
+  const search = document.getElementById('tank-search');
+  const list = document.getElementById('tank-list');
+  const count = document.querySelector('.tank-count');
+
+  if (search && list) {
+    const items = Array.from(list.querySelectorAll('.tank-item'));
+    const update = () => {
+      const q = search.value.trim().toLowerCase();
+      let visible = 0;
+      items.forEach(item => {
+        const ok = !q || item.dataset.name.indexOf(q) !== -1;
+        item.style.display = ok ? 'block' : 'none';
+        if (ok) visible++;
       });
-    }
-  })();
+      if (count) count.textContent = visible.toString();
+    };
+    search.addEventListener('input', update);
+  }
+})();
 </script>
