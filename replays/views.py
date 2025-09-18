@@ -303,112 +303,173 @@ class ReplayListView(ListView):
 
         return queryset
 
+    # --- утилиты ---
+    def _getlist(self, key: str, alt: str | None = None) -> list[str]:
+        """
+        Вернёт объединённый список значений из GET по ключу key (+ alt, если задан).
+        Убирает дубликаты, сохраняет порядок.
+        """
+        qd = self.request.GET
+        vals = qd.getlist(key)
+        if alt:
+            vals += qd.getlist(alt)
+
+        seen = set()
+        out: list[str] = []
+        for v in vals:
+            if v in seen:
+                continue
+            seen.add(v)
+            out.append(v)
+        return out
+
+    def _to_int_set(self, seq: list[str]) -> set[int]:
+        """
+        Сконвертировать список в множество int, игнорируя мусор.
+        """
+        out: set[int] = set()
+        for v in seq:
+            try:
+                out.add(int(v))
+            except (TypeError, ValueError):
+                continue
+        return out
+
+    def _smart_set(self, seq: list[str]) -> set[int] | set[str]:
+        """
+        Универсальная нормализация: если все элементы — целые числа, вернёт set[int],
+        иначе вернёт set[str] (обрезанные, не пустые).
+        Удобно для полей, где тип может быть строковым (type, nation) или числовым.
+        """
+        cleaned: list[str] = []
+        for v in seq:
+            s = (v or "").strip()
+            if s:
+                cleaned.append(s)
+
+        def _is_int(s: str) -> bool:
+            return s.isdigit() or (s.startswith("-") and s[1:].isdigit())
+
+        if cleaned and all(_is_int(s) for s in cleaned):
+            return {int(s) for s in cleaned}
+        return set(cleaned)
+
+    # --- фильтры ---
     def _apply_filters(self, queryset):
         """
-        Применение всех фильтров к QuerySet.
-        Следует принципу Single Responsibility.
+        Применение всех фильтров к QuerySet согласно параметрам GET.
+        Работает с мультивыбором: tank, mastery, level/tier, type, nation.
+        Поддерживает даты, поиск по карте и числовые диапазоны.
         """
-        # Фильтр по танку
-        if tank_id := self.request.GET.get('tank'):
-            try:
-                queryset = queryset.filter(tank_id=int(tank_id))
-            except (ValueError, TypeError):
-                pass
 
-        # Фильтр по знаку мастерства
-        if mastery := self.request.GET.get('mastery'):
-            try:
-                queryset = queryset.filter(mastery=int(mastery))
-            except (ValueError, TypeError):
-                pass
+        # Множественный выбор танков
+        tank_ids = self._to_int_set(self._getlist("tank"))
+        if tank_ids:
+            queryset = queryset.filter(tank_id__in=tank_ids)
 
-        # Фильтры по дате боя
-        if date_from := self.request.GET.get('date_from'):
-            if parsed_date := parse_date(date_from):
-                queryset = queryset.filter(battle_date__date__gte=parsed_date)
+        # Мастерство (множественный выбор)
+        mastery_vals = self._to_int_set(self._getlist("mastery"))
+        if mastery_vals:
+            queryset = queryset.filter(mastery__in=mastery_vals)
 
-        if date_to := self.request.GET.get('date_to'):
-            if parsed_date := parse_date(date_to):
-                queryset = queryset.filter(battle_date__date__lte=parsed_date)
+        # Даты боя
+        if date_from := self.request.GET.get("date_from"):
+            if d := parse_date(date_from):
+                queryset = queryset.filter(battle_date__date__gte=d)
 
-        # Фильтр по карте (поиск по названию)
-        if map_search := self.request.GET.get('map_search'):
-            queryset = queryset.filter(
-                Q(map_display_name__icontains=map_search) |
-                Q(map_name__icontains=map_search)
-            )
+        if date_to := self.request.GET.get("date_to"):
+            if d := parse_date(date_to):
+                queryset = queryset.filter(battle_date__date__lte=d)
 
-        # Числовые фильтры (минимум/максимум)
+        # Поиск по карте
+        if map_search := (self.request.GET.get("map_search") or "").strip():
+            if map_search:
+                queryset = queryset.filter(
+                    Q(map_display_name__icontains=map_search) |
+                    Q(map_name__icontains=map_search)
+                )
+
+        # Числовые диапазоны (мин/макс)
         numeric_fields = {
-            'damage': 'damage',
-            'xp': 'xp',
-            'kills': 'kills',
-            'credits': 'credits',
-            'assist': 'assist',
-            'block': 'block'
+            "damage": "damage",
+            "xp": "xp",
+            "kills": "kills",
+            "credits": "credits",
+            "assist": "assist",
+            "block": "block",
         }
-
-        for param_prefix, field_name in numeric_fields.items():
-            # Минимальное значение
-            if min_val := self.request.GET.get(f'{param_prefix}_min'):
+        for param_prefix, field in numeric_fields.items():
+            min_val = self.request.GET.get(f"{param_prefix}_min")
+            if min_val not in (None, ""):
                 try:
-                    queryset = queryset.filter(**{f'{field_name}__gte': int(min_val)})
-                except (ValueError, TypeError):
+                    queryset = queryset.filter(**{f"{field}__gte": int(min_val)})
+                except (TypeError, ValueError):
                     pass
 
-            # Максимальное значение
-            if max_val := self.request.GET.get(f'{param_prefix}_max'):
+            max_val = self.request.GET.get(f"{param_prefix}_max")
+            if max_val not in (None, ""):
                 try:
-                    queryset = queryset.filter(**{f'{field_name}__lte': int(max_val)})
-                except (ValueError, TypeError):
+                    queryset = queryset.filter(**{f"{field}__lte": int(max_val)})
+                except (TypeError, ValueError):
                     pass
 
-        # Фильтры по характеристикам танка
-        if level := self.request.GET.get('level'):
-            try:
-                queryset = queryset.filter(tank__level=int(level))
-            except (ValueError, TypeError):
-                pass
+        # Характеристики танка (множественный выбор)
+        # level: поддерживаем alias "tier"
+        levels = self._to_int_set(self._getlist("level", alt="tier"))
+        if levels:
+            queryset = queryset.filter(tank__level__in=levels)
 
-        if tank_type := self.request.GET.get('type'):
-            queryset = queryset.filter(tank__type=tank_type)
+        # type в БД обычно строковое поле ('lightTank', 'mediumTank', 'AT-SPG', 'SPG' и т.п.)
+        types_ = self._smart_set(self._getlist("type"))
+        if types_:
+            queryset = queryset.filter(tank__type__in=types_)
 
-        if nation := self.request.GET.get('nation'):
-            queryset = queryset.filter(tank__nation=nation)
+        # nation: может быть строкой (коды) или числом — поддержим оба варианта
+        nations = self._smart_set(self._getlist("nation"))
+        if nations:
+            queryset = queryset.filter(tank__nation__in=nations)
 
-        # Фильтр только побед/поражений
-        victory_filter = self.request.GET.get('victory')
-        if victory_filter == 'win':
+        # Победа/поражение (если нет явного поля is_win, оставим по прокси)
+        victory_filter = (self.request.GET.get("victory") or "").strip().lower()
+        if victory_filter == "win":
             queryset = queryset.filter(credits__gt=0)
-        elif victory_filter == 'loss':
+        elif victory_filter == "loss":
             queryset = queryset.filter(credits__lte=0)
 
         return queryset
 
     def get_context_data(self, **kwargs):
-        """
-        Добавление контекста для фильтров и пагинации.
-        """
         context = super().get_context_data(**kwargs)
 
-        # Добавляем данные для форм фильтров
+        # выбранные значения для мультивыбора (всегда списки строк)
+        selected_levels = self.request.GET.getlist('level') or self.request.GET.getlist('tier')
+        selected = {
+            'tank': self.request.GET.getlist('tank'),
+            'mastery': self.request.GET.getlist('mastery'),
+            'level': selected_levels,
+            'type': self.request.GET.getlist('type'),
+            'nation': self.request.GET.getlist('nation'),
+            'victory': self.request.GET.get('victory', ''),  # одиночное
+        }
+
         context.update({
             'filter_data': self._get_filter_context(),
-            'current_filters': dict(self.request.GET.items()),
+            'params': self.request.GET,  # для одиночных полей (map_search, даты, min/max)
+            'selected': selected,  # для чекбоксов/множественных полей
         })
-
         return context
 
     def _get_filter_context(self):
-        """
-        Получение данных для выпадающих списков фильтров.
-        """
         return {
-            'tanks': Tank.objects.order_by('level', 'name'),
-            'nations': Nation.choices,
-            'tank_types': Tank.objects.values_list('type', flat=True).distinct().order_by('type'),
-            'levels': range(1, 11),  # Уровни танков 1-10
-            'mastery_choices': [(i, f'Знак {i}') for i in range(5)],  # 0-4
+            'tanks': (Tank.objects
+                      .only('id','name','nation','level','type')
+                      .order_by('nation','level','type','name')),
+            'nations': getattr(Nation, 'choices', ()),  # если это Django Choices
+            'levels': range(1, 12),                      # 1..11
+            'mastery_choices': [('4','Мастер'),('3','1 степень'),('2','2 степень'),('1','3 степень')],
+            # если тип — числа 1..5:
+            'type_choices': [('1','Лёгкий танк'),('2','Средний танк'),('3','Тяжёлый танк'),
+                             ('4','ПТ-САУ'),('5','САУ')],
         }
 
 

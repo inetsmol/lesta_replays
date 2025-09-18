@@ -787,3 +787,63 @@ svg.icon{
   max-width: none;
   vertical-align: middle;
 }
+
+/* === Панель фильтров на списке реплеев === */
+.replay-filter{
+  display:none;
+  margin-top:12px;
+  padding:16px;
+  background: var(--panel);
+  border:1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.replay-filter.active{ display:block; }
+
+.replay-filter .rf-head{
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:12px;
+  border-bottom:1px solid var(--border);
+  padding-bottom:10px;
+}
+.replay-filter .rf-actions{ display:flex; gap:8px; }
+
+.replay-filter .rf-grid{
+  display:grid; gap:16px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.replay-filter .col .title{ font-weight:700; margin-bottom:8px; }
+.replay-filter label{
+  display:block; margin:6px 0; line-height:1.3;
+}
+
+.replay-filter .tank-list{ grid-column: 1 / -1; }
+.replay-filter .tank-list .list{
+  margin-top:8px;
+  max-height: 360px;
+  overflow: auto;
+  border:1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding:8px;
+  background: var(--panel-2);
+}
+
+/* Простая «кастомная» галка под markup <span class="checkbox"></span> */
+.replay-filter input[type="checkbox"]{ position: relative; }
+.replay-filter label .checkbox{
+  display:inline-block; width:14px; height:14px; margin:0 8px 0 6px;
+  border:1px solid var(--border); border-radius:3px; vertical-align:-2px;
+  background:#111;
+}
+.replay-filter input[type="checkbox"]:checked + .checkbox{
+  background: var(--accent);
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,.35);
+}
+
+/* Адаптив */
+@media (max-width: 980px){
+  .replay-filter .rf-grid{ grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px){
+  .replay-filter .rf-grid{ grid-template-columns: 1fr; }
+}

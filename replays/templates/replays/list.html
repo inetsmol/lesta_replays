@@ -7,6 +7,11 @@
     {% load static humanize %}
     <link rel="stylesheet" href="{% static 'css/wot_record_skin.css' %}">
     <div id="content" class="content content--solo">
+        {# где-то над <main> или внутри шапки списка #}
+        <input type="button" class="big-red-button replay-filter-button right" value="Фильтр" style="margin-left:15px;">
+
+        {# сразу под кнопкой — панель (скрыта по умолчанию) #}
+        {% include "replays/_filters_panel.html" with active=request.GET.urlencode tanks=tanks reset_url=request.path %}
 
         <main class="replay-grid replay-grid--rows">
             {% if items %}
