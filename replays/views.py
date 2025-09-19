@@ -138,26 +138,20 @@ class ReplayUploadView(View):
         file_path = self._save_file(uploaded_file)
 
         r = Rpl(file_path)
-
         r.get_replay_fields()
-
         replay_fields = r.replay_fields
 
         try:
-            # Извлекаем JSON данные из файла
-            #
-            # json_str = extract_all_json_from_mtreplay(str(file_path))
-            # if not json_str.strip():
-            #     raise ValueError("Файл не содержит данных реплея")
-            #
-            # payload = json.loads(json_str)
-            #
-            # # Парсим данные для создания реплея
-            # replay_data = self._parse_replay_data(payload)
-
             # Находим или создаем танк
-            # tank = self._get_or_create_tank(replay_data['vehicle_id'])
             tank = self._get_or_create_tank(replay_fields.get('tank_tag'))
+
+            # Извлекаем версию игры и режим боя из payload
+            payload = replay_fields.get('payload', {})
+            game_version = payload.get('clientVersionFromXml')
+
+            # Получаем режим боя через helper
+            from wotreplay.helper.extractor import Extractor
+            battle_type = Extractor.get_battle_type_label(payload)
 
             # Создаем объект реплея
             replay = Replay.objects.create(
@@ -173,7 +167,9 @@ class ReplayUploadView(View):
                 kills=replay_fields.get('kills', 0),
                 damage=replay_fields.get('damage', 0),
                 assist=replay_fields.get('assist', 0),
-                block=replay_fields.get('block', 0)
+                block=replay_fields.get('block', 0),
+                game_version=game_version,
+                battle_type=battle_type
             )
 
             logger.info(f"Реплей создан: {replay.id} - {uploaded_file.name}")
@@ -436,6 +432,24 @@ class ReplayListView(ListView):
         elif victory_filter == "loss":
             queryset = queryset.filter(credits__lte=0)
 
+        # Поиск по названию танка
+        if tank_search := (self.request.GET.get("tank_search") or "").strip():
+            if tank_search:
+                queryset = queryset.filter(
+                    Q(tank__name__icontains=tank_search) |
+                    Q(tank__vehicleId__icontains=tank_search)
+                )
+
+        # Фильтр по версии игры (множественный выбор)
+        game_versions = self._smart_set(self._getlist("game_version"))
+        if game_versions:
+            queryset = queryset.filter(game_version__in=game_versions)
+
+        # Фильтр по режиму боя (множественный выбор)
+        battle_types = self._smart_set(self._getlist("battle_type"))
+        if battle_types:
+            queryset = queryset.filter(battle_type__in=battle_types)
+
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -449,28 +463,54 @@ class ReplayListView(ListView):
             'level': selected_levels,
             'type': self.request.GET.getlist('type'),
             'nation': self.request.GET.getlist('nation'),
-            'victory': self.request.GET.get('victory', ''),  # одиночное
+            'victory': self.request.GET.get('victory', ''),
+            'game_version': self.request.GET.getlist('game_version'),
+            'battle_type': self.request.GET.getlist('battle_type'),
         }
+
+        # Для проверки активности фильтров добавляем одиночные поля
+        current_filters = dict(self.request.GET.items())
+        has_active_filters = bool(current_filters)
 
         context.update({
             'filter_data': self._get_filter_context(),
-            'params': self.request.GET,  # для одиночных полей (map_search, даты, min/max)
-            'selected': selected,  # для чекбоксов/множественных полей
+            'params': self.request.GET,
+            'selected': selected,
+            'current_filters': current_filters,
+            'has_active': has_active_filters,
         })
         return context
 
     def _get_filter_context(self):
         return {
             'tanks': (Tank.objects
-                      .only('id','name','nation','level','type')
-                      .order_by('nation','level','type','name')),
-            'nations': getattr(Nation, 'choices', ()),  # если это Django Choices
-            'levels': range(1, 12),                      # 1..11
-            'mastery_choices': [('4','Мастер'),('3','1 степень'),('2','2 степень'),('1','3 степень')],
-            # если тип — числа 1..5:
-            'type_choices': [('1','Лёгкий танк'),('2','Средний танк'),('3','Тяжёлый танк'),
-                             ('4','ПТ-САУ'),('5','САУ')],
+                      .only('id', 'name', 'nation', 'level', 'type')
+                      .order_by('nation', 'level', 'type', 'name')),
+            'nations': getattr(Nation, 'choices', ()),
+            'levels': range(1, 12),
+            'mastery_choices': [('4', 'Мастер'), ('3', '1 степень'), ('2', '2 степень'), ('1', '3 степень')],
+            'type_choices': [('1', 'Лёгкий танк'), ('2', 'Средний танк'), ('3', 'Тяжёлый танк'),
+                             ('4', 'ПТ-САУ'), ('5', 'САУ')],
+
+            'game_versions': self._get_available_game_versions(),
+            'battle_types': self._get_available_battle_types(),
         }
+
+    def _get_available_game_versions(self):
+        """Получить список доступных версий игры из базы"""
+        return (Replay.objects
+                .filter(game_version__isnull=False)
+                .values_list('game_version', flat=True)
+                .distinct()
+                .order_by('-game_version'))
+
+    def _get_available_battle_types(self):
+        """Получить список доступных режимов боя из базы"""
+        return (Replay.objects
+                .filter(battle_type__isnull=False)
+                .values_list('battle_type', flat=True)
+                .distinct()
+                .order_by('battle_type'))
 
 
 class ReplayDetailView(DetailView):

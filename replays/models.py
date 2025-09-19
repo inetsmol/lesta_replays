@@ -81,6 +81,22 @@ class Replay(models.Model):
         help_text="Заблокированный бронёй урон"
     )
 
+    game_version = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Версия клиента игры (например: 1.26.0.3_13)"
+    )
+
+    battle_type = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Режим боя (например: Стандартный бой, Штурм)"
+    )
+
     class Meta:
         verbose_name = "Реплей"
         verbose_name_plural = "Реплеи"

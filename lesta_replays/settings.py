@@ -25,8 +25,17 @@ SECRET_KEY = 'django-insecure--_($r!rg(efg8u4q4crkd*569bz$moq*f^==nu&zz1#4=^-hpy
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["lesta-replays.ru", "localhost", "127.0.0.1", "192.168.67.5"]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://lesta-replays.ru",
+]
+
+# Сообщаем Django, что он за обратным прокси и реальная схема приходит в заголовке:
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True  # пробрасывать Host от прокси (полезно при нескольких доменах)
+
+SECURE_SSL_REDIRECT = False
 
 # Application definition
 
@@ -119,6 +128,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]  # для dev
+STATIC_ROOT = BASE_DIR / "static_collected"  # куда 'collectstatic' сложит финальные файлы
 
 # МЕДИА / ФАЙЛЫ РЕПЛЕЕВ
 MEDIA_URL = "/files/"
