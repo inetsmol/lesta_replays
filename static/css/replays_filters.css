@@ -1,4 +1,4 @@
-/* replays filters page — neutral (no blue) */
+/* replays_filters.css replays filters page  */
 :root{
   /*--bg: #0f1115;*/
   /*--panel-1: #131722;*/
@@ -80,14 +80,14 @@
   padding:12px;
 }
 .field label{ font-size:12px; color: var(--muted); letter-spacing:.2px; }
-.field input[type="text"],
-.field input[type="search"],
-.field input[type="number"],
-.field input[type="date"],
-.field select{
-  height:36px; border-radius:8px; border:1px solid var(--border);
-  background:#10131b; color:var(--text); padding:0 10px; outline:none;
-}
+/*.field input[type="text"],*/
+/*.field input[type="search"],*/
+/*.field input[type="number"],*/
+/*.field input[type="date"],*/
+/*.field select{*/
+/*  height:36px; border-radius:8px; border:1px solid var(--border);*/
+/*  background:#10131b; color:var(--text); padding:0 10px; outline:none;*/
+/*}*/
 .field input::placeholder{ color:#8a8f99; }
 
 /* chips */
@@ -162,3 +162,50 @@ input[type=number]{ -moz-appearance:textfield; }
 .mt-12{ margin-top:12px; }
 .mb-8{ margin-bottom:8px; }
 .mb-12{ margin-bottom:12px; }
+
+
+/* === THEME bridge for filters page === */
+
+/* LIGHT defaults for this page */
+:root{
+  --panel-1: var(--panel);
+  --panel-2: var(--panel-2);
+  --border: var(--border);
+  --muted: var(--muted);
+  --text: var(--text);
+}
+
+/* поля */
+.field{
+  background: var(--panel-2);
+  border-color: var(--border);
+}
+.field input[type="text"],
+.field input[type="search"],
+.field input[type="number"],
+.field input[type="date"],
+.field select{
+  background: var(--input-bg);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+/* чипсы */
+.chip{
+  background: var(--chip-bg);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+/* контейнер списка танков */
+#tank-list{
+  background: var(--panel-2);
+  border-color: var(--border);
+}
+
+/* кнопки */
+.btn{ background: var(--panel-2); color: var(--text); border-color: var(--border); }
+.btn--accent{
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  color: #101010; border: none;
+}

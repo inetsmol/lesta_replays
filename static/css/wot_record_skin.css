@@ -157,3 +157,21 @@ body.replays.index {}
   .details { padding: 6px 8px; }
   .details .table { gap: 4px 8px; font-size: 10px; }
 }
+
+/* === Light polish for replay list === */
+.tovabb{
+  background: var(--panel-2);
+  border-color: var(--border);
+}
+.tovabb:hover{
+  border-color: color-mix(in oklab, var(--border), #000 10%);
+  box-shadow: var(--shadow);
+}
+.details .table .cell span { color: var(--text); }
+
+/* менее агрессивные светлые тени у подписей поверх карт */
+.img-container .map-name {
+  text-shadow: 0 0 2px #fff, 0 0 6px #fff;
+  color: #555; /* лучше читается на светлых картах */
+}
+

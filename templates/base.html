@@ -9,8 +9,8 @@
   <title>{% block title %}Реплеи Мира танков{% endblock %}</title>
 
   <link rel="icon" href="{% static 'favicon.ico' %}">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
   <link rel="stylesheet" href="{% static 'css/site.css' %}">
-
 
   {% block extra_head %}{% endblock %}
 </head>
@@ -73,6 +73,12 @@
 </div>
 
 <script src="{% static 'js/upload-modal.js' %}"></script>
+
+    <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <!-- jQuery UI -->
+  <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
+
 {% block extra_js %}{% endblock %}
 
 </body>

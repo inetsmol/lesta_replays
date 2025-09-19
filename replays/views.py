@@ -504,6 +504,8 @@ class ReplayDetailView(DetailView):
 
             context['team_results'] = Extractor.get_team_results(replay_data)
 
+            context['detailed_report'] = Extractor.get_detailed_report(replay_data)
+
         except (KeyError, TypeError, ValueError) as e:
             logger.error(f"Ошибка парсинга реплея {self.object.id}: {str(e)}")
             context['parse_error'] = f"Ошибка обработки данных реплея: {str(e)}"

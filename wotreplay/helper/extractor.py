@@ -1350,7 +1350,7 @@ class Extractor:
         """Преобразует тег танка в отображаемое имя."""
         # Убираем префиксы стран и технические суффиксы
         name = vehicle_tag
-        if name.startswith(('A', 'G', 'R', 'F', 'GB', 'Ch', 'J', 'S')):
+        if name.startswith(("Un", "GB", "Ch", "Cz", "Pl", "It", "S", "J", "F", "G", "R", "A")):
             parts = name.split('_')
             if len(parts) > 1:
                 name = '_'.join(parts[1:])
@@ -1379,3 +1379,223 @@ class Extractor:
 
         # Пока возвращаем None - нужна дополнительная логика
         return None
+
+    # В replays/utils.py в класс Extractor добавляем:
+
+
+    @staticmethod
+    def get_detailed_report(payload: Mapping[str, Any]) -> Dict[str, Any]:
+        """
+        Извлекает детализированные данные для подробного отчета.
+        """
+        personal = Extractor.get_personal_by_player_id(payload) or {}
+        common = payload.get('common') or {}
+
+        # === БОЕВАЯ СТАТИСТИКА === (оставляем как есть)
+        battle_stats = {
+            "shots": int(personal.get('shots', 0)),
+            "direct_hits": int(personal.get('directHits', 0)),
+            "piercings": int(personal.get('piercings', 0)),
+            "explosion_hits": int(personal.get('explosionHits', 0)),
+            "damage_dealt": int(personal.get('damageDealt', 0)),
+            "sniper_damage": int(personal.get('sniperDamageDealt', 0)),
+            "hits_received": int(personal.get('directHitsReceived', 0)),
+            "piercings_received": int(personal.get('piercingsReceived', 0)),
+            "no_damage_hits_received": int(personal.get('noDamageDirectHitsReceived', 0)),
+            "explosion_hits_received": int(personal.get('explosionHitsReceived', 0)),
+            "damage_blocked": int(personal.get('damageBlockedByArmor', 0)),
+            "team_damage": int(personal.get('tdamageDealt', 0)),
+            "team_kills": int(personal.get('tkills', 0)),
+            "spotted": int(personal.get('spotted', 0)),
+            "damaged_count": int(personal.get('damaged', 0)),
+            "kills": int(personal.get('kills', 0)),
+            "assist_total": Extractor._calculate_total_assist(personal),
+            "capture_points": int(personal.get('capturePoints', 0)),
+            "defense_points": int(personal.get('droppedCapturePoints', 0)),
+            "distance": round(int(personal.get('mileage', 0)) / 1000, 2),
+            "stun_damage": int(personal.get('damageAssistedStun', 0)),
+            "stun_count": int(personal.get('stunNum', 0)),
+        }
+
+        # === РАСШИРЕННАЯ ЭКОНОМИКА ===
+        # Базовые доходы
+        original_credits = int(personal.get('originalCredits', 0))
+        achievement_credits = int(personal.get('achievementCredits', 0))
+
+        # Штрафы и компенсации
+        credits_penalty = int(personal.get('creditsPenalty', 0))
+        team_damage_penalty = int(personal.get('originalCreditsPenalty', 0))
+
+        # Расходы
+        repair_cost = int(personal.get('repair', 0))
+        auto_repair_cost = int(personal.get('autoRepairCost', 0))
+
+        # Боекомплект (может быть список [ammo, equipment])
+        auto_load_cost = personal.get('autoLoadCost', [0, 0])
+        if isinstance(auto_load_cost, list) and len(auto_load_cost) >= 2:
+            ammo_cost = int(auto_load_cost[0])
+            equipment_cost = int(auto_load_cost[1])
+        else:
+            ammo_cost = int(auto_load_cost) if auto_load_cost else 0
+            equipment_cost = 0
+
+        # Расходы на снаряжение
+        auto_equip_cost = personal.get('autoEquipCost', [0, 0, 0])
+        if isinstance(auto_equip_cost, list):
+            equipment_credits_cost = sum(int(x) for x in auto_equip_cost)
+        else:
+            equipment_credits_cost = int(auto_equip_cost) if auto_equip_cost else 0
+
+        # Золото за снаряжение
+        gold_spent = int(personal.get('gold', 0)) - int(personal.get('originalGold', 0))
+        if gold_spent < 0:
+            gold_spent = abs(gold_spent)  # Потрачено золота
+        else:
+            gold_spent = 0
+
+        # Промежуточные итоги
+        battle_earnings = original_credits + achievement_credits - team_damage_penalty
+        total_expenses = auto_repair_cost + ammo_cost + equipment_credits_cost
+        net_result = battle_earnings - total_expenses
+
+        # Премиум факторы
+        premium_credit_factor = (int(personal.get('premiumCreditsFactor100', 100))) / 100.0
+        is_premium = premium_credit_factor > 1.0
+
+        # Премиум расчеты
+        premium_original_credits = int(original_credits * premium_credit_factor)
+        premium_achievement_credits = int(
+            achievement_credits * premium_credit_factor) if achievement_credits > 0 else achievement_credits
+        premium_battle_earnings = premium_original_credits + premium_achievement_credits - team_damage_penalty
+        premium_net_result = premium_battle_earnings - total_expenses
+
+        # === ОПЫТ ===
+        original_xp = int(personal.get('originalXP', 0))
+        original_free_xp = int(personal.get('originalFreeXP', 0))
+        event_xp = int(personal.get('eventXP', 0))
+        event_free_xp = int(personal.get('eventFreeXP', 0))
+
+        total_original_xp = original_xp + event_xp
+
+        premium_xp_factor = (int(personal.get('premiumXPFactor100', 100))) / 100.0
+
+        premium_xp = int(original_xp * premium_xp_factor)
+        premium_free_xp = int(original_free_xp * premium_xp_factor)
+        premium_event_xp = int(event_xp * premium_xp_factor)
+        premium_event_free_xp = int(event_free_xp * premium_xp_factor)
+
+        total_premium_xp = premium_xp + premium_event_xp
+
+        # === БОНДЫ/КРИСТАЛЛЫ ===
+        crystal = int(personal.get('crystal', 0))
+        original_crystal = int(personal.get('originalCrystal', 0))
+        achievement_crystal = crystal - original_crystal if crystal > original_crystal else 0
+        special_vehicle_crystal = max(0, original_crystal)  # "За особые свойства машины"
+
+        economics = {
+            # Базовые доходы
+            "original_credits": original_credits,
+            "achievement_credits": achievement_credits,
+            "battle_earnings": battle_earnings,
+
+            # Премиум доходы
+            "premium_original_credits": premium_original_credits,
+            "premium_achievement_credits": premium_achievement_credits,
+            "premium_battle_earnings": premium_battle_earnings,
+
+            # Расходы
+            "auto_repair_cost": auto_repair_cost,
+            "ammo_cost": ammo_cost,
+            "equipment_credits_cost": equipment_credits_cost,
+            "gold_spent": gold_spent,
+            "total_expenses": total_expenses,
+
+            # Итоги
+            "net_result": net_result,
+            "premium_net_result": premium_net_result,
+
+            # Штрафы
+            "credits_penalty": credits_penalty,
+            "team_damage_penalty": team_damage_penalty,
+
+            # Опыт
+            "original_xp": original_xp,
+            "original_free_xp": original_free_xp,
+            "event_xp": event_xp,
+            "event_free_xp": event_free_xp,
+            "total_original_xp": total_original_xp,
+
+            "premium_xp": premium_xp,
+            "premium_free_xp": premium_free_xp,
+            "premium_event_xp": premium_event_xp,
+            "premium_event_free_xp": premium_event_free_xp,
+            "total_premium_xp": total_premium_xp,
+
+            # Кристаллы
+            "achievement_crystal": achievement_crystal,
+            "special_vehicle_crystal": special_vehicle_crystal,
+            "total_crystal": crystal,
+
+            "is_premium": is_premium,
+        }
+
+        # === ВРЕМЯ ===
+        battle_duration = int(common.get('duration', 0))
+        lifetime = int(personal.get('lifeTime', 0))
+
+        # Время создания арены (timestamp)
+        arena_create_time = common.get('arenaCreateTime', 0)
+        battle_start_datetime = None
+        battle_start_formatted = ""
+
+        if arena_create_time:
+            try:
+                from datetime import datetime
+                battle_start_datetime = datetime.fromtimestamp(arena_create_time)
+                battle_start_formatted = battle_start_datetime.strftime("%d.%m.%Y %H:%M:%S")
+            except (ValueError, OSError):
+                battle_start_formatted = ""
+
+        # Также можно получить из dateTime если arenaCreateTime недоступно
+        if not battle_start_formatted:
+            date_time_str = payload.get('dateTime', '')
+            if date_time_str:
+                try:
+                    # Формат: "25.08.2025 15:57:56"
+                    battle_start_datetime = datetime.strptime(date_time_str, '%d.%m.%Y %H:%M:%S')
+                    battle_start_formatted = date_time_str
+                except ValueError:
+                    battle_start_formatted = date_time_str
+
+        time_stats = {
+            "battle_duration": battle_duration,
+            "battle_duration_formatted": f"{battle_duration // 60}:{battle_duration % 60:02d}",
+            "lifetime": lifetime,
+            "lifetime_formatted": f"{lifetime // 60}:{lifetime % 60:02d}",
+            "survival_time_percent": round((lifetime / battle_duration * 100), 1) if battle_duration > 0 else 0,
+            "battle_start_time": arena_create_time,
+            "battle_start_formatted": battle_start_formatted,
+            "battle_start_datetime": battle_start_datetime,
+        }
+
+        # === ИНФОРМАЦИЯ О ТЕХНИКЕ === (оставляем как есть)
+        vehicle_type = payload.get('playerVehicle', '')
+        if ':' in vehicle_type:
+            nation, tank_tag = vehicle_type.split(':', 1)
+        else:
+            nation, tank_tag = '', vehicle_type
+
+        vehicle_info = {
+            "tank_tag": tank_tag,
+            "nation": nation,
+            "max_health": int(personal.get('maxHealth', 0)),
+            "health_remaining": int(personal.get('health', 0)),
+            "health_percent": round((int(personal.get('health', 0)) / max(int(personal.get('maxHealth', 1)), 1) * 100), 1),
+        }
+
+        return {
+            "battle_stats": battle_stats,
+            "economics": economics,
+            "time_stats": time_stats,
+            "vehicle_info": vehicle_info,
+        }

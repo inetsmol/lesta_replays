@@ -1,827 +1,693 @@
 {# replays/templates/replays/detail.html #}
 {% extends "base.html" %}
 {% load static humanize %}
+
 {% block title %}Реплей #{{ replay.id }} — {{ replay_data.player_name }}{% endblock %}
 {% block body_class %}replays detail{% endblock %}
 {% block content_mod %}content--solo{% endblock %}
 
-
 {% block content %}
-    <link rel="stylesheet" href="{% static 'css/replay-detail.css' %}">
-    {% if parse_error %}
-        <div class="card error">
-            <h2>Ошибка обработки реплея</h2>
-            <p>Не удалось извлечь данные из файла реплея: {{ parse_error }}</p>
-            <a href="{% url 'replay_list' %}" class="btn btn--ghost">← К списку реплеев</a>
+<link rel="stylesheet" href="{% static 'css/replay-detail.css' %}">
+
+{% if parse_error %}
+  <div class="card error">
+    <h2>Ошибка обработки реплея</h2>
+    <p>Не удалось извлечь данные из файла реплея: {{ parse_error }}</p>
+    <a href="{% url 'replay_list' %}" class="btn btn--ghost">← К списку реплеев</a>
+  </div>
+{% else %}
+
+  <div class="replay-wrapper">
+    <div class="replay-tabs">
+      <div class="tab active" data-tab="personal">Личный результат</div>
+      <div class="tab" data-tab="team">Командный результат</div>
+      <div class="tab" data-tab="detailed">Подробный отчёт</div>
+    </div>
+
+    <div class="right-ajax">
+      <div class="replay-download">
+        <a href="{% url 'replay_download' replay.pk %}" target="_blank" class="big-red-button">Скачать</a>
+      </div>
+    </div>
+
+    <!-- TAB: Личный результат -->
+    <div class="replay-tab-wrapper active" id="tab-personal">
+      <div class="tanks-image {% if battle_outcome.status_class == 'victory' %}win{% else %}{{ battle_outcome.status_class }}{% endif %}">
+        <div class="winner-team {{ battle_outcome.status_class }}">
+          <span class="status">{{ battle_outcome.status_text }}</span>
+          <div class="reason">{{ battle_outcome.reason_text }}</div>
         </div>
-    {% else %}
 
-        <div class="replay-wrapper">
-            <div class="replay-tabs">
-                <div class="tab active" data-tab="personal">Личный результат</div>
-                <div class="tab" data-tab="team">Командный результат</div>
-                <div class="tab" data-tab="detailed">Подробный отчёт</div>
+        <div class="battle-records">
+          <div class="achievements" data-number="{{ achievements_count_in_badges }}">
+            {% for ach in achievements_nonbattle %}
+              <div>
+                <img
+                  src="{% static ach.image_big %}"
+                  alt="«{{ ach.name }}»"
+                  title="&lt;div class='title'&gt;«{{ ach.name|escape }}»&lt;/div&gt;&lt;img src={% static ach.image_big %}/&gt; {{ ach.description|default_if_none:''|escape }}{% if ach.condition %}&lt;div class='condition'&gt;{{ ach.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}">
+              </div>
+            {% endfor %}
+
+            {% if has_mastery %}
+              <div class="mastery">
+                <img
+                  src="{% static mastery_image %}"
+                  alt="{{ mastery_label }}"
+                  title="&lt;div class='title'&gt;Знак классности «{{ mastery_label }}»&lt;/div&gt;&lt;img class='achi' src='{% static mastery_image %}' style='width:67px!important;height:71px!important;' alt='{{ mastery_label }}'/&gt;Присваивается игроку за мастерство владения&lt;/&gt;боевой машиной. Для присвоения необходимо&lt;/&gt;заработать больше опыта за бой, чем средний&lt;/&gt;максимальный опыт за предыдущие 7 дней&lt;/&gt;у игроков на данной машине.">
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="income">
+            <div class="credit">
+              <span class="count">{{ details.originalCredits|intcomma }}</span>
+              <img src="{% static 'style/images/wot/library/CreditsIconBig.png' %}" alt="Credits">
             </div>
-
-            <div class="right-ajax">
-                <div class="replay-download">
-                    <a href="{% url 'replay_download' replay.pk %}" target="_blank" class="big-red-button">Скачать</a>
-                </div>
+            <div class="xp">
+              <span class="count">{{ details.xp|intcomma }}</span>
+              <img src="{% static 'style/images/wot/library/XpIconBig.png' %}" alt="XP">
             </div>
-            <div class="replay-tab-wrapper active" id="tab-personal">
-                <div class="tanks-image {% if battle_outcome.status_class == 'victory' %}win{% else %}{{ battle_outcome.status_class }}{% endif %}">
-                    <div class="winner-team {{ battle_outcome.status_class }}">
-                        <span class="status">{{ battle_outcome.status_text }}</span>
-                        <div class="reason">{{ battle_outcome.reason_text }}</div>
-                    </div>
-                    <div class="battle-records">
-                        <div class="achievements" data-number="{{ achievements_count_in_badges }}">
-                            {% for ach in achievements_nonbattle %}
-                                <div>
-                                    <img src="{% static ach.image_big %}"
-                                            alt="«{{ ach.name }}»"
-                                            title="&lt;div class='title'&gt;«{{ ach.name|escape }}»&lt;/div&gt;&lt;img src={% static ach.image_big %}/&gt;
-                                            {{ ach.description|default_if_none:''|escape }}{% if ach.condition %}&lt;div class='condition'&gt;{{ ach.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}"
-                                    >
-                                </div>
-                            {% endfor %}
+          </div>
 
-                            {% if has_mastery %}
-                                <div class="mastery">
-                                    <img src="{% static mastery_image %}"
-                                            alt="{{ mastery_label }}"
-                                            title="&lt;div class='title'&gt;Знак классности «{{ mastery_label }}»&lt;/div&gt;&lt;img class='achi' src='{% static mastery_image %}' style='width:67px!important;height:71px!important;' alt='{{ mastery_label }}'/&gt;Присваивается игроку за мастерство владения&lt;/&gt;боевой машиной. Для присвоения необходимо&lt;/&gt;заработать больше опыта за бой, чем средний&lt;/&gt;максимальный опыт за предыдущие 7 дней&lt;/&gt;у игроков на данной машине."
-                                    >
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="income ">
-                            <div class="credit">
-                                <span class="count">{{ details.originalCredits|intcomma }}</span>
-                                <img src="{% static 'style/images/wot/library/CreditsIconBig.png' %}" alt="Credits">
-                            </div>
-                            <div class="xp">
-                                <span class="count">{{ details.xp|intcomma }}</span>
-                                <img src="{% static 'style/images/wot/library/XpIconBig.png' %}" alt="XP">
-                            </div>
-                        </div>
-
-                        <div class="dossier" data-number="{{ achievements_battle_count }}">
-                            {% for ach in achievements_battle %}
-                                <div class="achi-img-cont">
-                                    <img
-                                            src="{% static ach.image_big %}"
-                                            alt="«{{ ach.name }}»"
-                                            title="&lt;div class='title'&gt;«{{ ach.name|escape }}»&lt;/div&gt;&lt;img src={% static ach.image_big %}/&gt;
-                                        {{ ach.description|default_if_none:''|escape }}{% if ach.condition %}&lt;div class='condition'&gt;{{ ach.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}"
-                                    >
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                </div>
-                <div class="titles-line">
-                    <div class="half">
-                        <div class="battle-type">
-                            <span class="map-name">{{ replay.map_display_name }}</span>&nbsp;&nbsp;-&nbsp;&nbsp;{{ battle_type_label }}
-                        </div>
-                    </div>
-                    <div class="half">
-                        <div class="hit-list">
-                            <table>
-                                <tbody>
-                                <tr class="title  ">
-                                    <td class="table-title" colspan="2">Боевая эффективность</td>
-
-                                    {# Обнаруженные танки (кол-во целей) #}
-                                    <td class="spotted" title="Обнаруженные танки (шт.)">
-                                        <img {% if interactions_summary.spotted_tanks == 0 %}style="opacity:0.1;"{% endif %}
-                                             src="{% static 'style/images/wot/battleresults/battleResults-19.png' %}"
-                                             alt="Spotted">
-                                        <div class="info">{{ interactions_summary.spotted_tanks }}</div>
-                                    </td>
-
-                                    {# Помощь в уничтожении: число целей, по которым есть ассист-урон #}
-                                    <td class="assits" title="Помощь в уничтожении (число целей)">
-                                        <img {% if interactions_summary.assist_tanks == 0 %}style="opacity:0.1;"{% endif %}
-                                             src="{% static 'style/images/wot/battleresults/battleResults-25.png' %}"
-                                             alt="Assist">
-                                        <div class="info">{{ interactions_summary.assist_tanks }}</div>
-                                    </td>
-
-                                    {# Использование брони: число целей, от которых был рик/непробитие #}
-                                    <td class="assits"
-                                        title="Использование брони (число целей с рикошетами/непробитиями)">
-                                        <img class="bigger"
-                                             {% if interactions_summary.blocked_tanks == 0 %}style="opacity:0.1;"{% endif %}
-                                             src="{% static 'style/images/wot/battleresults/teamStatsComponents-12.png' %}"
-                                             alt="Armor use">
-                                        <div class="info">{{ interactions_summary.blocked_tanks }}</div>
-                                    </td>
-
-                                    {# Криты: суммарное количество критов по всем целям #}
-                                    <td class="crits" title="Критические попадания (шт.)">
-                                        <img {% if interactions_summary.crits_total == 0 %}style="opacity:0.1;"{% endif %}
-                                             src="{% static 'style/images/wot/battleresults/battleResults-21.png' %}"
-                                             alt="Crits">
-                                        <div class="info">{{ interactions_summary.crits_total }}</div>
-                                    </td>
-
-                                    {# Попадания, нанесящие урон: суммарное число пробитий #}
-                                    <td class="damage" title="Попадания, нанесящие урон (пробития, шт.)">
-                                        <img {% if interactions_summary.piercings_total == 0 %}style="opacity:0.1;"{% endif %}
-                                             src="{% static 'style/images/wot/battleresults/battleResults-20.png' %}"
-                                             alt="Damaging hits">
-                                        <div class="info">{{ interactions_summary.piercings_total }}</div>
-                                    </td>
-
-                                    {# Уничтоженные танки: суммарно #}
-                                    <td class="kill" title="Уничтоженные танки (шт.)">
-                                        <img {% if interactions_summary.destroyed_tanks == 0 %}style="opacity:0.1;"{% endif %}
-                                             src="{% static 'style/images/wot/battleresults/battleResults-23.png' %}"
-                                             alt="Kills">
-                                        <div class="info">{{ interactions_summary.destroyed_tanks }}</div>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                <div style="background: rgb(20, 18, 14); display: flex">
-                    <div class="half">
-                        <div class="map-stat">
-                            <img class="map"
-                                 src="{% static 'style/images/wot/map/stats/' %}{{ replay.map_name }}.png"
-                                 alt="{{ replay.map_display_name|default:replay.map_name }}">
-                            <div class="stat">
-                                <div class="stat-tank">
-                                    <img class="tank new"
-                                         src="
-
-
-                                                 {% static 'style/images/wot/shop/vehicles/180x135/' %}{{ replay.tank.vehicleId }}.png"
-                                         alt="{{ replay.tank.name }}">
-                                    <span class="name ">"{{ replay.tank.name }}"</span>
-                                    <img class="type"
-                                         src="{% static 'style/images/wot/vehicleTypes/' %}{{ replay.tank.type }}.png"
-                                         alt="">
-                                    <img class="level" src="
-
-
-                                            {% static 'style/images/wot/levels/tank_level_' %}{{ replay.tank.level }}.png"
-                                         alt="">
-                                </div>
-                                <div class="stat-text">
-                                    <div class="name">{{ details.playerName }}
-                                    </div>
-                                    {{ replay.battle_date }}
-                                    <div class="death-reason">{{ death_reason_text }}</div>
-                                </div>
-                                <div class="income">
-                                    <table>
-                                        <tbody>
-                                        <tr class="premium-row">
-                                            <td class="desc"></td>
-                                            <td class="inactive">Базовый аккаунт</td>
-                                            <td class="active premium">Танковый премиум</td>
-                                        </tr>
-
-                                        {# Кредиты #}
-                                        <tr>
-                                            <td class="desc">Кредиты</td>
-                                            <td class="inactive">
-                                                <span>{{ income.credits_base|default:0|intcomma }}</span>
-                                                <img class="credit"
-                                                     src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
-                                                     alt="Credits">
-                                            </td>
-                                            <td class="active">
-                                                <span>{{ income.credits_premium|default:0|intcomma }}</span>
-                                                <img class="credit"
-                                                     src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
-                                                     alt="Credits">
-                                            </td>
-                                        </tr>
-
-                                        {# Показать только при первой победе дня (x2) #}
-                                        {% if income.is_first_win %}
-                                            <tr>
-                                                <td class="desc">
-                                                    Опыт
-                                                    <br>Награда за первую победу в день (2x)
-                                                </td>
-                                                <td class="inactive">
-                                                    {{ income.xp_with_first_base|default:0|intcomma }}
-                                                    <img class="xp"
-                                                         src="{% static 'style/images/wot/library/XpIcon.png' %}"
-                                                         alt="XP">
-                                                </td>
-                                                <td class="active">
-                                                    {{ income.xp_with_first_premium|default:0|intcomma }}
-                                                    <img class="xp"
-                                                         src="{% static 'style/images/wot/library/XpIcon.png' %}"
-                                                         alt="XP">
-                                                </td>
-                                            </tr>
-                                        {% endif %}
-
-                                        {# Обычный опыт (без первой победы) #}
-                                        <tr>
-                                            <td class="desc">Опыт</td>
-                                            <td class="inactive">
-                                                {{ income.xp_base|default:0|intcomma }}
-                                                <img class="xp" src="{% static 'style/images/wot/library/XpIcon.png' %}"
-                                                     alt="XP">
-                                            </td>
-                                            <td class="active">
-                                                {{ income.xp_premium|default:0|intcomma }}
-                                                <img class="xp" src="{% static 'style/images/wot/library/XpIcon.png' %}"
-                                                     alt="XP">
-                                            </td>
-                                        </tr>
-
-                                        {# Меткость #}
-                                        <tr class="no-border">
-                                            <td class="desc">Процент попаданий</td>
-                                            <td>{{ income.hits }}/{{ income.shots }}</td>
-                                            <td>{{ income.hit_percent|floatformat:2 }}%</td>
-                                        </tr>
-
-                                        {# Ассист-урон (слева) и нанесённый урон (справа) #}
-                                        <tr class="no-border">
-                                            <td class="desc"></td>
-                                            <td>
-                                                <span style="color:#6183a6;">{{ income.assist_total|default:0|intcomma }}</span>
-                                            </td>
-                                            <td>
-                                                <span style="color:#d9aa66;">{{ income.damage_total|default:0|intcomma }}</span>
-                                            </td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            <div class="clearfix">&nbsp;</div>
-                        </div>
-                    </div>
-                    <div class="half" style="padding-bottom: 15px;">
-                        <div class="hit-list">
-                            <table style="width:100%;">
-                                <tbody>
-
-                                {# Идём по подготовленным строкам #}
-                                {% for row in interaction_rows %}
-                                    <tr class="row {% if row.destroyed %}dead{% endif %}">
-                                        <td class="name">{{ row.name }}</td>
-
-                                        <td class="vehicle">
-                                            {% if row.vehicle_img %}
-                                                <img class="tank new"
-                                                     src="{% static row.vehicle_img %}"
-                                                     alt="{{ row.vehicle_name }}">
-                                            {% endif %}
-                                            <span>{{ row.vehicle_name }}</span>
-                                        </td>
-
-                                        {# Обнаружил #}
-                                        <td class="spotted">
-                                            <img {% if not row.spotted %}style="opacity:0.1;"{% endif %}
-                                                 src="{% static 'style/images/wot/battleresults/battleResults-19.png' %}">
-                                        </td>
-
-                                        {# Помог в уничтожении #}
-                                        <td class="assist">
-                                            <img {% if not row.assist %}style="opacity:0.1;"{% endif %}
-                                                 src="{% static 'style/images/wot/battleresults/battleResults-25.png' %}">
-                                        </td>
-
-                                        {# Заблокировал урон (броня) #}
-                                        <td class="assist">
-                                            <img class="bigger" {% if not row.blocked %}style="opacity:0.1;"{% endif %}
-                                                 src="{% static 'style/images/wot/battleresults/teamStatsComponents-12.png' %}">
-                                        </td>
-
-                                        {# Критические попадания #}
-                                        <td class="crits">
-                                            <img {% if not row.crits %}style="opacity:0.1;"{% endif %}
-                                                 src="{% static 'style/images/wot/battleresults/battleResults-21.png' %}">
-                                            {% if row.crits_count %}
-                                                <div class="info">{{ row.crits_count }}</div>
-                                            {% endif %}
-                                        </td>
-
-                                        {# Нанёс урон #}
-                                        <td class="damage">
-                                            <img {% if not row.damaged %}style="opacity:0.1;"{% endif %}
-                                                 src="{% static 'style/images/wot/battleresults/battleResults-20.png' %}">
-                                            {# если захочешь показывать цифры, добавь сюда div.info с данными #}
-                                            {% if row.damage_piercings %}
-                                                <div class="info">{{ row.damage_piercings }}</div>
-                                            {% endif %}
-                                        </td>
-
-                                        {# Уничтожил #}
-                                        <td class="kill">
-                                            <img {% if not row.destroyed %}style="opacity:0.1;"{% endif %}
-                                                 src="{% static 'style/images/wot/battleresults/battleResults-23.png' %}">
-                                        </td>
-                                    </tr>
-
-                                    <tr class="space"></tr>
-                                {% empty %}
-                                    <tr>
-                                        <td colspan="8" class="text-center text-muted">Нет взаимодействий</td>
-                                    </tr>
-                                {% endfor %}
-
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Командный результат -->
-            <div class="replay-tab-wrapper" id="tab-team">
-                <div class="team-score">
-                    <!-- Команда 1 - всегда союзники -->
-                    <div class="half score">
-                        <div class="team-name">{{ team_results.allies_name }}</div>
-
-                        {% for player in team_results.allies_players %}
-                            <div class="personal-data" data-player="{{ player.avatar_id }}">
-                                <div class="header {% if not player.is_alive %}dead{% endif %}">
-                                    <div class="tank">
-                                        <img class="tank new"
-                                             src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ player.vehicle_tag }}.png"
-                                             alt="{{ player.vehicle_display_name }}">
-                                        <img class="type"
-                                             src="{% static player.tank_type_icon %}"
-                                             alt="">
-                                        <img class="level"
-                                             src="{% static 'style/images/wot/levels/tank_level_' %}{{ player.tank_level }}.png"
-                                             alt="">
-                                    </div>
-                                    <div class="info">
-                                        <div class="name">
-                                            <a href="profile/{{ player.avatar_id }}/{{ player.player_name }}"
-                                               target="_blank">
-                                                {{ player.display_name }}
-                                            </a>
-                                        </div>
-                                        <span>{{ player.vehicle_display_name }}</span>
-                                        <div>{{ player.death_text }}</div>
-                                    </div>
-                                </div>
-
-                                <div class="data-wrapper">
-                                    <div class="row">Произведено выстрелов<span class="right">{{ player.shots }}</span>
-                                    </div>
-                                    <div class="row padding"> прямых попаданий/пробитий<span
-                                            class="right">{{ player.direct_hits }}/{{ player.piercings }}</span></div>
-                                    <div class="row padding"> осколочно-фугасных повреждений<span
-                                            class="right">{{ player.explosion_hits }}</span></div>
-                                    <div class="row">Нанесение урона<span
-                                            class="right">{{ player.damage_dealt|floatformat:0 }}</span></div>
-                                    <div class="row padding"> с дистанции свыше 300 м<span
-                                            class="right">{{ player.sniper_damage|floatformat:0 }}</span></div>
-                                    <div class="row">Получено попаданий<span
-                                            class="right">{{ player.hits_received }}</span></div>
-                                    <div class="row padding"> пробитий<span
-                                            class="right">{{ player.piercings_received }}</span></div>
-                                    <div class="row padding"> не нанёсших урон<span
-                                            class="right">{{ player.no_damage_hits_received }}</span></div>
-                                    <div class="row">Получено попаданий осколками<span
-                                            class="right">{{ player.explosion_hits_received }}</span></div>
-                                    <div class="row">Урон, заблокированный бронёй<span
-                                            class="right">{{ player.damage_blocked|floatformat:0 }}</span></div>
-                                    <div class="row">Урон союзникам (уничтожено/повреждений)<span
-                                            class="right">{{ player.team_kills }}/{{ player.team_damage|floatformat:0 }}</span>
-                                    </div>
-                                    <div class="row">Обнаружено машин противника<span
-                                            class="right">{{ player.spotted }}</span></div>
-                                    <div class="row">Повреждено/уничтожено машин противника<span
-                                            class="right">{{ player.damaged_count }}/{{ player.kills }}</span></div>
-                                    <div class="row">Урон, нанесённый с помощью данного игрока<span
-                                            class="right">{{ player.assist_damage|floatformat:0 }}</span></div>
-
-                                    {% if player.stun_damage > 0 %}
-                                        <div class="row"><span class="left">Урон по оглушённым вами целям</span><span
-                                                class="right">{{ player.stun_damage|floatformat:0 }}</span></div>
-                                        <div class="row"><span class="left">Нанесено оглушений</span><span
-                                                class="right">{{ player.stun_count }}</span></div>
-                                    {% endif %}
-
-                                    <div class="row">Очки захвата/защиты базы<span
-                                            class="right">{{ player.capture_points }}/{{ player.defense_points }}</span>
-                                    </div>
-                                    <div class="row">Пройдено километров<span class="right">{{ player.distance }}</span>
-                                    </div>
-                                </div>
-                                <div class="close">Закрыть</div>
-                            </div>
-                        {% endfor %}
-
-                        <!-- Сводная таблица союзников -->
-                        <div class="dataTables_wrapper no-footer">
-                            <table class="tank-list score dataTable no-footer">
-                                <thead>
-                                <tr>
-                                    <th class="player-platoon">
-                                        <div>&nbsp;</div>
-                                    </th>
-                                    <th class="player-names">
-                                        <div>&nbsp;</div>
-                                    </th>
-                                    <th class="tanks-name">
-                                        <div>&nbsp;</div>
-                                    </th>
-                                    <th class="damage sorting_desc">
-                                        <div>&nbsp;</div>
-                                    </th>
-                                    <th class="kills">
-                                        <div>&nbsp;</div>
-                                    </th>
-                                    <th class="xp">
-                                        <div>&nbsp;</div>
-                                    </th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for player in team_results.allies_players %}
-                                    <tr {% if player.is_current_player %} class=current-player{% endif %} {% if not player.is_alive %}class="dead"{% endif %}
-
-                                        data-player="{{ player.avatar_id }}">
-                                        <td class="player-platoon">
-                                            {% if player.platoon_id %}
-                                                <div class="number">{{ player.platoon_id }}</div>
-                                            {% endif %}
-                                        </td>
-                                        <td class="player-names">{{ player.display_name }}</td>
-                                        <td class="tanks-name">
-                                            <img class="tank new"
-                                                 src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ player.vehicle_tag }}.png"
-                                                 alt="">
-                                            <span>{{ player.vehicle_display_name }}</span>
-                                            {% if player.medals.has_medals %}
-                                                <div class="medal" title="{{ player.medals.title|safe }}">
-                                                    {% if player.medals.count > 1 %}
-                                                        <div class="num">{{ player.medals.count }}</div>
-                                                    {% endif %}
-                                                </div>
-                                            {% endif %}
-                                        </td>
-                                        <td class="damage sorting_1">{{ player.damage_dealt|floatformat:0 }}</td>
-                                        <td class="kills">{{ player.kills }}</td>
-                                        <td class="xp">{{ player.xp }}</td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Команда 2 - всегда противники -->
-                    <div class="half score">
-                        <div class="team-name">{{ team_results.enemies_name }}</div>
-
-                        {% for player in team_results.enemies_players %}
-                            <div class="personal-data left" data-player="{{ player.avatar_id }}">
-                                <div class="header {% if not player.is_alive %}dead{% endif %}">
-                                    <div class="tank">
-                                        <img class="tank new"
-                                             src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ player.vehicle_tag }}.png"
-                                             alt="{{ player.vehicle_display_name }}">
-                                        <img class="type"
-                                             src="{% static player.tank_type_icon %}"
-                                             alt="">
-                                        <img class="level"
-                                             src="{% static 'style/images/wot/levels/tank_level_' %}{{ player.tank_level }}.png"
-                                             alt="">
-                                    </div>
-                                    <div class="info">
-                                        <div class="name">
-                                            <a href="profile/{{ player.avatar_id }}/{{ player.player_name }}"
-                                               target="_blank">
-                                                {{ player.display_name }}
-                                            </a>
-                                        </div>
-                                        <span>{{ player.vehicle_display_name }}</span>
-                                        {% if player.medals.has_medals %}
-                                            <div class="medal" title="{{ player.medals.title|safe }}">
-                                                {% if player.medals.count > 1 %}
-                                                    <div class="num">{{ player.medals.count }}</div>
-                                                {% endif %}
-                                            </div>
-                                        {% endif %}
-                                        <div>{{ player.death_text }}</div>
-                                    </div>
-                                </div>
-
-                                <div class="data-wrapper">
-                                    <!-- Аналогичная структура данных -->
-                                    <div class="row">Произведено выстрелов<span class="right">{{ player.shots }}</span>
-                                    </div>
-                                    <div class="row padding"> прямых попаданий/пробитий<span
-                                            class="right">{{ player.direct_hits }}/{{ player.piercings }}</span></div>
-                                    <div class="row padding"> осколочно-фугасных повреждений<span
-                                            class="right">{{ player.explosion_hits }}</span></div>
-                                    <div class="row">Нанесение урона<span
-                                            class="right">{{ player.damage_dealt|floatformat:0 }}</span></div>
-                                    <div class="row padding"> с дистанции свыше 300 м<span
-                                            class="right">{{ player.sniper_damage|floatformat:0 }}</span></div>
-                                    <div class="row">Получено попаданий<span
-                                            class="right">{{ player.hits_received }}</span></div>
-                                    <div class="row padding"> пробитий<span
-                                            class="right">{{ player.piercings_received }}</span></div>
-                                    <div class="row padding"> не нанёсших урон<span
-                                            class="right">{{ player.no_damage_hits_received }}</span></div>
-                                    <div class="row">Получено попаданий осколками<span
-                                            class="right">{{ player.explosion_hits_received }}</span></div>
-                                    <div class="row">Урон, заблокированный бронёй<span
-                                            class="right">{{ player.damage_blocked|floatformat:0 }}</span></div>
-                                    <div class="row">Урон союзникам (уничтожено/повреждений)<span
-                                            class="right">{{ player.team_kills }}/{{ player.team_damage|floatformat:0 }}</span>
-                                    </div>
-                                    <div class="row">Обнаружено машин противника<span
-                                            class="right">{{ player.spotted }}</span></div>
-                                    <div class="row">Повреждено/уничтожено машин противника<span
-                                            class="right">{{ player.damaged_count }}/{{ player.kills }}</span></div>
-                                    <div class="row">Урон, нанесённый с помощью данного игрока<span
-                                            class="right">{{ player.assist_damage|floatformat:0 }}</span></div>
-
-                                    {% if player.stun_damage > 0 %}
-                                        <div class="row"><span class="left">Урон по оглушённым вами целям</span><span
-                                                class="right">{{ player.stun_damage|floatformat:0 }}</span></div>
-                                        <div class="row"><span class="left">Нанесено оглушений</span><span
-                                                class="right">{{ player.stun_count }}</span></div>
-                                    {% endif %}
-
-                                    <div class="row">Очки захвата/защиты базы<span
-                                            class="right">{{ player.capture_points }}/{{ player.defense_points }}</span>
-                                    </div>
-                                    <div class="row">Пройдено километров<span class="right">{{ player.distance }}</span>
-                                    </div>
-                                </div>
-                                <div class="close">Закрыть</div>
-                            </div>
-                        {% endfor %}
-
-                        <!-- Сводная таблица противников -->
-                        <div class="dataTables_wrapper no-footer">
-                            <table class="tank-list score dataTable no-footer">
-                                <thead>
-                                <tr>
-                                    <th class="player-platoon">
-                                        <div>&nbsp;</div>
-                                    </th>
-                                    <th class="player-names">
-                                        <div>&nbsp;</div>
-                                    </th>
-                                    <th class="tanks-name">
-                                        <div>&nbsp;</div>
-                                    </th>
-                                    <th class="damage sorting_desc">
-                                        <div>&nbsp;</div>
-                                    </th>
-                                    <th class="kills">
-                                        <div>&nbsp;</div>
-                                    </th>
-                                    <th class="xp">
-                                        <div>&nbsp;</div>
-                                    </th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for player in team_results.enemies_players %}
-                                    <tr {% if not player.is_alive %}class="dead"{% endif %}
-                                        data-player="{{ player.avatar_id }}">
-                                        <td class="player-platoon">
-                                            {% if player.platoon_id %}
-                                                <div class="number">{{ player.platoon_id }}</div>
-                                            {% endif %}
-                                        </td>
-                                        <td class="player-names">{{ player.display_name }}</td>
-                                        <td class="tanks-name">
-                                            <img class="tank new"
-                                                 src="
-
-
-                                                         {% static 'style/images/wot/shop/vehicles/180x135/' %}{{ player.vehicle_tag }}.png"
-                                                 alt="">
-                                            <span>{{ player.vehicle_display_name }}</span>
-                                            {% if player.achievements %}
-                                                <div class="medal" title="Медали"></div>
-                                            {% endif %}
-                                        </td>
-                                        <td class="damage sorting_1">{{ player.damage_dealt|floatformat:0 }}</td>
-                                        <td class="kills">{{ player.kills }}</td>
-                                        <td class="xp">{{ player.xp }}</td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Подробный отчёт -->
-            <div class="replay-tab-wrapper" id="tab-detailed">
-                <div class="personal-data tab">
-                    <div class="titles-line"><span>Статистика</span><span class="credit">Кредиты</span><span
-                            class="premium active">Общий премиум</span></div>
-                    <span style="float:left;"><div class="data-wrapper stat"><div class="row"><span class="left">Произведено выстрелов</span><span
-                            class="right">21</span></div><div class="row padding"><span class="left">	прямых попаданий/пробитий</span><span
-                            class="right">20/20</span></div><div class="row padding"><span class="left">	осколочно-фугасных повреждений</span><span
-                            class="right">0</span></div><div class="row"><span class="left">Нанесение урона</span><span
-                            class="right">2 435</span></div><div class="row padding"><span class="left">	с дистанции свыше 300 м</span><span
-                            class="right">0</span></div><div class="row"><span
-                            class="left">Получено попаданий</span><span class="right">7</span></div><div
-                            class="row padding"><span class="left">	пробитий</span><span class="right">6</span></div><div
-                            class="row padding"><span class="left">	не нанёсших урон</span><span
-                            class="right">1</span></div><div class="row"><span
-                            class="left">Получено попаданий осколками</span><span class="right">0</span></div><div
-                            class="row"><span class="left">Урон, заблокированный бронёй</span><span
-                            class="right">115</span></div><div class="row"><span class="left">Урон союзникам (уничтожено/повреждений)</span><span
-                            class="right ">0/0</span></div><div class="row"><span class="left">Обнаружено машин противника</span><span
-                            class="right">0</span></div><div class="row"><span class="left">Повреждено/уничтожено машин противника</span><span
-                            class="right">5/3</span></div><div class="row"><span class="left">Урон, нанесённый с помощью данного игрока</span><span
-                            class="right">0</span></div><div class="row"><span
-                            class="left">Очки захвата/защиты базы</span><span class="right">0/0</span></div><div
-                            class="row"><span class="left">Пройдено километров</span><span
-                            class="right">1,55</span></div></div></span><span><div
-                        class="data-wrapper credit normal inactive"><div class="row"><span
-                        class="left">Начислено за бой</span><span class="right ">26 022<img class="credit"
-                                                                                            src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
-                                                                                            alt="Credits"></span></div><div
-                        class="row "><span class="left">Бонус за боевые задачи и события</span><span class="right ">35 000<img
-                        class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
-                        alt="Credits"></span></div><div
-                        class="row top"><span class="left">Штраф за урон союзникам</span><span class="right ">0<img
-                        class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
-                        alt="Credits"></span></div><div
-                        class="row"><span class="left">Компенсация за урон от союзников</span><span class="right">0<img
-                        class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
-                        alt="Credits"></span></div><div
-                        class="row top "><span class="left">Итого за бой:</span><span class="right ">61 022<img
-                        class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
-                        alt="Credits"></span></div><div
-                        class="row top"><span class="left">Автоматический ремонт техники</span><span class="right red">-6 228<img
-                        class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
-                        alt="Credits"></span></div><div
-                        class="row"><span class="left">Автопополнение боекомплекта</span><span
-                        class="right red">-1 988<img class="credit"
-                                                     src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
-                                                     alt="Credits"></span></div><div class="row gold"><span
-                        class="left">Автопополнение снаряжения</span><span class="right ">0<img class="credit"
-                                                                                                src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
-                                                                                                alt="Credits"><span
-                        class="gold ">0<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}"
-                                            alt="Gold"></span></span></div><div class="row top gold"><span class="left">Итого:</span><span
-                        class="right ">52 806<img class="credit"
-                                                  src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
-                                                  alt="Credits"><span class="gold ">0<img class="credit"
-                                                                                          src="{% static 'style/images/wot/library/GoldIcon.png' %}"
-                                                                                          alt="Gold"></span></span></div></div><div
-                        class="data-wrapper credit premium active"><div class="row" style="height: 17px;">&nbsp;<span
-                        class="right ">39 033<img class="credit"
-                                                  src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
-                                                  alt="Credits"></span></div><div class="row " style="height: 17px;">&nbsp;<span
-                        class="right ">35 000<img class="credit"
-                                                  src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
-                                                  alt="Credits"></span></div><div class="row top" style="height: 17px;">&nbsp;<span
-                        class="right ">0<img class="credit"
-                                             src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
-                                             alt="Credits"></span></div><div class="row"
-                                                                             style="height: 17px;">&nbsp;<span
-                        class="right">0<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
-                                            alt="Credits"></span></div><div
-                        class="row top " style="height: 17px;">&nbsp;<span class="right ">74 033<img class="credit"
-                                                                                                     src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
-                                                                                                     alt="Credits"></span></div><div
-                        class="row top" style="height: 17px;">&nbsp;<span class="right red">-6 228<img class="credit"
-                                                                                                       src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
-                                                                                                       alt="Credits"></span></div><div
-                        class="row" style="height: 17px;">&nbsp;<span class="right red">-1 988<img class="credit"
-                                                                                                   src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
-                                                                                                   alt="Credits"></span></div><div
-                        class="row gold" style="height: 17px;">&nbsp;<span class="right ">0<img class="credit"
-                                                                                                src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
-                                                                                                alt="Credits"><span
-                        class="gold ">0<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}"
-                                            alt="Gold"></span></span></div><div class="row top gold"
-                                                                                style="height: 17px;">&nbsp;<span
-                        class="right ">65 817<img class="credit"
-                                                  src="{% static 'style/images/wot/library/CreditsIcon.png' %}"
-                                                  alt="Credits"><span class="gold ">0<img class="credit"
-                                                                                          src="{% static 'style/images/wot/library/GoldIcon.png' %}"
-                                                                                          alt="Gold"></span></span></div></div></span>
-                    <div class="clearfix"></div>
-                    <div class="titles-line second">Время<span>Опыт</span></div>
-                    <div class="data-wrapper time">
-                        <div class="row">Начало боя<span class="right">22:26</span></div>
-                        <div class="row">Продолжительность боя<span class="right">4 мин 6 с</span></div>
-                        <div class="row">Время в бою до уничтожения<span class="right">3 мин 24 с</span></div>
-                    </div>
-                    <div class="data-wrapper xp normal inactive">
-                        <div class="row bonus"><span class="left">Начислено за бой</span><span class="right">991<img
-                                class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold"><span
-                                class="bonus">50<img
-                                class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}"
-                                alt="Gold"></span></span>
-                        </div>
-                        <div class="row"><span class="left">Штраф за урон союзникам</span><span class="right ">0<img
-                                class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}"
-                                alt="Gold"></span></div>
-                        <div class="row bonus"><span class="left">Награда за первую победу в день</span><span
-                                class="right">x2<img class="credit"
-                                                     src="{% static 'style/images/wot/library/multyXp.png' %}"
-                                                     alt="Gold"><span class="bonus">x2<img class="credit"
-                                                                                           src="{% static 'style/images/wot/library/multyXp.png' %}"
-                                                                                           alt="Gold"></span></span>
-                        </div>
-                        <div class="row bonus"><span class="left">Бонус за боевые задачи и события</span><span
-                                class="right">2974<img class="credit"
-                                                       src="{% static 'style/images/wot/library/XpIcon.png' %}"
-                                                       alt="Gold"><span class="bonus">500<img class="credit"
-                                                                                              src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}"
-                                                                                              alt="Gold"></span></span>
-                        </div>
-                        <div class="row top bonus"><span class="left">Итого:</span><span class="right">4 956<img
-                                class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold"><span
-                                class="bonus">600<img
-                                class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}"
-                                alt="Gold"></span></span>
-                        </div>
-                    </div>
-                    <div class="data-wrapper xp premium active">
-                        <div class="row bonus" style="height: 17px;">&nbsp;<span class="right">1 486<img class="credit"
-                                                                                                         src="{% static 'style/images/wot/library/XpIcon.png' %}"
-                                                                                                         alt="Gold"><span
-                                class="bonus">75<img class="credit"
-                                                     src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}"
-                                                     alt="Gold"></span></span></div>
-                        <div class="row" style="height: 17px;">&nbsp;<span class="right ">0<img class="credit"
-                                                                                                src="{% static 'style/images/wot/library/XpIcon.png' %}"
-                                                                                                alt="Gold"></span></div>
-                        <div class="row bonus" style="height: 17px;">&nbsp;<span class="right">x2<img class="credit"
-                                                                                                      src="{% static 'style/images/wot/library/multyXp.png' %}"
-                                                                                                      alt="Gold"><span
-                                class="bonus">x2<img class="credit"
-                                                     src="{% static 'style/images/wot/library/multyXp.png' %}"
-                                                     alt="Gold"></span></span></div>
-                        <div class="row bonus" style="height: 17px;">&nbsp;<span class="right">2 974<img class="credit"
-                                                                                                         src="{% static 'style/images/wot/library/XpIcon.png' %}"
-                                                                                                         alt="Gold"><span
-                                class="bonus">500<img class="credit"
-                                                      src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}"
-                                                      alt="Gold"></span></span></div>
-                        <div class="row top bonus" style="height: 17px;">&nbsp;<span class="right">5 947<img
-                                class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold"><span
-                                class="bonus">150<img
-                                class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}"
-                                alt="Gold"></span></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="right down-info"><span class="gray">Сервер:</span>{{ details.serverName }}<span class="gray">Режим боя:</span>Случайный
-                бой<span class="gray">Текущая версия:</span>{{ details.clientVersion }}<span
-                        class="gray">Отправитель:</span>{{ details.playerName }}</div>
+          <div class="dossier" data-number="{{ achievements_battle_count }}">
+            {% for ach in achievements_battle %}
+              <div class="achi-img-cont">
+                <img
+                  src="{% static ach.image_big %}"
+                  alt="«{{ ach.name }}»"
+                  title="&lt;div class='title'&gt;«{{ ach.name|escape }}»&lt;/div&gt;&lt;img src={% static ach.image_big %}/&gt; {{ ach.description|default_if_none:''|escape }}{% if ach.condition %}&lt;div class='condition'&gt;{{ ach.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}">
+              </div>
+            {% endfor %}
+          </div>
         </div>
-    {% endif %}
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const tabs = document.querySelectorAll('.replay-tabs .tab');
-            const tabContents = document.querySelectorAll('.replay-tab-wrapper');
+      </div>
 
-            function switchTab(targetTab) {
-                // Убираем active класс со всех табов
-                tabs.forEach(tab => tab.classList.remove('active'));
+      <div class="titles-line">
+        <div class="half">
+          <div class="battle-type">
+            <span class="map-name">{{ replay.map_display_name }}</span>&nbsp;&nbsp;-&nbsp;&nbsp;{{ battle_type_label }}
+          </div>
+        </div>
+        <div class="half">
+          <div class="hit-list">
+            <table>
+              <tbody>
+              <tr class="title">
+                <td class="table-title" colspan="2">Боевая эффективность</td>
 
-                // Скрываем весь контент
-                tabContents.forEach(content => content.classList.remove('active'));
+                <td class="spotted" title="Обнаруженные танки (шт.)">
+                  <img {% if interactions_summary.spotted_tanks == 0 %}style="opacity:0.1;"{% endif %}
+                       src="{% static 'style/images/wot/battleresults/battleResults-19.png' %}" alt="Spotted">
+                  <div class="info">{{ interactions_summary.spotted_tanks }}</div>
+                </td>
 
-                // Активируем выбранный таб
-                const activeTab = document.querySelector(`[data-tab="${targetTab}"]`);
-                const activeContent = document.getElementById(`tab-${targetTab}`);
+                <td class="assits" title="Помощь в уничтожении (число целей)">
+                  <img {% if interactions_summary.assist_tanks == 0 %}style="opacity:0.1;"{% endif %}
+                       src="{% static 'style/images/wot/battleresults/battleResults-25.png' %}" alt="Assist">
+                  <div class="info">{{ interactions_summary.assist_tanks }}</div>
+                </td>
 
-                if (activeTab && activeContent) {
-                    activeTab.classList.add('active');
-                    activeContent.classList.add('active');
-                }
-            }
+                <td class="assits" title="Использование брони (число целей с рикошетами/непробитиями)">
+                  <img class="bigger" {% if interactions_summary.blocked_tanks == 0 %}style="opacity:0.1;"{% endif %}
+                       src="{% static 'style/images/wot/battleresults/teamStatsComponents-12.png' %}" alt="Armor use">
+                  <div class="info">{{ interactions_summary.blocked_tanks }}</div>
+                </td>
 
-            // Добавляем обработчики кликов
-            tabs.forEach(tab => {
-                tab.addEventListener('click', function () {
-                    const targetTab = this.getAttribute('data-tab');
-                    switchTab(targetTab);
-                });
-            });
-        });
-    </script>
+                <td class="crits" title="Критические попадания (шт.)">
+                  <img {% if interactions_summary.crits_total == 0 %}style="opacity:0.1;"{% endif %}
+                       src="{% static 'style/images/wot/battleresults/battleResults-21.png' %}" alt="Crits">
+                  <div class="info">{{ interactions_summary.crits_total }}</div>
+                </td>
+
+                <td class="damage" title="Попадания, нанесящие урон (пробития, шт.)">
+                  <img {% if interactions_summary.piercings_total == 0 %}style="opacity:0.1;"{% endif %}
+                       src="{% static 'style/images/wot/battleresults/battleResults-20.png' %}" alt="Damaging hits">
+                  <div class="info">{{ interactions_summary.piercings_total }}</div>
+                </td>
+
+                <td class="kill" title="Уничтоженные танки (шт.)">
+                  <img {% if interactions_summary.destroyed_tanks == 0 %}style="opacity:0.1;"{% endif %}
+                       src="{% static 'style/images/wot/battleresults/battleResults-23.png' %}" alt="Kills">
+                  <div class="info">{{ interactions_summary.destroyed_tanks }}</div>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#14120e; display:flex;">
+        <div class="half">
+          <div class="map-stat">
+            <img class="map"
+                 src="{% static 'style/images/wot/map/stats/' %}{{ replay.map_name }}.png"
+                 alt="{{ replay.map_display_name|default:replay.map_name }}">
+            <div class="stat">
+              <div class="stat-tank">
+                <img class="tank new"
+                     src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ replay.tank.vehicleId }}.png"
+                     alt="{{ replay.tank.name }}">
+                <span class="name ">"{{ replay.tank.name }}"</span>
+                <img class="type"
+                     src="{% static 'style/images/wot/vehicleTypes/' %}{{ replay.tank.type }}.png" alt="">
+                <img class="level"
+                     src="{% static 'style/images/wot/levels/tank_level_' %}{{ replay.tank.level }}.png" alt="">
+              </div>
+
+              <div class="stat-text">
+                <div class="name">{{ details.playerName }}</div>
+                {{ replay.battle_date }}
+                <div class="death-reason">{{ death_reason_text }}</div>
+              </div>
+
+              <div class="income">
+                <table>
+                  <tbody>
+                  <tr class="premium-row">
+                    <td class="desc"></td>
+                    <td class="inactive">Базовый аккаунт</td>
+                    <td class="active premium">Танковый премиум</td>
+                  </tr>
+
+                  <tr>
+                    <td class="desc">Кредиты</td>
+                    <td class="inactive">
+                      <span>{{ income.credits_base|default:0|intcomma }}</span>
+                      <img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
+                    </td>
+                    <td class="active">
+                      <span>{{ income.credits_premium|default:0|intcomma }}</span>
+                      <img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
+                    </td>
+                  </tr>
+
+                  {% if income.is_first_win %}
+                  <tr>
+                    <td class="desc">Опыт<br>Награда за первую победу в день (2x)</td>
+                    <td class="inactive">
+                      {{ income.xp_with_first_base|default:0|intcomma }}
+                      <img class="xp" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">
+                    </td>
+                    <td class="active">
+                      {{ income.xp_with_first_premium|default:0|intcomma }}
+                      <img class="xp" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">
+                    </td>
+                  </tr>
+                  {% endif %}
+
+                  <tr>
+                    <td class="desc">Опыт</td>
+                    <td class="inactive">
+                      {{ income.xp_base|default:0|intcomma }}
+                      <img class="xp" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">
+                    </td>
+                    <td class="active">
+                      {{ income.xp_premium|default:0|intcomma }}
+                      <img class="xp" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">
+                    </td>
+                  </tr>
+
+                  <tr class="no-border">
+                    <td class="desc">Процент попаданий</td>
+                    <td>{{ income.hits }}/{{ income.shots }}</td>
+                    <td>{{ income.hit_percent|floatformat:2 }}%</td>
+                  </tr>
+
+                  <tr class="no-border">
+                    <td class="desc"></td>
+                    <td><span style="color:#6183a6;">{{ income.assist_total|default:0|intcomma }}</span></td>
+                    <td><span style="color:#d9aa66;">{{ income.damage_total|default:0|intcomma }}</span></td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="clearfix">&nbsp;</div>
+          </div>
+        </div>
+
+        <div class="half" style="padding-bottom:15px;">
+          <div class="hit-list">
+            <table style="width:100%;">
+              <tbody>
+              {% for row in interaction_rows %}
+              <tr class="row {% if row.destroyed %}dead{% endif %}">
+                <td class="name">{{ row.name }}</td>
+                <td class="vehicle">
+                  {% if row.vehicle_img %}
+                    <img class="tank new" src="{% static row.vehicle_img %}" alt="{{ row.vehicle_name }}">
+                  {% endif %}
+                  <span>{{ row.vehicle_name }}</span>
+                </td>
+                <td class="spotted">
+                  <img {% if not row.spotted %}style="opacity:0.1;"{% endif %}
+                       src="{% static 'style/images/wot/battleresults/battleResults-19.png' %}">
+                </td>
+                <td class="assist">
+                  <img {% if not row.assist %}style="opacity:0.1;"{% endif %}
+                       src="{% static 'style/images/wot/battleresults/battleResults-25.png' %}">
+                </td>
+                <td class="assist">
+                  <img class="bigger" {% if not row.blocked %}style="opacity:0.1;"{% endif %}
+                       src="{% static 'style/images/wot/battleresults/teamStatsComponents-12.png' %}">
+                </td>
+                <td class="crits">
+                  <img {% if not row.crits %}style="opacity:0.1;"{% endif %}
+                       src="{% static 'style/images/wot/battleresults/battleResults-21.png' %}">
+                  {% if row.crits_count %}<div class="info">{{ row.crits_count }}</div>{% endif %}
+                </td>
+                <td class="damage">
+                  <img {% if not row.damaged %}style="opacity:0.1;"{% endif %}
+                       src="{% static 'style/images/wot/battleresults/battleResults-20.png' %}">
+                  {% if row.damage_piercings %}<div class="info">{{ row.damage_piercings }}</div>{% endif %}
+                </td>
+                <td class="kill">
+                  <img {% if not row.destroyed %}style="opacity:0.1;"{% endif %}
+                       src="{% static 'style/images/wot/battleresults/battleResults-23.png' %}">
+                </td>
+              </tr>
+              <tr class="space"></tr>
+              {% empty %}
+              <tr>
+                <td colspan="8" class="text-center text-muted">Нет взаимодействий</td>
+              </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div> <!-- /map + interactions -->
+    </div> <!-- /tab-personal -->
+
+    <!-- TAB: Командный результат -->
+    <div class="replay-tab-wrapper" id="tab-team">
+      <div class="team-score">
+        <!-- Союзники -->
+        <div class="half score">
+          <div class="team-name">{{ team_results.allies_name }}</div>
+
+          {% for player in team_results.allies_players %}
+          <div class="personal-data" data-player="{{ player.avatar_id }}">
+            <div class="header {% if not player.is_alive %}dead{% endif %}">
+              <div class="tank">
+                <img class="tank new" src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ player.vehicle_tag }}.png" alt="{{ player.vehicle_display_name }}">
+                <img class="type" src="{% static player.tank_type_icon %}" alt="">
+                <img class="level" src="{% static 'style/images/wot/levels/tank_level_' %}{{ player.tank_level }}.png" alt="">
+              </div>
+              <div class="info">
+                <div class="name">
+                  <a href="profile/{{ player.avatar_id }}/{{ player.player_name }}" target="_blank">{{ player.display_name }}</a>
+                </div>
+                <span>{{ player.vehicle_display_name }}</span>
+                <div>{{ player.death_text }}</div>
+              </div>
+            </div>
+
+            <div class="data-wrapper">
+              <div class="row">Произведено выстрелов<span class="right">{{ player.shots }}</span></div>
+              <div class="row padding"> прямых попаданий/пробитий<span class="right">{{ player.direct_hits }}/{{ player.piercings }}</span></div>
+              <div class="row padding"> осколочно-фугасных повреждений<span class="right">{{ player.explosion_hits }}</span></div>
+              <div class="row">Нанесение урона<span class="right">{{ player.damage_dealt|floatformat:0 }}</span></div>
+              <div class="row padding"> с дистанции свыше 300 м<span class="right">{{ player.sniper_damage|floatformat:0 }}</span></div>
+              <div class="row">Получено попаданий<span class="right">{{ player.hits_received }}</span></div>
+              <div class="row padding"> пробитий<span class="right">{{ player.piercings_received }}</span></div>
+              <div class="row padding"> не нанёсших урон<span class="right">{{ player.no_damage_hits_received }}</span></div>
+              <div class="row">Получено попаданий осколками<span class="right">{{ player.explosion_hits_received }}</span></div>
+              <div class="row">Урон, заблокированный бронёй<span class="right">{{ player.damage_blocked|floatformat:0 }}</span></div>
+              <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">{{ player.team_kills }}/{{ player.team_damage|floatformat:0 }}</span></div>
+              <div class="row">Обнаружено машин противника<span class="right">{{ player.spotted }}</span></div>
+              <div class="row">Повреждено/уничтожено машин противника<span class="right">{{ player.damaged_count }}/{{ player.kills }}</span></div>
+              <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">{{ player.assist_damage|floatformat:0 }}</span></div>
+              {% if player.stun_damage > 0 %}
+              <div class="row"><span class="left">Урон по оглушённым вами целям</span><span class="right">{{ player.stun_damage|floatformat:0 }}</span></div>
+              <div class="row"><span class="left">Нанесено оглушений</span><span class="right">{{ player.stun_count }}</span></div>
+              {% endif %}
+              <div class="row">Очки захвата/защиты базы<span class="right">{{ player.capture_points }}/{{ player.defense_points }}</span></div>
+              <div class="row">Пройдено километров<span class="right">{{ player.distance }}</span></div>
+            </div>
+            <div class="close">Закрыть</div>
+          </div>
+          {% endfor %}
+
+          <div class="dataTables_wrapper no-footer">
+            <table class="tank-list score dataTable no-footer">
+              <thead>
+              <tr>
+                <th class="player-platoon"><div>&nbsp;</div></th>
+                <th class="player-names"><div>&nbsp;</div></th>
+                <th class="tanks-name"><div>&nbsp;</div></th>
+                <th class="damage sorting_desc"><div>&nbsp;</div></th>
+                <th class="kills"><div>&nbsp;</div></th>
+                <th class="xp"><div>&nbsp;</div></th>
+              </tr>
+              </thead>
+              <tbody>
+              {% for player in team_results.allies_players %}
+              <tr {% if player.is_current_player %}class="current-player"{% endif %} {% if not player.is_alive %}class="dead"{% endif %} data-player="{{ player.avatar_id }}">
+                <td class="player-platoon">{% if player.platoon_id %}<div class="number">{{ player.platoon_id }}</div>{% endif %}</td>
+                <td class="player-names">{{ player.display_name }}</td>
+                <td class="tanks-name">
+                  <img class="tank new" src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ player.vehicle_tag }}.png" alt="">
+                  <span>{{ player.vehicle_display_name }}</span>
+                  {% if player.medals.has_medals %}
+                  <div class="medal" title="{{ player.medals.title|safe }}">
+                    {% if player.medals.count > 1 %}<div class="num">{{ player.medals.count }}</div>{% endif %}
+                  </div>
+                  {% endif %}
+                </td>
+                <td class="damage sorting_1">{{ player.damage_dealt|floatformat:0 }}</td>
+                <td class="kills">{{ player.kills }}</td>
+                <td class="xp">{{ player.xp }}</td>
+              </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Противники -->
+        <div class="half score">
+          <div class="team-name">{{ team_results.enemies_name }}</div>
+
+          {% for player in team_results.enemies_players %}
+          <div class="personal-data left" data-player="{{ player.avatar_id }}">
+            <div class="header {% if not player.is_alive %}dead{% endif %}">
+              <div class="tank">
+                <img class="tank new" src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ player.vehicle_tag }}.png" alt="{{ player.vehicle_display_name }}">
+                <img class="type" src="{% static player.tank_type_icon %}" alt="">
+                <img class="level" src="{% static 'style/images/wot/levels/tank_level_' %}{{ player.tank_level }}.png" alt="">
+              </div>
+              <div class="info">
+                <div class="name">
+                  <a href="profile/{{ player.avatar_id }}/{{ player.player_name }}" target="_blank">{{ player.display_name }}</a>
+                </div>
+                <span>{{ player.vehicle_display_name }}</span>
+                {% if player.medals.has_medals %}
+                <div class="medal" title="{{ player.medals.title|safe }}">
+                  {% if player.medals.count > 1 %}<div class="num">{{ player.medals.count }}</div>{% endif %}
+                </div>
+                {% endif %}
+                <div>{{ player.death_text }}</div>
+              </div>
+            </div>
+
+            <div class="data-wrapper">
+              <div class="row">Произведено выстрелов<span class="right">{{ player.shots }}</span></div>
+              <div class="row padding"> прямых попаданий/пробитий<span class="right">{{ player.direct_hits }}/{{ player.piercings }}</span></div>
+              <div class="row padding"> осколочно-фугасных повреждений<span class="right">{{ player.explosion_hits }}</span></div>
+              <div class="row">Нанесение урона<span class="right">{{ player.damage_dealt|floatformat:0 }}</span></div>
+              <div class="row padding"> с дистанции свыше 300 м<span class="right">{{ player.sniper_damage|floatformat:0 }}</span></div>
+              <div class="row">Получено попаданий<span class="right">{{ player.hits_received }}</span></div>
+              <div class="row padding"> пробитий<span class="right">{{ player.piercings_received }}</span></div>
+              <div class="row padding"> не нанёсших урон<span class="right">{{ player.no_damage_hits_received }}</span></div>
+              <div class="row">Получено попаданий осколками<span class="right">{{ player.explosion_hits_received }}</span></div>
+              <div class="row">Урон, заблокированный бронёй<span class="right">{{ player.damage_blocked|floatformat:0 }}</span></div>
+              <div class="row">Урон союзникам (уничтожено/повреждений)<span class="right">{{ player.team_kills }}/{{ player.team_damage|floatformat:0 }}</span></div>
+              <div class="row">Обнаружено машин противника<span class="right">{{ player.spotted }}</span></div>
+              <div class="row">Повреждено/уничтожено машин противника<span class="right">{{ player.damaged_count }}/{{ player.kills }}</span></div>
+              <div class="row">Урон, нанесённый с помощью данного игрока<span class="right">{{ player.assist_damage|floatformat:0 }}</span></div>
+              {% if player.stun_damage > 0 %}
+              <div class="row"><span class="left">Урон по оглушённым вами целям</span><span class="right">{{ player.stun_damage|floatformat:0 }}</span></div>
+              <div class="row"><span class="left">Нанесено оглушений</span><span class="right">{{ player.stun_count }}</span></div>
+              {% endif %}
+              <div class="row">Очки захвата/защиты базы<span class="right">{{ player.capture_points }}/{{ player.defense_points }}</span></div>
+              <div class="row">Пройдено километров<span class="right">{{ player.distance }}</span></div>
+            </div>
+            <div class="close">Закрыть</div>
+          </div>
+          {% endfor %}
+
+          <div class="dataTables_wrapper no-footer">
+            <table class="tank-list score dataTable no-footer">
+              <thead>
+              <tr>
+                <th class="player-platoon"><div>&nbsp;</div></th>
+                <th class="player-names"><div>&nbsp;</div></th>
+                <th class="tanks-name"><div>&nbsp;</div></th>
+                <th class="damage sorting_desc"><div>&nbsp;</div></th>
+                <th class="kills"><div>&nbsp;</div></th>
+                <th class="xp"><div>&nbsp;</div></th>
+              </tr>
+              </thead>
+              <tbody>
+              {% for player in team_results.enemies_players %}
+              <tr {% if not player.is_alive %}class="dead"{% endif %} data-player="{{ player.avatar_id }}">
+                <td class="player-platoon">{% if player.platoon_id %}<div class="number">{{ player.platoon_id }}</div>{% endif %}</td>
+                <td class="player-names">{{ player.display_name }}</td>
+                <td class="tanks-name">
+                  <img class="tank new" src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ player.vehicle_tag }}.png" alt="">
+                  <span>{{ player.vehicle_display_name }}</span>
+                  {% if player.achievements %}<div class="medal" title="Медали"></div>{% endif %}
+                </td>
+                <td class="damage sorting_1">{{ player.damage_dealt|floatformat:0 }}</td>
+                <td class="kills">{{ player.kills }}</td>
+                <td class="xp">{{ player.xp }}</td>
+              </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div> <!-- /team-score -->
+    </div> <!-- /tab-team -->
+
+    <!-- TAB: Подробный отчёт -->
+    <div class="replay-tab-wrapper" id="tab-detailed">
+      <div class="personal-data tab">
+        <div class="titles-line">
+          <span>Статистика</span>
+          <span class="credit">Кредиты</span>
+          <span class="premium {% if detailed_report.economics.is_premium %}active{% else %}inactive{% endif %}">Общий премиум</span>
+        </div>
+
+        <!-- Две колонки -->
+        <div class="columns" style="display:flex; gap:16px; align-items:flex-start;">
+          <!-- СТАТИСТИКА -->
+          <div class="col-left" style="flex:1;">
+            <div class="data-wrapper stat">
+              <div class="row"><span class="left">Произведено выстрелов</span><span class="right">{{ detailed_report.battle_stats.shots }}</span></div>
+              <div class="row padding"><span class="left">прямых попаданий/пробитий</span><span class="right">{{ detailed_report.battle_stats.direct_hits }}/{{ detailed_report.battle_stats.piercings }}</span></div>
+              <div class="row padding"><span class="left">осколочно-фугасных повреждений</span><span class="right">{{ detailed_report.battle_stats.explosion_hits }}</span></div>
+              <div class="row"><span class="left">Нанесение урона</span><span class="right">{{ detailed_report.battle_stats.damage_dealt|intcomma }}</span></div>
+              <div class="row padding"><span class="left">с дистанции свыше 300 м</span><span class="right">{{ detailed_report.battle_stats.sniper_damage|intcomma }}</span></div>
+              <div class="row"><span class="left">Получено попаданий</span><span class="right">{{ detailed_report.battle_stats.hits_received }}</span></div>
+              <div class="row padding"><span class="left">пробитий</span><span class="right">{{ detailed_report.battle_stats.piercings_received }}</span></div>
+              <div class="row padding"><span class="left">не нанёсших урон</span><span class="right">{{ detailed_report.battle_stats.no_damage_hits_received }}</span></div>
+              <div class="row"><span class="left">Получено попаданий осколками</span><span class="right">{{ detailed_report.battle_stats.explosion_hits_received }}</span></div>
+              <div class="row"><span class="left">Урон, заблокированный бронёй</span><span class="right">{{ detailed_report.battle_stats.damage_blocked|intcomma }}</span></div>
+              <div class="row">
+                <span class="left">Урон союзникам (уничтожено/повреждений)</span>
+                <span class="right{% if detailed_report.battle_stats.team_damage > 0 %} red{% endif %}">{{ detailed_report.battle_stats.team_kills }}/{{ detailed_report.battle_stats.team_damage|intcomma }}</span>
+              </div>
+              <div class="row"><span class="left">Обнаружено машин противника</span><span class="right">{{ detailed_report.battle_stats.spotted }}</span></div>
+              <div class="row"><span class="left">Повреждено/уничтожено машин противника</span><span class="right">{{ detailed_report.battle_stats.damaged_count }}/{{ detailed_report.battle_stats.kills }}</span></div>
+              <div class="row"><span class="left">Урон, нанесённый с помощью данного игрока</span><span class="right">{{ detailed_report.battle_stats.assist_total|intcomma }}</span></div>
+              {% if detailed_report.battle_stats.stun_damage > 0 %}
+              <div class="row"><span class="left">Урон по оглушённым вами целям</span><span class="right">{{ detailed_report.battle_stats.stun_damage|intcomma }}</span></div>
+              <div class="row"><span class="left">Нанесено оглушений</span><span class="right">{{ detailed_report.battle_stats.stun_count }}</span></div>
+              {% endif %}
+              <div class="row"><span class="left">Очки захвата/защиты базы</span><span class="right">{{ detailed_report.battle_stats.capture_points }}/{{ detailed_report.battle_stats.defense_points }}</span></div>
+              <div class="row"><span class="left">Пройдено километров</span><span class="right">{{ detailed_report.battle_stats.distance }}</span></div>
+            </div>
+          </div>
+
+          <!-- КРЕДИТЫ + БОНЫ -->
+          <div class="col-right" style="flex:1;">
+            <div class="data-wrapper credit normal {% if not detailed_report.economics.is_premium %}active{% else %}inactive{% endif %}">
+              <div class="row"><span class="left">Начислено за бой</span><span class="right">{{ detailed_report.economics.original_credits|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+              {% if detailed_report.economics.achievement_credits > 0 %}
+              <div class="row"><span class="left">За достойное сопротивление</span><span class="right">{{ detailed_report.economics.achievement_credits|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+              {% endif %}
+              <div class="row top"><span class="left">Штраф за урон союзникам</span><span class="right">{{ detailed_report.economics.team_damage_penalty|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+              <div class="row"><span class="left">Компенсация за урон от союзников</span><span class="right">0<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+              <div class="row top"><span class="left">Итого за бой:</span><span class="right">{{ detailed_report.economics.battle_earnings|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+              <div class="row top"><span class="left">Автоматический ремонт техники</span><span class="right red">-{{ detailed_report.economics.auto_repair_cost|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+              <div class="row"><span class="left">Автопополнение боекомплекта</span><span class="right red">-{{ detailed_report.economics.ammo_cost|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+              {% if detailed_report.economics.equipment_credits_cost > 0 or detailed_report.economics.gold_spent > 0 %}
+              <div class="row gold">
+                <span class="left">Автопополнение снаряжения</span>
+                <span class="right red">-{{ detailed_report.economics.equipment_credits_cost|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
+                  {% if detailed_report.economics.gold_spent > 0 %}
+                  <span class="gold">{{ detailed_report.economics.gold_spent }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>
+                  {% endif %}
+                </span>
+              </div>
+              {% endif %}
+              <div class="row top {% if detailed_report.economics.equipment_credits_cost > 0 or detailed_report.economics.gold_spent > 0 %}gold{% endif %}">
+                <span class="left">Итого:</span>
+                <span class="right {% if detailed_report.economics.net_result < 0 %}red{% endif %}">{{ detailed_report.economics.net_result|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
+                  {% if detailed_report.economics.gold_spent > 0 %}
+                  <span class="gold">{{ detailed_report.economics.gold_spent }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+
+            <div class="data-wrapper credit premium {% if detailed_report.economics.is_premium %}active{% else %}inactive{% endif %}">
+              <div class="row" style="height:17px;">&nbsp;<span class="right">{{ detailed_report.economics.premium_original_credits|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+              {% if detailed_report.economics.achievement_credits > 0 %}
+              <div class="row" style="height:17px;">&nbsp;<span class="right">{{ detailed_report.economics.premium_achievement_credits|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+              {% endif %}
+              <div class="row top" style="height:17px;">&nbsp;<span class="right">{{ detailed_report.economics.team_damage_penalty|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+              <div class="row" style="height:17px;">&nbsp;<span class="right">0<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+              <div class="row top" style="height:17px;">&nbsp;<span class="right">{{ detailed_report.economics.premium_battle_earnings|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+              <div class="row top" style="height:17px;">&nbsp;<span class="right red">-{{ detailed_report.economics.auto_repair_cost|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+              <div class="row" style="height:17px;">&nbsp;<span class="right red">-{{ detailed_report.economics.ammo_cost|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+              {% if detailed_report.economics.equipment_credits_cost > 0 or detailed_report.economics.gold_spent > 0 %}
+              <div class="row gold" style="height:17px;">&nbsp;<span class="right red">-{{ detailed_report.economics.equipment_credits_cost|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
+                {% if detailed_report.economics.gold_spent > 0 %}
+                <span class="gold">{{ detailed_report.economics.gold_spent }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>
+                {% endif %}
+              </span></div>
+              {% endif %}
+              <div class="row top {% if detailed_report.economics.equipment_credits_cost > 0 or detailed_report.economics.gold_spent > 0 %}gold{% endif %}" style="height:17px;">
+                &nbsp;<span class="right {% if detailed_report.economics.premium_net_result < 0 %}red{% endif %}">{{ detailed_report.economics.premium_net_result|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
+                  {% if detailed_report.economics.gold_spent > 0 %}
+                  <span class="gold">{{ detailed_report.economics.gold_spent }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+
+            <div class="data-wrapper bonds">
+              <div class="titles-line"><span>Боны</span></div>
+              <div class="data-wrapper">
+                <div class="row"><span class="left">За достижения</span><span class="right">{{ detailed_report.economics.achievement_crystal }}<img class="credit" src="{% static 'style/images/wot/library/crystal_16x16.png' %}" alt=""></span></div>
+                <div class="row"><span class="left">За особые свойства машины</span><span class="right">{{ detailed_report.economics.special_vehicle_crystal }}<img class="credit" src="{% static 'style/images/wot/library/crystal_16x16.png' %}" alt=""></span></div>
+                <div class="row top"><span class="left">Итого:</span><span class="right">{{ detailed_report.economics.total_crystal }}<img class="credit" src="{% static 'style/images/wot/library/crystal_16x16.png' %}" alt=""></span></div>
+              </div>
+            </div>
+          </div> <!-- /col-right -->
+        </div> <!-- /columns -->
+
+        <div class="clearfix"></div>
+
+        <div class="titles-line second">Время<span>Опыт</span></div>
+        <div class="data-wrapper time">
+          <div class="row">Начало боя<span class="right">{{ detailed_report.time_stats.battle_start_formatted }}</span></div>
+          <div class="row">Продолжительность боя<span class="right">{{ detailed_report.time_stats.lifetime_formatted }}</span></div>
+          <div class="row">Время в бою до уничтожения<span class="right">{{ detailed_report.time_stats.battle_duration_formatted }}</span></div>
+        </div>
+
+        <div class="data-wrapper xp normal {% if not detailed_report.economics.is_premium %}active{% else %}inactive{% endif %}">
+          <div class="row bonus">
+            <span class="left">Начислено за бой</span>
+            <span class="right">{{ detailed_report.economics.xp_base|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold">
+              <span class="bonus">{{ detailed_report.economics.free_xp_base|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="Gold"></span>
+            </span>
+          </div>
+          <div class="row bonus">
+            <span class="left">За достойное сопротивление</span>
+            <span class="right">{{ detailed_report.economics.event_xp|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold">
+              <span class="bonus">{{ detailed_report.economics.event_free_xp|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="Gold"></span>
+            </span>
+          </div>
+          <div class="row"><span class="left">Штраф за урон союзникам</span><span class="right">0<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold"></span></div>
+          <div class="row top bonus">
+            <span class="left">Итого:</span>
+            <span class="right">1 677<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold">
+              <span class="bonus">84<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="Gold"></span>
+            </span>
+          </div>
+        </div>
+
+        <div class="data-wrapper xp premium {% if detailed_report.economics.is_premium %}active{% else %}inactive{% endif %}">
+          <div class="row bonus" style="height:17px;">&nbsp;<span class="right">{{ detailed_report.economics.xp_premium|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold"><span class="bonus">{{ detailed_report.economics.premium_free_xp|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="Gold"></span></span></div>
+          <div class="row bonus" style="height:17px;">&nbsp;<span class="right">{{ detailed_report.economics.premium_event_xp|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold"><span class="bonus">{{ detailed_report.economics.premium_event_free_xp|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="Gold"></span></span></div>
+          <div class="row" style="height:17px;">&nbsp;<span class="right">0<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold"></span></div>
+          <div class="row top bonus" style="height:17px;">&nbsp;<span class="right">{{ detailed_report.economics.total_premium_xp|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold"><span class="bonus">126<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="Gold"></span></span></div>
+        </div>
+
+        <div class="right down-info">
+          <span class="gray">Сервер:</span>{{ details.serverName }}
+          <span class="gray">Режим боя:</span>Случайный бой
+          <span class="gray">Текущая версия:</span>{{ details.clientVersion }}
+          <span class="gray">Отправитель:</span>{{ details.playerName }}
+        </div>
+      </div> <!-- /personal-data tab -->
+    </div> <!-- /tab-detailed -->
+
+  </div> <!-- /replay-wrapper -->
+
+{% endif %}
+
+<!-- Tabs init -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const tabs = document.querySelectorAll('.replay-tabs .tab');
+  const tabContents = document.querySelectorAll('.replay-tab-wrapper');
+
+  function switchTab(targetTab) {
+    tabs.forEach(tab => tab.classList.remove('active'));
+    tabContents.forEach(content => content.classList.remove('active'));
+    const activeTab = document.querySelector(`[data-tab="${targetTab}"]`);
+    const activeContent = document.getElementById(`tab-${targetTab}`);
+    if (activeTab && activeContent) {
+      activeTab.classList.add('active');
+      activeContent.classList.add('active');
+    }
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', function () {
+      const targetTab = this.getAttribute('data-tab');
+      switchTab(targetTab);
+    });
+  });
+});
+</script>
+
+<!-- jQuery UI tooltips init (использует title с HTML-сущностями) -->
+<script>
+(function () {
+  function decodeHtml(s) {
+    if (!s) return "";
+    if (!/[&][a-z#0-9]+;/.test(s)) return s;
+    var ta = document.createElement("textarea");
+    ta.innerHTML = s;
+    return ta.value;
+  }
+
+  function initAchiTooltips() {
+    if (!window.jQuery) { console.warn("jQuery не загружен — тултипы не инициализированы"); return; }
+    if (!$.ui || !$.ui.tooltip) { console.warn("jQuery UI Tooltip не загружен — тултипы не инициализированы"); return; }
+
+    var selector = ".achievements img, .dossier img, .tank-list .medal";
+
+    $(selector).each(function () {
+      var $el = $(this);
+      var t = $el.attr("title");
+      if (t) {
+        $el.attr("data-title", t);
+        $el.removeAttr("title");
+      }
+    });
+
+    $(document).tooltip({
+      items: selector,
+      content: function () {
+        var $el = $(this);
+        var raw = $el.attr("data-title") || "";
+        var html = decodeHtml(raw);
+        return html || "";
+      },
+      position: { my: "left+12 center", at: "right center", collision: "flipfit" },
+      show: { effect: "fade", duration: 120 },
+      hide: { effect: "fade", duration: 80 },
+      track: false,
+      classes: { "ui-tooltip": "achi-tooltip" },
+      tooltipClass: "achi-tooltip"
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initAchiTooltips);
+  } else {
+    initAchiTooltips();
+  }
+})();
+</script>
 
 {% endblock %}
