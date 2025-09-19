@@ -595,11 +595,13 @@ class Extractor:
         nation, tag = ("", vtype)
         if ":" in vtype:
             nation, tag = vtype.split(":", 1)
+        vehicle_name = Extractor._get_vehicle_display_name(tag)
         return {
             "avatar_id": avatar_id,
             "name": top.get("name") or avatar_id,
             "vehicle_type": vtype,
             "vehicle_tag": tag,
+            "vehicle_name": vehicle_name,
             "vehicle_img": f"style/images/wot/shop/vehicles/180x135/{tag}.png" if tag else "tanks/tank_placeholder.png",
             "team": top.get("team"),
         }

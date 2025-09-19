@@ -8,7 +8,12 @@
     <link rel="stylesheet" href="{% static 'css/wot_record_skin.css' %}">
     <div id="content" class="content content--solo">
 
-        {% include "replays/_filters_panel.html" with active=request.GET.urlencode tanks=tanks reset_url=request.path %}
+  <div class="filters-actions" style="display:flex; justify-content:flex-end; gap:10px; margin-bottom:12px;">
+    <a class="btn btn--accent" href="{{ filters_url }}">Фильтры</a>
+    {% if has_filters_applied %}
+      <a class="btn btn--ghost" href="{{ reset_url }}">Сбросить</a>
+    {% endif %}
+  </div>
 
         <main class="replay-grid replay-grid--rows">
             {% if items %}

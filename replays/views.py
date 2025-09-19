@@ -299,218 +299,141 @@ class ReplayListView(ListView):
 
         return queryset
 
-    # --- утилиты ---
-    def _getlist(self, key: str, alt: str | None = None) -> list[str]:
-        """
-        Вернёт объединённый список значений из GET по ключу key (+ alt, если задан).
-        Убирает дубликаты, сохраняет порядок.
-        """
-        qd = self.request.GET
-        vals = qd.getlist(key)
-        if alt:
-            vals += qd.getlist(alt)
-
-        seen = set()
-        out: list[str] = []
-        for v in vals:
-            if v in seen:
-                continue
-            seen.add(v)
-            out.append(v)
-        return out
-
-    def _to_int_set(self, seq: list[str]) -> set[int]:
-        """
-        Сконвертировать список в множество int, игнорируя мусор.
-        """
-        out: set[int] = set()
-        for v in seq:
-            try:
-                out.add(int(v))
-            except (TypeError, ValueError):
-                continue
-        return out
-
-    def _smart_set(self, seq: list[str]) -> set[int] | set[str]:
-        """
-        Универсальная нормализация: если все элементы — целые числа, вернёт set[int],
-        иначе вернёт set[str] (обрезанные, не пустые).
-        Удобно для полей, где тип может быть строковым (type, nation) или числовым.
-        """
-        cleaned: list[str] = []
-        for v in seq:
-            s = (v or "").strip()
-            if s:
-                cleaned.append(s)
-
-        def _is_int(s: str) -> bool:
-            return s.isdigit() or (s.startswith("-") and s[1:].isdigit())
-
-        if cleaned and all(_is_int(s) for s in cleaned):
-            return {int(s) for s in cleaned}
-        return set(cleaned)
-
-    # --- фильтры ---
     def _apply_filters(self, queryset):
-        """
-        Применение всех фильтров к QuerySet согласно параметрам GET.
-        Работает с мультивыбором: tank, mastery, level/tier, type, nation.
-        Поддерживает даты, поиск по карте и числовые диапазоны.
-        """
+        def _getlist(name):
+            return self.request.GET.getlist(name)
 
-        # Множественный выбор танков
-        tank_ids = self._to_int_set(self._getlist("tank"))
+        def _to_int_set(vals):
+            out = set()
+            for v in vals:
+                try:
+                    out.add(int(v))
+                except (TypeError, ValueError):
+                    pass
+            return out
+
+        # tanks (multi)
+        tank_ids = _to_int_set(_getlist("tank"))
         if tank_ids:
             queryset = queryset.filter(tank_id__in=tank_ids)
 
-        # Мастерство (множественный выбор)
-        mastery_vals = self._to_int_set(self._getlist("mastery"))
+        # mastery (multi)
+        mastery_vals = _to_int_set(_getlist("mastery"))
         if mastery_vals:
             queryset = queryset.filter(mastery__in=mastery_vals)
 
-        # Даты боя
+        # dates
         if date_from := self.request.GET.get("date_from"):
             if d := parse_date(date_from):
                 queryset = queryset.filter(battle_date__date__gte=d)
-
         if date_to := self.request.GET.get("date_to"):
             if d := parse_date(date_to):
                 queryset = queryset.filter(battle_date__date__lte=d)
 
-        # Поиск по карте
-        if map_search := (self.request.GET.get("map_search") or "").strip():
-            if map_search:
-                queryset = queryset.filter(
-                    Q(map_display_name__icontains=map_search) |
-                    Q(map_name__icontains=map_search)
-                )
+        # map search
+        if map_search := self.request.GET.get("map_search"):
+            queryset = queryset.filter(
+                Q(map_display_name__icontains=map_search) |
+                Q(map_name__icontains=map_search)
+            )
 
-        # Числовые диапазоны (мин/макс)
-        numeric_fields = {
-            "damage": "damage",
-            "xp": "xp",
-            "kills": "kills",
-            "credits": "credits",
-            "assist": "assist",
-            "block": "block",
-        }
-        for param_prefix, field in numeric_fields.items():
-            min_val = self.request.GET.get(f"{param_prefix}_min")
-            if min_val not in (None, ""):
-                try:
-                    queryset = queryset.filter(**{f"{field}__gte": int(min_val)})
-                except (TypeError, ValueError):
-                    pass
+        # numeric ranges
+        numeric = ["damage", "xp", "kills", "credits", "assist", "block"]
+        for f in numeric:
+            vmin = self.request.GET.get(f"{f}_min")
+            vmax = self.request.GET.get(f"{f}_max")
+            if vmin:
+                try: queryset = queryset.filter(**{f"{f}__gte": int(vmin)})
+                except (TypeError, ValueError): pass
+            if vmax:
+                try: queryset = queryset.filter(**{f"{f}__lte": int(vmax)})
+                except (TypeError, ValueError): pass
 
-            max_val = self.request.GET.get(f"{param_prefix}_max")
-            if max_val not in (None, ""):
-                try:
-                    queryset = queryset.filter(**{f"{field}__lte": int(max_val)})
-                except (TypeError, ValueError):
-                    pass
-
-        # Характеристики танка (множественный выбор)
-        # level: поддерживаем alias "tier"
-        levels = self._to_int_set(self._getlist("level", alt="tier"))
+        # tank attrs (multi)
+        levels = _to_int_set(_getlist("level")) or _to_int_set(_getlist("tier"))
         if levels:
             queryset = queryset.filter(tank__level__in=levels)
 
-        # type в БД обычно строковое поле ('lightTank', 'mediumTank', 'AT-SPG', 'SPG' и т.п.)
-        types_ = self._smart_set(self._getlist("type"))
+        types_ = set(_getlist("type"))
         if types_:
             queryset = queryset.filter(tank__type__in=types_)
 
-        # nation: может быть строкой (коды) или числом — поддержим оба варианта
-        nations = self._smart_set(self._getlist("nation"))
+        nations = set(_getlist("nation"))
         if nations:
             queryset = queryset.filter(tank__nation__in=nations)
 
-        # Победа/поражение (если нет явного поля is_win, оставим по прокси)
-        victory_filter = (self.request.GET.get("victory") or "").strip().lower()
-        if victory_filter == "win":
+        # win/loss (если нет is_win — грубая эвристика)
+        vf = self.request.GET.get("victory")
+        if vf == "win":
             queryset = queryset.filter(credits__gt=0)
-        elif victory_filter == "loss":
+        elif vf == "loss":
             queryset = queryset.filter(credits__lte=0)
 
-        # Поиск по названию танка
-        if tank_search := (self.request.GET.get("tank_search") or "").strip():
-            if tank_search:
-                queryset = queryset.filter(
-                    Q(tank__name__icontains=tank_search) |
-                    Q(tank__vehicleId__icontains=tank_search)
-                )
-
-        # Фильтр по версии игры (множественный выбор)
-        game_versions = self._smart_set(self._getlist("game_version"))
-        if game_versions:
-            queryset = queryset.filter(game_version__in=game_versions)
-
-        # Фильтр по режиму боя (множественный выбор)
-        battle_types = self._smart_set(self._getlist("battle_type"))
-        if battle_types:
-            queryset = queryset.filter(battle_type__in=battle_types)
+        # game version / battle type (как строки; при наличии полей)
+        gv = set(_getlist("game_version"))
+        if gv:
+            queryset = queryset.filter(game_version__in=gv)
+        bt = set(_getlist("battle_type"))
+        if bt:
+            queryset = queryset.filter(battle_type__in=bt)
 
         return queryset
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+        ctx = super().get_context_data(**kwargs)
 
-        # выбранные значения для мультивыбора (всегда списки строк)
-        selected_levels = self.request.GET.getlist('level') or self.request.GET.getlist('tier')
-        selected = {
-            'tank': self.request.GET.getlist('tank'),
-            'mastery': self.request.GET.getlist('mastery'),
-            'level': selected_levels,
-            'type': self.request.GET.getlist('type'),
-            'nation': self.request.GET.getlist('nation'),
-            'victory': self.request.GET.get('victory', ''),
-            'game_version': self.request.GET.getlist('game_version'),
-            'battle_type': self.request.GET.getlist('battle_type'),
-        }
+        # «Применены ли фильтры?» — игнорируем page=
+        q = self.request.GET.copy()
+        q.pop("page", None)
+        has_filters_applied = any(v for k, v in q.lists())
 
-        # Для проверки активности фильтров добавляем одиночные поля
-        current_filters = dict(self.request.GET.items())
-        has_active_filters = bool(current_filters)
-
-        context.update({
-            'filter_data': self._get_filter_context(),
-            'params': self.request.GET,
-            'selected': selected,
-            'current_filters': current_filters,
-            'has_active': has_active_filters,
+        ctx.update({
+            "filter_data": {
+                "tanks": Tank.objects.order_by("level", "name"),
+                "nations": Nation.choices,
+                "tank_types": (Tank.objects
+                               .values_list("type", flat=True)
+                               .distinct().order_by("type")),
+                "levels": Tank.objects.order_by('level').values_list('level', flat=True).distinct(),
+                "mastery_choices": [(i, f"Знак {i}") for i in range(5)],
+            },
+            "current_filters": dict(self.request.GET.lists()),
+            "has_filters_applied": has_filters_applied,
+            "filters_url": reverse("replay_filters"),
+            "reset_url": self.request.path,   # список без параметров
         })
-        return context
+        return ctx
 
-    def _get_filter_context(self):
-        return {
-            'tanks': (Tank.objects
-                      .only('id', 'name', 'nation', 'level', 'type')
-                      .order_by('nation', 'level', 'type', 'name')),
-            'nations': getattr(Nation, 'choices', ()),
-            'levels': range(1, 12),
-            'mastery_choices': [('4', 'Мастер'), ('3', '1 степень'), ('2', '2 степень'), ('1', '3 степень')],
-            'type_choices': [('1', 'Лёгкий танк'), ('2', 'Средний танк'), ('3', 'Тяжёлый танк'),
-                             ('4', 'ПТ-САУ'), ('5', 'САУ')],
 
-            'game_versions': self._get_available_game_versions(),
-            'battle_types': self._get_available_battle_types(),
-        }
+class ReplayFiltersView(TemplateView):
+    """
+    Страница с формой фильтрации. Сабмитит GET на список.
+    """
+    template_name = "replays/filters.html"
 
-    def _get_available_game_versions(self):
-        """Получить список доступных версий игры из базы"""
-        return (Replay.objects
-                .filter(game_version__isnull=False)
-                .values_list('game_version', flat=True)
-                .distinct()
-                .order_by('-game_version'))
-
-    def _get_available_battle_types(self):
-        """Получить список доступных режимов боя из базы"""
-        return (Replay.objects
-                .filter(battle_type__isnull=False)
-                .values_list('battle_type', flat=True)
-                .distinct()
-                .order_by('battle_type'))
+    def get_context_data(self, **kwargs):
+        from django.urls import reverse
+        ctx = super().get_context_data(**kwargs)
+        ctx.update({
+            "filter_data": {
+                "tanks": Tank.objects.order_by("level", "name"),
+                "nations": Nation.choices,
+                "tank_types": (Tank.objects
+                               .values_list("type", flat=True)
+                               .distinct().order_by("type")),
+                "levels": Tank.objects.order_by('level').values_list('level', flat=True).distinct(),
+                "mastery_choices": [(i, f"Знак {i}") for i in range(5)],
+                "game_versions": (Replay.objects.values_list("game_version", flat=True)
+                                  .exclude(game_version__isnull=True).exclude(game_version__exact="")
+                                  .distinct().order_by("game_version")),
+                "battle_types": (Replay.objects.values_list("battle_type", flat=True)
+                                 .exclude(battle_type__isnull=True).exclude(battle_type__exact="")
+                                 .distinct().order_by("battle_type")),
+            },
+            "current_filters": dict(self.request.GET.lists()),  # если пришли из списка с префиллом
+            "list_url": reverse("replay_list"),
+        })
+        return ctx
 
 
 class ReplayDetailView(DetailView):
