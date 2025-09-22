@@ -2,7 +2,7 @@
 {% extends "base.html" %}
 {% load static humanize %}
 
-{% block title %}Реплей #{{ replay.id }} — {{ replay_data.player_name }}{% endblock %}
+{% block title %}Реплей #{{ replay.id }} - {{ replay_data.player_name }}{% endblock %}
 {% block body_class %}replays detail{% endblock %}
 {% block content_mod %}content--solo{% endblock %}
 
@@ -651,8 +651,8 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function initAchiTooltips() {
-    if (!window.jQuery) { console.warn("jQuery не загружен — тултипы не инициализированы"); return; }
-    if (!$.ui || !$.ui.tooltip) { console.warn("jQuery UI Tooltip не загружен — тултипы не инициализированы"); return; }
+    if (!window.jQuery) { console.warn("jQuery не загружен - тултипы не инициализированы"); return; }
+    if (!$.ui || !$.ui.tooltip) { console.warn("jQuery UI Tooltip не загружен - тултипы не инициализированы"); return; }
 
     var selector = ".achievements img, .dossier img, .tank-list .medal";
 

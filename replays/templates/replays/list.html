@@ -20,7 +20,7 @@
                 {% for replay in items %}
                     <a class="tovabb"
                        href="{% url 'replay_detail' replay.id %}"
-                       title="{{ replay.tank.name|default:'Неизвестный танк' }} — {{ replay.map_display_name|default:replay.map_name }}">
+                       title="{{ replay.tank.name|default:'Неизвестный танк' }} - {{ replay.map_display_name|default:replay.map_name }}">
                         <div class="wrapper">
 
                             <div class="img-container">
@@ -44,7 +44,7 @@
 
                             <div class="details">
                                 <div class="title">{{ replay.tank.name|default:'Неизвестный танк' }}
-                                    — {{ replay.map_display_name|default:replay.map_name }}</div>
+                                    - {{ replay.map_display_name|default:replay.map_name }}</div>
 
                                 <div class="upload-info">
                                   <span class="date-cont">

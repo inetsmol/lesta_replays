@@ -462,10 +462,10 @@ class ReplayDetailView(DetailView):
                 # мастерство — как и было
                 m = int(self.object.mastery or 0)
                 label_map = {
-                    4: "100% — Мастер",
-                    3: "95% — 1 степень",
-                    2: "80% — 2 степень",
-                    1: "50% — 3 степень",
+                    4: "Мастер - 100%",
+                    3: "1 степень - 95%",
+                    2: "2 степень - 80%",
+                    1: "3 степень - 50%",
                 }
                 context['has_mastery'] = m > 0
                 context['mastery'] = m
