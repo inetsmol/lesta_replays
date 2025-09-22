@@ -44,8 +44,8 @@
               <div>
                 <img
                   src="{% static ach.image_big %}"
-                  alt="«{{ ach.name }}»"
-                  title="&lt;div class='title'&gt;«{{ ach.name|escape }}»&lt;/div&gt;&lt;img src={% static ach.image_big %}/&gt; {{ ach.description|default_if_none:''|escape }}{% if ach.condition %}&lt;div class='condition'&gt;{{ ach.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}">
+                  alt="{{ ach.name }}"
+                  title="&lt;div class='title'&gt;{{ ach.name|escape }}&lt;/div&gt;&lt;img src={% static ach.image_big %}/&gt; {{ ach.description|default_if_none:''|escape }}{% if ach.condition %}&lt;div class='condition'&gt;{{ ach.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}">
               </div>
             {% endfor %}
 
@@ -75,8 +75,8 @@
               <div class="achi-img-cont">
                 <img
                   src="{% static ach.image_big %}"
-                  alt="«{{ ach.name }}»"
-                  title="&lt;div class='title'&gt;«{{ ach.name|escape }}»&lt;/div&gt;&lt;img src={% static ach.image_big %}/&gt; {{ ach.description|default_if_none:''|escape }}{% if ach.condition %}&lt;div class='condition'&gt;{{ ach.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}">
+                  alt="{{ ach.name }}"
+                  title="&lt;div class='title'&gt;{{ ach.name|escape }}&lt;/div&gt;&lt;img src={% static ach.image_big %}/&gt; {{ ach.description|default_if_none:''|escape }}{% if ach.condition %}&lt;div class='condition'&gt;{{ ach.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}">
               </div>
             {% endfor %}
           </div>

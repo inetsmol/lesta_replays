@@ -456,9 +456,6 @@ class ReplayDetailView(DetailView):
             if achievements_ids:
                 ach_nonbattle, ach_battle = Extractor.split_achievements_by_section(achievements_ids)
 
-                print(f"ach_nonbattle {ach_nonbattle}")
-                print(f"ach_battle {ach_battle}")
-
                 context['achievements_nonbattle'] = ach_nonbattle
                 context['achievements_battle'] = ach_battle
 
