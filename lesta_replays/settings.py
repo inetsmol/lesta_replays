@@ -144,7 +144,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]  # для dev
-STATIC_ROOT = BASE_DIR / "static_collected"  # куда 'collectstatic' сложит финальные файлы
+STATIC_ROOT = BASE_DIR / "staticfiles"  # куда 'collectstatic' сложит финальные файлы
 
 # МЕДИА / ФАЙЛЫ РЕПЛЕЕВ
 MEDIA_URL = "/media/"

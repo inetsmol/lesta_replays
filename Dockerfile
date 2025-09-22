@@ -61,7 +61,7 @@ RUN mkdir -p /app/staticfiles /app/media && \
 USER django
 
 # Порт приложения
-EXPOSE 8000
+EXPOSE 8001
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
