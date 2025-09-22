@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure--_($r!rg(efg8u4q4crkd*569bz$moq*f^==nu&zz1#4=^-hpy
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ("1", "true", "yes")
 
-ALLOWED_HOSTS = ["lesta-replays.ru", "localhost", "127.0.0.1", "192.168.67.5"]
+ALLOWED_HOSTS = ["lesta-replays.ru", "localhost", "127.0.0.1", "192.168.67.5", "192.168.67.101"]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://lesta-replays.ru",
