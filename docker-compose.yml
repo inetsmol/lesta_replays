@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  lesta-app:
+    image: biggarik/lesta_replays:latest
+    container_name: lesta-replays-app
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    volumes:
+      - ./static:/app/staticfiles
+      - ./media:/app/media
+      - ./logs:/app/logs
+    networks:
+      - bridge
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  bridge:
+    external: true

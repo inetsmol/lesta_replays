@@ -7,6 +7,6 @@ python manage.py collectstatic --noinput
 
 # Health endpoint можешь сделать в Django (например, path("health/", ...))
 exec gunicorn lesta_replays.wsgi:application \
-  --bind 0.0.0.0:8000 \
+  --bind 0.0.0.0:8001 \
   --workers ${GUNICORN_WORKERS:-3} \
   --timeout ${GUNICORN_TIMEOUT:-60}
