@@ -3,7 +3,7 @@ set -e
 
 # Важно: БД должна быть доступна
 python manage.py migrate --noinput
-python manage.py collectstatic --noinput
+#python manage.py collectstatic --noinput
 
 exec gunicorn lesta_replays.wsgi:application \
   --bind 0.0.0.0:8001 \

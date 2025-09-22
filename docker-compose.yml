@@ -12,15 +12,8 @@ services:
     volumes:
       - ./static:/app/staticfiles
       - ./media:/app/media
-      - ./logs:/app/logs
     networks:
-      - bridge
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+      bridge: {}
 
 networks:
-  bridge:
-    external: true
+  bridge: {}
