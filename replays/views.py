@@ -32,6 +32,10 @@ FILES_DIR.mkdir(parents=True, exist_ok=True)
 logger = logging.getLogger(__name__)
 
 
+def health(request):
+    return HttpResponse("OK")
+
+
 class ReplayUploadView(View):
     """
     View для загрузки файлов реплеев Мир Танков.

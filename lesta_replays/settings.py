@@ -147,8 +147,8 @@ STATICFILES_DIRS = [BASE_DIR / "static"]  # для dev
 STATIC_ROOT = BASE_DIR / "static_collected"  # куда 'collectstatic' сложит финальные файлы
 
 # МЕДИА / ФАЙЛЫ РЕПЛЕЕВ
-MEDIA_URL = "/files/"
-MEDIA_ROOT = BASE_DIR / "files"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

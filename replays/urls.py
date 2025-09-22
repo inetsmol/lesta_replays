@@ -1,7 +1,9 @@
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import ReplayListView, ReplayUploadView, ReplayDetailView, ReplayDownloadView, AboutView, ReplayFiltersView
+
+from .views import ReplayListView, ReplayUploadView, ReplayDetailView, ReplayDownloadView, AboutView, ReplayFiltersView, \
+    health
 
 urlpatterns = [
     path('', ReplayListView.as_view(), name='replay_list'),
@@ -10,6 +12,7 @@ urlpatterns = [
     path('upload/', ReplayUploadView.as_view(), name='replay_upload'),
     path('<int:pk>/download/', ReplayDownloadView.as_view(), name='replay_download'),
     path("about/", AboutView.as_view(), name="about"),
+    path('health/', health, name='health'),
 ]
 
 # dev-раздача файлов /files/<file_name>
