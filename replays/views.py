@@ -418,6 +418,7 @@ class ReplayFiltersView(TemplateView):
     def get_context_data(self, **kwargs):
         from django.urls import reverse
         ctx = super().get_context_data(**kwargs)
+        # TODO фильтр по клану и нику
         ctx.update({
             "filter_data": {
                 "tanks": Tank.objects.order_by("level", "name"),

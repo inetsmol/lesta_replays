@@ -121,11 +121,11 @@
                                     <label class="chip">
                                         <input type="checkbox" name="type" value="{{ st }}"
                                                {% if st in selected %}checked{% endif %}>
-                                        {% if t == 'lighttank' %}Лёгкий танк
-                                        {% elif t == 'mediumtank' %}Средний танк
-                                        {% elif t == 'heavytank' %}Тяжёлый танк
-                                        {% elif t == 'at-spg' %}ПТ-САУ
-                                        {% elif t == 'spg' %}САУ
+                                        {% if t == 'lightTank' %}Лёгкий танк
+                                        {% elif t == 'mediumTank' %}Средний танк
+                                        {% elif t == 'heavyTank' %}Тяжёлый танк
+                                        {% elif t == 'AT-SPG' %}ПТ-САУ
+                                        {% elif t == 'SPG' %}САУ
                                         {% elif t == 'unknown' %}Неизвестный танк
                                         {% else %}{{ t }}{% endif %}
                                     </label>

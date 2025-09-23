@@ -95,7 +95,7 @@ class Replay:
 
 
 if __name__ == "__main__":
-    file = '../../files/20250825_1557_ussr-R174_BT-5_04_himmelsdorf.mtreplay'
+    file = '../../media/20250923_0808_czech-Cz38_Projekt_SAT_502_kamchatka.mtreplay'
     # file = '../../files/17580098444303_ussr_R40_T-54_ruinberg.wotreplay'
 
     r = Replay(file)
@@ -109,14 +109,14 @@ if __name__ == "__main__":
     # achievements_ids = Extractor.get_achievements(replay_fields.get('payload'))
     # print(f"achievements_ids {achievements_ids}")
 
-    personal = Extractor.get_personal_by_player_id(replay_fields.get('payload'))
-    print(f"personal {personal}")
-
-    battle_frags = Extractor.get_battle_frags(replay_fields.get('payload'))
-    print(f"battle_frags {battle_frags}")
-
-    interactions = Extractor.get_player_interactions(replay_fields.get('payload'))
-    print(f"interactions {interactions}")
+    # personal = Extractor.get_personal_by_player_id(replay_fields.get('payload'))
+    # print(f"personal {personal}")
+    #
+    # battle_frags = Extractor.get_battle_frags(replay_fields.get('payload'))
+    # print(f"battle_frags {battle_frags}")
+    #
+    # interactions = Extractor.get_player_interactions(replay_fields.get('payload'))
+    # print(f"interactions {interactions}")
 
     # meta_data = r.meta_data
     # print(f"meta_data = {meta_data}")
