@@ -2444,7 +2444,7 @@ table.vehicle-equipment {
     color: white;
     font-family: 'Oswald', sans-serif;
     font-size: 25px;
-    width: 120px;
+    /*width: 120px;*/
     text-align: center;
     margin: 0px auto;
     padding-top: 8px;
@@ -2452,10 +2452,6 @@ table.vehicle-equipment {
     text-shadow: 1px 1px 5px #000;
     display: inline-block;
     vertical-align: top;
-}
-
-.battle-records .income img {
-    margin-left: 5px;
 }
 
 .battle-records .income .credit img {
@@ -2467,10 +2463,6 @@ table.vehicle-equipment {
     font-size: 22px;
     line-height: 26px;
     padding-top: 2px;
-}
-
-.battle-records .income img {
-    margin-left: 8px;
 }
 
 .battle-records .income.bond .credit img {

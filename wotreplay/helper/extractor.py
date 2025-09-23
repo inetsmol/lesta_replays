@@ -2,7 +2,7 @@
 import os
 import datetime
 import re
-from typing import Any, Dict, List, Optional, Mapping, Iterable
+from typing import Any, Dict, List, Optional, Mapping, Iterable, Sequence
 
 from django.db.models import Value, FloatField
 from django.db.models.functions import Coalesce, Cast
@@ -94,53 +94,25 @@ class Extractor:
         return battle_metadata
 
     @staticmethod
-    def get_personal_by_player_id(
-            payload: Mapping[str, Any],
-            player_id: Optional[int] = None,
-            *,
-            fallback_first: bool = False,
-    ) -> Optional[Dict[str, Any]]:
+    def get_personal_by_player_id(payload: Mapping[str, Any]) -> Optional[Dict[str, Any]]:
         """
         Вернуть блок personal для указанного игрока.
 
         :param payload: Единый словарь реплея (payload).
-        :param player_id: ID игрока (accountDBID). Если None — берём payload["playerID"].
-        :param fallback_first: Если True и точного совпадения нет — вернуть первую запись из personal.
         :return: dict с персональными данными игрока или None.
         """
-        # --- безопасно получаем player_id ---
-        if player_id is None:
-            player_id = payload.get("playerID")  # в реплеях это int
-
-        def _to_int(x: Any) -> Optional[int]:
-            """Пробует привести значение к int, иначе None."""
-            try:
-                return int(x)
-            except (TypeError, ValueError):
-                return None
-
-        pid = _to_int(player_id)
-        if pid is None:
-            return None
 
         personal = payload.get("personal")
         if not isinstance(personal, Mapping):
             return None
 
-        # --- ищем запись, где accountDBID == player_id ---
-        for entry in personal.values():
-            if not isinstance(entry, Mapping):
-                continue
-            acc = _to_int(entry.get("accountDBID"))
-            if acc is not None and acc == pid:
-                # Нашли точное совпадение
-                return dict(entry)  # копия на всякий случай (защита от внешних мутаций)
+        # --- Ищем числовые ключи ---
+        # Ключи приходят строками из JSON. Берём только те, что целиком состоят из цифр.
+        numeric_keys: Sequence[str] = [k for k in personal.keys() if isinstance(k, str) and k.isdigit()]
 
-        # --- фолбэк: первая запись из personal (опционально) ---
-        if fallback_first:
-            for entry in personal.values():
-                if isinstance(entry, Mapping):
-                    return dict(entry)
+        # --- Обработка числа найденных ключей ---
+        if len(numeric_keys) == 1:
+            return personal[numeric_keys[0]]
 
         return None
 
@@ -546,7 +518,8 @@ class Extractor:
         """
         player_id = payload.get("playerID")
 
-        p = Extractor.get_personal_by_player_id(payload, player_id, fallback_first=False)
+        p = Extractor.get_personal_by_player_id(payload)
+        print(f"personal: {p}")
         if not p:
             return []
         ach = p.get("achievements") or []
@@ -564,11 +537,12 @@ class Extractor:
 
         player_id = payload.get("playerID")
 
-        personal = Extractor.get_personal_by_player_id(payload, player_id, fallback_first=False)
+        personal = Extractor.get_personal_by_player_id(payload)
+        # print(f"personal: {personal}")
 
         details_data = {
             'xp': personal.get('xp'),
-            'originalCredits': personal.get('originalCredits'),
+            'credits': personal.get('credits'),
             'repair': personal.get('repair'),
 
             'serverName': payload.get('serverName'),
