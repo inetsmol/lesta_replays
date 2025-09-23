@@ -391,13 +391,14 @@ class ReplayListView(ListView):
         q.pop("page", None)
         has_filters_applied = any(v for k, v in q.lists())
 
+        tank_types = Tank.objects.values_list("type", flat=True).distinct().order_by("type")
+        print(f"tank_types: {tank_types}")
+
         ctx.update({
             "filter_data": {
                 "tanks": Tank.objects.order_by("level", "name"),
                 "nations": Nation.choices,
-                "tank_types": (Tank.objects
-                               .values_list("type", flat=True)
-                               .distinct().order_by("type")),
+                "tank_types": tank_types,
                 "levels": Tank.objects.order_by('level').values_list('level', flat=True).distinct(),
                 "mastery_choices": [(i, f"Знак {i}") for i in range(5)],
             },
@@ -406,6 +407,7 @@ class ReplayListView(ListView):
             "filters_url": reverse("replay_filters"),
             "reset_url": self.request.path,   # список без параметров
         })
+
         return ctx
 
 
@@ -419,13 +421,14 @@ class ReplayFiltersView(TemplateView):
         from django.urls import reverse
         ctx = super().get_context_data(**kwargs)
         # TODO фильтр по клану и нику
+        tank_types = Tank.objects.values_list("type", flat=True).distinct().order_by("type")
+        print(f"tank_types: {tank_types}")
+
         ctx.update({
             "filter_data": {
                 "tanks": Tank.objects.order_by("level", "name"),
                 "nations": Nation.choices,
-                "tank_types": (Tank.objects
-                               .values_list("type", flat=True)
-                               .distinct().order_by("type")),
+                "tank_types": tank_types,
                 "levels": Tank.objects.order_by('level').values_list('level', flat=True).distinct(),
                 "mastery_choices": [(i, f"Знак {i}") for i in range(5)],
                 "game_versions": (Replay.objects.values_list("game_version", flat=True)
