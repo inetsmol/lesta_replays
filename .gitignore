@@ -2,9 +2,6 @@
 /.idea
 .env
 db.sqlite3
-/files
-/static/style
-/static/maps
-/static/tanks
+/media
 /replays/migrations
 replays/management/commands/output

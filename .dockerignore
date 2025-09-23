@@ -53,9 +53,6 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 media/
-staticfiles/
-.static/
-static/
 
 # Testing
 .tox/
@@ -91,7 +88,6 @@ docker-compose*
 
 # Replay files (возможно большие файлы)
 *.mtreplay
-files/
 
 # Backup files
 *.bak
