@@ -5,3 +5,6 @@ db.sqlite3
 /media
 /replays/migrations
 replays/management/commands/output
+staticfiles/
+static/
+_static/
