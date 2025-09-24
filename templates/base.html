@@ -5,95 +5,116 @@
 <html lang="ru">
 <head>
 
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{% block title %}Реплеи Мира танков{% endblock %}</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>{% block title %}Реплеи Мира танков{% endblock %}</title>
 
-  <link rel="icon" href="{% static 'favicon.ico' %}">
+    <link rel="icon" href="{% static 'favicon.ico' %}">
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
-  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+    <link rel="stylesheet" href="{% static 'css/site.css' %}">
 
-  {% block extra_head %}{% endblock %}
+    {% block extra_head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
 
-  {% include "includes/_navbar.html" %}
+{% include "includes/_navbar.html" %}
 
-  <div id="content" class="content {% block content_mod %}{% endblock %}">
-    <div class="container">
-      {% include "includes/_messages.html" %}
-      {% block content %}{% endblock %}
+
+<div id="content" class="content {% block content_mod %}{% endblock %}">
+    <div style="display: flex">
+
+        <div style="width:15%"></div>
+
+        <div class="container" style="width:70%">
+            {% block content %}{% endblock %}
+            {% include "includes/_messages.html" %}
+        </div>
+        <div style="width:15%">
+            {% include "includes/_friends_sidebar.html" %}
+        </div>
     </div>
-  </div>
 
-  {% include "includes/_footer.html" %}
+
+</div>
+{# ОТДЕЛЬНЫЙ контейнер сайдбара — НЕ внутри .container #}
+
+
+{% include "includes/_footer.html" %}
 
 <!-- Модальное окно загрузки реплеев -->
 <div id="upload-modal" class="modal">
-  <div class="modal-overlay" id="modal-overlay"></div>
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>Загрузить реплей</h2>
-      <button class="modal-close" id="modal-close" type="button">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
-        </svg>
-      </button>
+    <div class="modal-overlay" id="modal-overlay"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Загрузить реплей</h2>
+            <button class="modal-close" id="modal-close" type="button">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
+                </svg>
+            </button>
+        </div>
+
+        <form id="upload-form" method="post" enctype="multipart/form-data" action="{% url 'replay_upload' %}">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-icon">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="currentColor" opacity="0.5">
+                            <path d="M14 2H34L42 10V42C42 44.2 40.2 46 38 46H10C7.8 46 6 44.2 6 42V6C6 3.8 7.8 2 10 2H14ZM32 4H10C8.9 4 8 4.9 8 6V42C8 43.1 8.9 44 10 44H38C39.1 44 40 43.1 40 42V12L32 4ZM30 6V10H38L30 6Z"/>
+                        </svg>
+                    </div>
+                    <p class="upload-text">
+                        <strong>Перетащите файл .mtreplay сюда</strong><br>
+                        или нажмите для выбора файла
+                    </p>
+                    <input type="file" id="file-input" name="file" accept=".mtreplay" class="file-input">
+                </div>
+
+                <div class="selected-file" id="selected-file" style="display: none;">
+                    <h3>Выбранный файл:</h3>
+                    <div class="file-info" id="file-info"></div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn--ghost" id="cancel-upload">Отмена</button>
+                <button type="submit" class="btn btn--accent" id="submit-upload" disabled>
+                    <span class="upload-status">Загрузить файл</span>
+                </button>
+            </div>
+        </form>
     </div>
-
-    <form id="upload-form" method="post" enctype="multipart/form-data" action="{% url 'replay_upload' %}">
-      {% csrf_token %}
-      <div class="modal-body">
-        <div class="upload-area" id="upload-area">
-          <div class="upload-icon">
-            <svg width="48" height="48" viewBox="0 0 48 48" fill="currentColor" opacity="0.5">
-              <path d="M14 2H34L42 10V42C42 44.2 40.2 46 38 46H10C7.8 46 6 44.2 6 42V6C6 3.8 7.8 2 10 2H14ZM32 4H10C8.9 4 8 4.9 8 6V42C8 43.1 8.9 44 10 44H38C39.1 44 40 43.1 40 42V12L32 4ZM30 6V10H38L30 6Z"/>
-            </svg>
-          </div>
-          <p class="upload-text">
-            <strong>Перетащите файл .mtreplay сюда</strong><br>
-            или нажмите для выбора файла
-          </p>
-          <input type="file" id="file-input" name="file" accept=".mtreplay" class="file-input">
-        </div>
-
-        <div class="selected-file" id="selected-file" style="display: none;">
-          <h3>Выбранный файл:</h3>
-          <div class="file-info" id="file-info"></div>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="btn btn--ghost" id="cancel-upload">Отмена</button>
-        <button type="submit" class="btn btn--accent" id="submit-upload" disabled>
-          <span class="upload-status">Загрузить файл</span>
-        </button>
-      </div>
-    </form>
-  </div>
 </div>
 
 <script src="{% static 'js/upload-modal.js' %}"></script>
 
-    <!-- jQuery -->
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <!-- jQuery UI -->
-  <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- jQuery UI -->
+<script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
 
 {% block extra_js %}{% endblock %}
 
 <!-- Yandex.Metrika counter -->
 <script type="text/javascript">
-    (function(m,e,t,r,i,k,a){
-        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-        m[i].l=1*new Date();
-        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=104234140', 'ym');
+    (function (m, e, t, r, i, k, a) {
+        m[i] = m[i] || function () {
+            (m[i].a = m[i].a || []).push(arguments)
+        };
+        m[i].l = 1 * new Date();
+        for (var j = 0; j < document.scripts.length; j++) {
+            if (document.scripts[j].src === r) {
+                return;
+            }
+        }
+        k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
+    })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js?id=104234140', 'ym');
 
-    ym(104234140, 'init', {ssr:true, clickmap:true, accurateTrackBounce:true, trackLinks:true});
+    ym(104234140, 'init', {ssr: true, clickmap: true, accurateTrackBounce: true, trackLinks: true});
 </script>
-<noscript><div><img src="https://mc.yandex.ru/watch/104234140" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<noscript>
+    <div><img src="https://mc.yandex.ru/watch/104234140" style="position:absolute; left:-9999px;" alt=""/></div>
+</noscript>
 <!-- /Yandex.Metrika counter -->
 
 </body>

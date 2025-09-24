@@ -1,0 +1,40 @@
+{# templates/includes/_friends_sidebar.html #}
+
+<style>
+    .social-btns {
+        display: flex;
+        justify-content: flex-start;
+        padding: 10px 0;
+        align-items: center;
+        gap: 5px;
+    }
+
+</style>
+<div class="friends-card">
+    <div class="friends-card__title">Наши друзья:</div>
+    <div class="friends-card__title" style="font-size: 16px; justify-content: flex-start">Новости по миру танков</div>
+    <ul class="friends-links" style="padding:0">
+        <a href="https://t.me/Tanks_Time" target="_blank" rel="noopener" class="social-btns">
+            <!-- Telegram -->
+            <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true">
+                <!-- круг фона -->
+                <circle cx="12" cy="12" r="12" fill="#26A5E4"/>
+                <!-- бумажный самолётик -->
+                <path d="M17.949 6.51c.206-.087.425-.1.6.03.175.13.237.33.177.62l-1.87 8.8c-.08.375-.315.48-.64.375l-3.07-1.015-1.484 1.438c-.164.16-.305.295-.6.295l.214-3.1 5.655-5.11c.246-.22-.053-.34-.38-.12l-6.99 4.4-3.01-.98c-.65-.205-.663-.65.14-.96l11.858-4.153Z"
+                      fill="#FFFFFF"/>
+            </svg>
+            <span>https://t.me/Tanks_Time</span>
+        </a>
+        <a href="https://vk.com/tanks_time" target="_blank" rel="noopener" class="social-btns">
+            <!-- VK -->
+            <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true">
+                <!-- фон-кружок (опционально, можно убрать) -->
+                <circle cx="12" cy="12" r="12" fill="#4C75A3"/>
+                <!-- логотип VK белым сверху -->
+                <path d="M4 8c0 4.97 4.03 9 9 9h1.08v-2.97c1.82.18 2.6 1.57 3.44 2.97H21c-.93-1.86-2.05-3.23-3.6-3.9 1.43-.74 2.37-1.86 2.77-3.5h-2.7c-.28 1.28-1.15 2.26-2.82 2.54V8h-2.5v6.86C8.86 13.82 7 11.5 6.4 8H4Z"
+                      fill="#FFFFFF"/>
+            </svg>
+            <span>vk.com/tanks_time</span>
+        </a>
+    </ul>
+</div>
