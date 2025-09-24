@@ -420,7 +420,7 @@ class ReplayFiltersView(TemplateView):
     def get_context_data(self, **kwargs):
         from django.urls import reverse
         ctx = super().get_context_data(**kwargs)
-        # TODO фильтр по клану и нику
+        # TODO фильтр по клану и нику и версию клиента добавить
         tank_types = Tank.objects.values_list("type", flat=True).distinct().order_by("type")
         print(f"tank_types: {tank_types}")
 
