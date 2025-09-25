@@ -387,12 +387,15 @@ class ReplayListView(ListView):
         ctx = super().get_context_data(**kwargs)
 
         # «Применены ли фильтры?» — игнорируем page=
+        # q = self.request.GET.copy()
+        # q.pop("page", None)
+        # has_filters_applied = any(v for k, v in q.lists())
         q = self.request.GET.copy()
-        q.pop("page", None)
-        has_filters_applied = any(v for k, v in q.lists())
+        q.pop("page", None)  # убираем page из фильтров
+        base_qs = q.urlencode()  # напр. "nation=usa&type=heavyTank"
 
         tank_types = Tank.objects.values_list("type", flat=True).distinct().order_by("type")
-        print(f"tank_types: {tank_types}")
+        # print(f"tank_types: {tank_types}")
 
         ctx.update({
             "filter_data": {
@@ -403,11 +406,14 @@ class ReplayListView(ListView):
                 "mastery_choices": [(i, f"Знак {i}") for i in range(5)],
             },
             "current_filters": dict(self.request.GET.lists()),
-            "has_filters_applied": has_filters_applied,
+            "has_filters_applied": bool(base_qs),
             "filters_url": reverse("replay_filters"),
-            "reset_url": self.request.path,   # список без параметров
-        })
+            "reset_url": self.request.path,
 
+            # вот эти два поля — для пагинации
+            "page_qs": base_qs,                         # без page
+            "page_qs_prefix": (base_qs + "&") if base_qs else "",  # удобно подставлять перед page=...
+        })
         return ctx
 
 
