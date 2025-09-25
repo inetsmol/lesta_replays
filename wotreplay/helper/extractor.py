@@ -2,7 +2,7 @@
 import os
 import datetime
 import re
-from typing import Any, Dict, List, Optional, Mapping, Iterable, Sequence
+from typing import Any, Dict, List, Optional, Mapping, Iterable, Sequence, Tuple
 
 from django.db.models import Value, FloatField
 from django.db.models.functions import Coalesce, Cast
@@ -1573,3 +1573,55 @@ class Extractor:
             "time_stats": time_stats,
             "vehicle_info": vehicle_info,
         }
+
+    @staticmethod
+    def parse_players_payload(payload: Dict[str, Any]) -> List[Tuple[str, str]]:
+        """
+        Достаёт из payload кортежи (nickname, clan_tag).
+        Ожидаемый формат payload["players"] = { "45977": {...}, "94007": {...}, ... }.
+
+        Возвращает список без пустых/битых записей, без дублей.
+        """
+        data = payload.get("players") or {}
+        seen: set[Tuple[str, str]] = set()
+        result: List[Tuple[str, str]] = []
+
+        # Внутри словаря ключи — любые ID; берём только значения
+        for p in data.values():
+            # в примерах бывают поля "name" и "realName" — берём приоритетно "name"
+            nickname = (p.get("realName") or p.get("name")).strip() or ""
+            if not nickname:
+                continue
+            clan_tag = p.get("clanAbbrev").strip("[] ").upper() or ""
+
+            key = (nickname, clan_tag)
+            if key in seen:
+                continue
+            seen.add(key)
+            result.append(key)
+
+        return result
+
+    @staticmethod
+    def get_replay_owner_from_payload(payload):
+        """
+        Извлекает владельца реплея из payload.
+        Возвращает (nickname, clan_tag) или (None, None).
+        """
+        # Ищем владельца в корне payload
+        owner_nickname = payload.get('playerName', '').strip()
+
+        print(f"owner_nickname {owner_nickname}")
+
+        if owner_nickname and 'players' in payload:
+            # Ищем клан владельца в списке игроков
+            for player_id, player_data in payload['players'].items():
+                if player_data.get('realName', '').strip() == owner_nickname:
+                    clan_tag = player_data.get('clanAbbrev', '').strip()
+
+                    return (owner_nickname, clan_tag)
+
+            # Если не нашли в players, возвращаем без клана
+            return (owner_nickname, '')
+
+        return (None, None)

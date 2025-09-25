@@ -97,6 +97,22 @@ class Replay(models.Model):
         help_text="Режим боя (например: Стандартный бой, Штурм)"
     )
 
+    # ИСПРАВЛЕНО: Связь с владельцем реплея
+    owner = models.ForeignKey(
+        'Player',
+        on_delete=models.PROTECT,
+        related_name='owned_replays',
+        help_text="Игрок, который записал этот реплей"
+    )
+
+    # ИСПРАВЛЕНО: Все участники боя
+    participants = models.ManyToManyField(
+        'Player',
+        related_name='participated_replays',
+        blank=True,
+        help_text="Все участники этого боя"
+    )
+
     class Meta:
         verbose_name = "Реплей"
         verbose_name_plural = "Реплеи"
@@ -190,3 +206,35 @@ class Achievement(models.Model):
 
     def __str__(self):
         return f"{self.name} (ID: {self.achievement_id}, section: {self.section})"
+
+
+class Player(models.Model):
+    """
+    Игрок World of Tanks.
+    """
+    nickname = models.CharField(
+        "Ник",
+        max_length=50,
+        unique=True,
+        db_index=True,
+        help_text="Игровой ник (уникален в рамках сервера)"
+    )
+    clan_tag = models.CharField(
+        "Клан",
+        max_length=10,
+        blank=True,
+        default="",
+        help_text="Тег клана без скобок, например: RED"
+    )
+
+    class Meta:
+        verbose_name = "Игрок"
+        verbose_name_plural = "Игроки"
+        ordering = ["nickname"]
+        indexes = [
+            models.Index(fields=["nickname"]),
+            models.Index(fields=["clan_tag"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"[{self.clan_tag}] {self.nickname}" if self.clan_tag else self.nickname

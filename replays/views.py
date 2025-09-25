@@ -24,7 +24,8 @@ from django.views.generic import ListView, DetailView, TemplateView
 
 from wotreplay.helper.extractor import Extractor
 from wotreplay.mtreplay import Replay as Rpl
-from .models import Replay, Tank, Nation, Achievement
+from .models import Replay, Tank, Nation, Achievement, Player
+from .services import attach_players_to_replay
 
 FILES_DIR = Path(settings.MEDIA_ROOT)
 FILES_DIR.mkdir(parents=True, exist_ok=True)
@@ -154,14 +155,21 @@ class ReplayUploadView(View):
             game_version = payload.get('clientVersionFromXml')
 
             # Получаем режим боя через helper
-            from wotreplay.helper.extractor import Extractor
             battle_type = Extractor.get_battle_type_label(payload)
+
+            owner_nickname, owner_clan = Extractor.get_replay_owner_from_payload(payload)
+
+            owner, created = Player.objects.get_or_create(
+                nickname=owner_nickname,
+                defaults={'clan_tag': owner_clan}
+            )
 
             # Создаем объект реплея
             replay = Replay.objects.create(
                 file_name=replay_fields.get('file_name'),
-                payload=replay_fields.get('payload'),
+                payload=payload,
                 tank=tank,
+                owner=owner,
                 battle_date=replay_fields.get('battle_date'),
                 map_name=replay_fields.get('map_name'),
                 map_display_name=replay_fields.get('map_display_name'),
@@ -175,6 +183,8 @@ class ReplayUploadView(View):
                 game_version=game_version,
                 battle_type=battle_type
             )
+
+            attach_players_to_replay(replay, payload)
 
             logger.info(f"Реплей создан: {replay.id} - {uploaded_file.name}")
             return replay
