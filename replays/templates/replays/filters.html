@@ -13,15 +13,15 @@
             <div>
                 <h1 style="margin-bottom:16px;">Фильтры</h1>
             </div>
-            <div style=" display: flex; gap:10px; margin-bottom:16px;">
+            <div class="actions" style="display:flex; gap:10px; margin-top:16px;">
                 <a class="btn btn--ghost" href="{{ list_url }}">К списку</a>
                 <a class="btn btn--ghost" href="{{ list_url }}">Сбросить</a>
-                <button type="submit" class="btn btn--accent">Применить</button>
+                <button type="submit" class="btn btn--accent" form="filters-form">Применить</button>
             </div>
         </div>
 
 
-        <form class="form" method="get" action="{{ list_url }}">
+        <form id="filters-form" class="form" method="get" action="{{ list_url }}">
             <div class="form-row grid-3">
                 <div class="field">
                     <label for="map_search">Карта</label>
