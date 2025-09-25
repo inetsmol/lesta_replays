@@ -41,6 +41,38 @@
                 </div>
             </div>
 
+        <div class="form-row grid-3">
+  <div class="field">
+    <label for="owner_nick">Ник владельца</label>
+    <input type="search" id="owner_nick" name="owner_nick"
+           value="{{ current_filters.owner_nick.0|default_if_none:'' }}"
+           placeholder="Напр.: fridaynich">
+  </div>
+
+  <div class="field">
+    <label for="participant_nick">Ник участника</label>
+    <input type="search" id="participant_nick" name="participant_nick"
+           value="{{ current_filters.participant_nick.0|default_if_none:'' }}"
+           placeholder="Любой игрок из боя">
+    <div class="text-muted-sm mt-4">Ищет среди всех участников, возможны совпадения по подстроке</div>
+  </div>
+
+{#  <div class="field">#}
+{#    <label for="clan">Клан</label>#}
+{#    <input type="search" id="clan" name="clan"#}
+{#           value="{{ current_filters.clan.0|default_if_none:'' }}"#}
+{#           placeholder="Тег клана, напр.: RED">#}
+{#    <div class="text-muted-sm mt-4">Ищет и владельца, и участников. Хранится без скобок.</div>#}
+{#  </div>#}
+  <div class="field">
+  <label for="owner_clan">Клан владельца</label>
+  <input type="search" id="owner_clan" name="owner_clan"
+         value="{{ current_filters.owner_clan.0|default_if_none:'' }}"
+         placeholder="Напр.: RED">
+</div>
+
+</div>
+
             <div class="form-row grid-3">
                 <div class="field">
                     <label>Урон</label>
@@ -158,6 +190,37 @@
 
             <hr class="mt-8 mb-8" style="border:none;border-top:1px solid var(--border);"/>
 
+        <div class="form-row">
+  <div class="field">
+    <label for="gv-search">Версия клиента</label>
+    <input type="search" id="gv-search" placeholder="Поиск по версии…"
+           value="{{ current_filters.game_version_search.0|default_if_none:'' }}"
+           name="game_version_search">
+
+    <div class="text-muted-sm mt-8">Всего:
+      <span class="gv-count">
+        {{ filter_data.game_versions|length }}
+      </span>
+    </div>
+
+    {% with selected=current_filters.game_version|default:"" %}
+      <div id="gv-list" class="mt-8"
+           style="max-height:240px; overflow:auto; border:1px solid var(--border); border-radius: var(--radius-sm); padding:8px; background:var(--panel-2);">
+        {% for v in filter_data.game_versions %}
+          {% with sv=v|stringformat:"s" %}
+            <label class="gv-item" data-name="{{ v|lower }}" style="display:block; padding:4px 2px;">
+              <input type="checkbox" name="game_version" value="{{ sv }}"
+                     {% if sv in selected %}checked{% endif %}>
+              <span class="checkbox"></span> {{ v }}
+            </label>
+          {% endwith %}
+        {% endfor %}
+      </div>
+    {% endwith %}
+  </div>
+</div>
+
+
             <div class="form-row">
                 <div class="field">
                     <label for="tank-search">Техника</label>
@@ -214,4 +277,26 @@
             update();
         })();
     </script>
+    <script>
+  // Фильтр по списку версий клиента
+  (function () {
+    const search = document.getElementById('gv-search');
+    const list = document.getElementById('gv-list');
+    const count = document.querySelector('.gv-count');
+    if (!search || !list) return;
+    const items = Array.from(list.querySelectorAll('.gv-item'));
+    const update = () => {
+      const q = (search.value || '').trim().toLowerCase();
+      let visible = 0;
+      items.forEach(it => {
+        const ok = !q || (it.dataset.name || '').includes(q);
+        it.style.display = ok ? 'block' : 'none';
+        if (ok) visible++;
+      });
+      if (count) count.textContent = String(visible);
+    };
+    search.addEventListener('input', update);
+    update();
+  })();
+</script>
 {% endblock %}

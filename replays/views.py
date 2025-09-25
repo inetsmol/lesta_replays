@@ -306,12 +306,12 @@ class ReplayListView(ListView):
         """
         Получение отфильтрованного QuerySet с применением фильтров.
         """
-        queryset = Replay.objects.select_related('tank').order_by('-battle_date', '-created_at')
-
-        # Применяем фильтры
-        queryset = self._apply_filters(queryset)
-
-        return queryset
+        qs = (Replay.objects
+              .select_related('tank', 'owner')
+              .prefetch_related('participants')  # чтобы не было N+1 для участников
+              .order_by('-battle_date', '-created_at'))
+        qs = self._apply_filters(qs)
+        return qs
 
     def _apply_filters(self, queryset):
         def _getlist(name):
@@ -325,6 +325,8 @@ class ReplayListView(ListView):
                 except (TypeError, ValueError):
                     pass
             return out
+
+        m2m_used = False
 
         # tanks (multi)
         tank_ids = _to_int_set(_getlist("tank"))
@@ -391,6 +393,44 @@ class ReplayListView(ListView):
         if bt:
             queryset = queryset.filter(battle_type__in=bt)
 
+        owner_nick = (self.request.GET.get("owner_nick") or "").strip()
+        if owner_nick:
+            queryset = queryset.filter(owner__nickname__icontains=owner_nick)
+
+        # --- НОВОЕ: поиск по нику ЛЮБОГО участника ---
+        participant_nick = (self.request.GET.get("participant_nick") or "").strip()
+        if participant_nick:
+            queryset = queryset.filter(participants__nickname__icontains=participant_nick)
+            m2m_used = True
+
+        # --- НОВОЕ: клантег (без скобок, храним как у вас) ---
+        # 1) owner_clan: строго по владельцу
+        owner_clan = (self.request.GET.get("owner_clan") or "").strip().upper()
+        if owner_clan:
+            queryset = queryset.filter(owner__clan_tag__iexact=owner_clan)
+
+        # 2) clan: по владельцу ИЛИ по любому участнику
+        clan = (self.request.GET.get("clan") or "").strip().upper()
+        if clan:
+            queryset = queryset.filter(
+                Q(owner__clan_tag__iexact=clan) | Q(participants__clan_tag__iexact=clan)
+            )
+            m2m_used = True
+
+        # --- НОВОЕ: «живой» поиск по версии клиента (подстрока) ---
+        game_version_search = (self.request.GET.get("game_version_search") or "").strip()
+        if game_version_search:
+            queryset = queryset.filter(game_version__icontains=game_version_search)
+
+        # --- существующее: точный выбор нескольких версий через чекбоксы ---
+        gv = set(_getlist("game_version"))
+        if gv:
+            queryset = queryset.filter(game_version__in=gv)
+
+        # если был фильтр по participants (M2M) — убираем дубликаты
+        if m2m_used:
+            queryset = queryset.distinct()
+
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -436,7 +476,7 @@ class ReplayFiltersView(TemplateView):
     def get_context_data(self, **kwargs):
         from django.urls import reverse
         ctx = super().get_context_data(**kwargs)
-        # TODO фильтр по клану и нику и версию клиента добавить
+        # TODO фильтр по клану
         tank_types = Tank.objects.values_list("type", flat=True).distinct().order_by("type")
         print(f"tank_types: {tank_types}")
 

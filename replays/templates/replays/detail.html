@@ -145,22 +145,24 @@
                  src="{% static 'style/images/wot/map/stats/' %}{{ replay.map_name }}.png"
                  alt="{{ replay.map_display_name|default:replay.map_name }}">
             <div class="stat">
-              <div class="stat-tank">
-                <img class="tank new"
-                     src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ replay.tank.vehicleId }}.png"
-                     alt="{{ replay.tank.name }}">
-                <span class="name ">"{{ replay.tank.name }}"</span>
-                <img class="type"
-                     src="{% static 'style/images/wot/vehicleTypes/' %}{{ replay.tank.type }}.png" alt="">
-                <img class="level"
-                     src="{% static 'style/images/wot/levels/tank_level_' %}{{ replay.tank.level }}.png" alt="">
-              </div>
+                <div style="display: flex">
+                  <div class="stat-tank" >
+                    <img class="tank new"
+                         src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ replay.tank.vehicleId }}.png"
+                         alt="{{ replay.tank.name }}">
+                    <span class="name ">"{{ replay.tank.name }}"</span>
+                    <img class="type"
+                         src="{% static 'style/images/wot/vehicleTypes/' %}{{ replay.tank.type }}.png" alt="">
+                    <img class="level"
+                         src="{% static 'style/images/wot/levels/tank_level_' %}{{ replay.tank.level }}.png" alt="">
+                  </div>
 
-              <div class="stat-text">
-                <div class="name">{{ details.playerName }}</div>
-                {{ replay.battle_date }}
-                <div class="death-reason">{{ death_reason_text }}</div>
-              </div>
+                  <div class="stat-text" >
+                    <div class="name">{{ details.playerName }}</div>
+                    {{ replay.battle_date }}
+                    <div class="death-reason">{{ death_reason_text }}</div>
+                  </div>
+                </div>
 
               <div class="income">
                 <table>
