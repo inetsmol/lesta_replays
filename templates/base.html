@@ -46,7 +46,7 @@
     <div class="modal-overlay" id="modal-overlay"></div>
     <div class="modal-content">
         <div class="modal-header">
-            <h2>Загрузить реплей</h2>
+            <h2>Загрузить реплеи</h2>
             <button class="modal-close" id="modal-close" type="button">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
@@ -60,18 +60,19 @@
                 <div class="upload-area" id="upload-area">
                     <div class="upload-icon">
                         <svg width="48" height="48" viewBox="0 0 48 48" fill="currentColor" opacity="0.5">
-                            <path d="M14 2H34L42 10V42C42 44.2 40.2 46 38 46H10C7.8 46 6 44.2 6 42V6C6 3.8 7.8 2 10 2H14ZM32 4H10C8.9 4 8 4.9 8 6V42C8 43.1 8.9 44 10 44H38C39.1 44 40 43.1 40 42V12L32 4ZM30 6V10H38L30 6Z"/>
+                            <path d="M14 2H34L42 10V42C42 44.2 40.2 46 38 46H10C7.8 46 6 44.2 6 42V6C6 3.8 7.8 2 10 2H14ZM32 4H10C8.9 4 8 4.9 8 6V42C8 43.1 8.9 44 10 44H38C39.1 44 40 43.1 40 42V12L32 4ZM30 6V10H38Л30 6Z"/>
                         </svg>
                     </div>
                     <p class="upload-text">
-                        <strong>Перетащите файл .mtreplay сюда</strong><br>
-                        или нажмите для выбора файла
+                        <strong>Перетащите файлы .mtreplay сюда</strong><br>
+                        или нажмите для выбора файлов
                     </p>
-                    <input type="file" id="file-input" name="file" accept=".mtreplay" class="file-input">
+                    {# изменения: multiple и name="files" #}
+                    <input type="file" id="file-input" name="files" accept=".mtreplay" class="file-input" multiple>
                 </div>
 
                 <div class="selected-file" id="selected-file" style="display: none;">
-                    <h3>Выбранный файл:</h3>
+                    <h3>Выбранные файлы:</h3>
                     <div class="file-info" id="file-info"></div>
                 </div>
             </div>
@@ -79,7 +80,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn--ghost" id="cancel-upload">Отмена</button>
                 <button type="submit" class="btn btn--accent" id="submit-upload" disabled>
-                    <span class="upload-status">Загрузить файл</span>
+                    <span class="upload-status">Загрузить файлы</span>
                 </button>
             </div>
         </form>

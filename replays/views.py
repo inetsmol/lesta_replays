@@ -37,100 +37,227 @@ def health(request):
     return HttpResponse("OK")
 
 
-class ReplayUploadView(View):
+class ReplayBatchUploadView(View):
     """
-    View для загрузки файлов реплеев Мир Танков.
-    Принимает .mtreplay файлы, извлекает данные и создает объект Replay.
+    Пакетная загрузка .mtreplay файлов.
+    Принимает несколько файлов (поле 'files'), валидирует и создаёт Replay по каждому.
+    Возвращает summary + пофайловые результаты.
     """
 
-    def post(self, request):
-        try:
-            # Получаем файл из запроса
-            uploaded_file = request.FILES.get('file')
-            if not uploaded_file:
-                return self._error_response("Файл не выбран")
+    # --- настройки/ограничения батча ---
+    MAX_FILES_PER_REQUEST = 50
+    MAX_TOTAL_SIZE = 300 * 1024 * 1024  # 300MB суммарно
 
-            # Валидация файла
-            validation_error = self._validate_file(uploaded_file)
-            if validation_error:
-                return validation_error
+    def post(self, request: HttpRequest):
+        files = request.FILES.getlist('files') or []
+        if not files:
+            return self._error_response("Файлы не выбраны")
 
-            # Сохраняем файл и создаем реплей
-            with transaction.atomic():
-                replay = self._process_replay_file(uploaded_file)
+        if len(files) > self.MAX_FILES_PER_REQUEST:
+            return self._error_response(f"Слишком много файлов. Максимум: {self.MAX_FILES_PER_REQUEST}")
 
-            messages.success(request, f"Реплей успешно загружен: {replay.file_name}")
+        total_size = sum(f.size for f in files)
+        if total_size > self.MAX_TOTAL_SIZE:
+            return self._error_response(f"Суммарный размер слишком большой. Лимит: {self.MAX_TOTAL_SIZE // (1024*1024)}MB")
 
-            # Для AJAX запросов возвращаем JSON с редиректом
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'success': True,
-                    'message': f"Реплей успешно загружен: {replay.file_name}",
-                    'redirect_url': reverse('replay_detail', kwargs={'pk': replay.id})
-                })
+        results = []
+        created_count = 0
+        skipped_count = 0
+        error_count = 0
 
-            return redirect('replay_detail', pk=replay.id)
+        for f in files:
+            file_result = {"file": f.name}
+            try:
+                # валидация на уровне файла (расширение/размер/дубликат имени)
+                v_err = self._validate_file(f)
+                if v_err:
+                    file_result["ok"] = False
+                    file_result["error"] = v_err
+                    error_count += 1
+                    results.append(file_result)
+                    continue
 
-        except ValidationError as e:
-            # ValidationError может содержать список ошибок или строку
-            error_message = self._extract_error_message(e)
-            logger.warning(f"Ошибка валидации реплея: {error_message}")
-            return self._error_response(error_message)
+                # отдельная транзакция на каждый файл
+                with transaction.atomic():
+                    replay = self._process_replay_file(f)
 
-        except Exception as e:
-            error_message = "Произошла ошибка при обработке файла"
-            logger.error(f"Ошибка загрузки реплея: {str(e)}")
-            return self._error_response(error_message)
+                file_result["ok"] = True
+                file_result["replay_id"] = replay.id
+                file_result["redirect_url"] = reverse('replay_detail', kwargs={'pk': replay.id})
+                created_count += 1
+
+            except ValidationError as e:
+                msg = self._extract_error_message(e)
+                logger.warning(f"[BATCH] Ошибка валидации '{f.name}': {msg}")
+                file_result["ok"] = False
+                file_result["error"] = msg
+                error_count += 1
+
+            except Exception as e:
+                logger.exception(f"[BATCH] Ошибка обработки '{f.name}': {e}")
+                file_result["ok"] = False
+                file_result["error"] = "Ошибка при обработке файла"
+                error_count += 1
+
+            results.append(file_result)
+
+        processed = len(files)
+        # считаем пропуски как «ошибки» или «skip» — если понадобится, можно разделить
+        skipped_count = 0
+
+        # для обычного запроса (не AJAX) — положим флеши и кинем обратно на список
+        if request.headers.get('X-Requested-With') != 'XMLHttpRequest':
+            if created_count:
+                messages.success(request, f"Загружено успешно: {created_count} из {processed}")
+            if error_count:
+                messages.error(request, f"Ошибки при загрузке: {error_count} из {processed}")
+            return redirect('replay_list')
+
+        return JsonResponse({
+            "success": True,
+            "summary": {
+                "processed": processed,
+                "created": created_count,
+                "errors": error_count,
+                "skipped": skipped_count,
+            },
+            "results": results,
+            # советуем фронту: если загружен один файл — перейти в detail, иначе — на список
+            "redirect_url": results[0]["redirect_url"] if processed == 1 and results and results[0].get("ok") else reverse('replay_list'),
+        }, status=200)
+
+    # ==== ниже — взято из твоего существующего класса, без изменений по смыслу ====
 
     def _extract_error_message(self, validation_error):
-        """Извлекает читаемое сообщение об ошибке из ValidationError"""
         if hasattr(validation_error, 'message_dict'):
-            # Ошибки формы
-            messages = []
+            messages_ = []
             for field, errors in validation_error.message_dict.items():
                 if isinstance(errors, list):
-                    messages.extend(errors)
+                    messages_.extend(errors)
                 else:
-                    messages.append(str(errors))
-            return '; '.join(messages)
+                    messages_.append(str(errors))
+            return '; '.join(messages_)
         elif hasattr(validation_error, 'messages'):
-            # Список сообщений
             if isinstance(validation_error.messages, list):
                 return '; '.join(validation_error.messages)
             else:
                 return str(validation_error.messages)
         else:
-            # Простое сообщение
             return str(validation_error)
 
-    def _error_response(self, message):
-        """Возвращает ошибку в зависимости от типа запроса"""
+    def _error_response(self, message: str):
         if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({
-                'success': False,
-                'error': message,
-                'redirect_url': reverse('replay_list')
-            }, status=400)
+            return JsonResponse({"success": False, "error": message, "redirect_url": reverse('replay_list')}, status=400)
         else:
             messages.error(self.request, message)
             return redirect('replay_list')
 
     def _validate_file(self, uploaded_file):
-        """Валидация загружаемого файла"""
-        # Проверка расширения
+        # расширение
         if not uploaded_file.name.lower().endswith('.mtreplay'):
-            return self._error_response("Неподдерживаемый формат файла. Разрешены только .mtreplay файлы")
-
-        # Проверка размера (50MB)
-        max_size = 50 * 1024 * 1024
-        if uploaded_file.size > max_size:
-            return self._error_response("Файл слишком большой. Максимальный размер: 50MB")
-
-        # Проверка уникальности имени файла
+            return "Неподдерживаемый формат файла. Разрешены только .mtreplay файлы"
+        # размер (50MB на файл)
+        if uploaded_file.size > 50 * 1024 * 1024:
+            return "Файл слишком большой. Максимальный размер: 50MB"
+        # уникальность имени
         if Replay.objects.filter(file_name=uploaded_file.name).exists():
-            return self._error_response("Файл с таким именем уже загружен")
-
+            return "Файл с таким именем уже загружен"
         return None
+
+# class ReplayUploadView(View):
+#     """
+#     View для загрузки файлов реплеев Мир Танков.
+#     Принимает .mtreplay файлы, извлекает данные и создает объект Replay.
+#     """
+#
+#     def post(self, request):
+#         try:
+#             # Получаем файл из запроса
+#             uploaded_file = request.FILES.get('file')
+#             if not uploaded_file:
+#                 return self._error_response("Файл не выбран")
+#
+#             # Валидация файла
+#             validation_error = self._validate_file(uploaded_file)
+#             if validation_error:
+#                 return validation_error
+#
+#             # Сохраняем файл и создаем реплей
+#             with transaction.atomic():
+#                 replay = self._process_replay_file(uploaded_file)
+#
+#             messages.success(request, f"Реплей успешно загружен: {replay.file_name}")
+#
+#             # Для AJAX запросов возвращаем JSON с редиректом
+#             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+#                 return JsonResponse({
+#                     'success': True,
+#                     'message': f"Реплей успешно загружен: {replay.file_name}",
+#                     'redirect_url': reverse('replay_detail', kwargs={'pk': replay.id})
+#                 })
+#
+#             return redirect('replay_detail', pk=replay.id)
+#
+#         except ValidationError as e:
+#             # ValidationError может содержать список ошибок или строку
+#             error_message = self._extract_error_message(e)
+#             logger.warning(f"Ошибка валидации реплея: {error_message}")
+#             return self._error_response(error_message)
+#
+#         except Exception as e:
+#             error_message = "Произошла ошибка при обработке файла"
+#             logger.error(f"Ошибка загрузки реплея: {str(e)}")
+#             return self._error_response(error_message)
+#
+#     def _extract_error_message(self, validation_error):
+#         """Извлекает читаемое сообщение об ошибке из ValidationError"""
+#         if hasattr(validation_error, 'message_dict'):
+#             # Ошибки формы
+#             messages = []
+#             for field, errors in validation_error.message_dict.items():
+#                 if isinstance(errors, list):
+#                     messages.extend(errors)
+#                 else:
+#                     messages.append(str(errors))
+#             return '; '.join(messages)
+#         elif hasattr(validation_error, 'messages'):
+#             # Список сообщений
+#             if isinstance(validation_error.messages, list):
+#                 return '; '.join(validation_error.messages)
+#             else:
+#                 return str(validation_error.messages)
+#         else:
+#             # Простое сообщение
+#             return str(validation_error)
+#
+#     def _error_response(self, message):
+#         """Возвращает ошибку в зависимости от типа запроса"""
+#         if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+#             return JsonResponse({
+#                 'success': False,
+#                 'error': message,
+#                 'redirect_url': reverse('replay_list')
+#             }, status=400)
+#         else:
+#             messages.error(self.request, message)
+#             return redirect('replay_list')
+#
+#     def _validate_file(self, uploaded_file):
+#         """Валидация загружаемого файла"""
+#         # Проверка расширения
+#         if not uploaded_file.name.lower().endswith('.mtreplay'):
+#             return self._error_response("Неподдерживаемый формат файла. Разрешены только .mtreplay файлы")
+#
+#         # Проверка размера (50MB)
+#         max_size = 50 * 1024 * 1024
+#         if uploaded_file.size > max_size:
+#             return self._error_response("Файл слишком большой. Максимальный размер: 50MB")
+#
+#         # Проверка уникальности имени файла
+#         if Replay.objects.filter(file_name=uploaded_file.name).exists():
+#             return self._error_response("Файл с таким именем уже загружен")
+#
+#         return None
 
     def _process_replay_file(self, uploaded_file):
         """

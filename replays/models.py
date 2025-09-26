@@ -146,6 +146,17 @@ class Nation(models.TextChoices):
     INTUNION = "intunion", "Сборная наций"
 
 
+class Type(models.TextChoices):
+    """
+    храним slug типа: lightTank/mediumTank/heavyTank/AT-SPG/SPG
+    """
+    LIGHTTANK = "lightTank", "ЛТ"
+    MEDIUMTANK = "mediumTank", "СТ"
+    HEAVYTANK = "heavyTank", "ТТ"
+    AT_SPG = "AT-SPG", "ПТ-САУ"
+    SPG = "SPG", "САУ"
+
+
 class Tank(models.Model):
     """
     Минимальный набор полей для списка техники.
@@ -153,7 +164,10 @@ class Tank(models.Model):
     vehicleId = models.CharField(max_length=64, unique=True, help_text="Напр.: R174_BT-5")
     name = models.CharField(max_length=128)
     level = models.PositiveSmallIntegerField()
-    type = models.CharField(max_length=64)  # храним slug типа: lightTank/mediumTank/heavyTank/AT-SPG/SPG
+    type = models.CharField(
+        max_length=64,
+        choices=Type.choices,
+    )
     nation = models.CharField(
         max_length=32,
         choices=Nation.choices,
