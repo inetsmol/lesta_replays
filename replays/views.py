@@ -440,15 +440,31 @@ class ReplayListView(ListView):
     context_object_name = 'items'
     paginate_by = 10
 
+    # Какие поля разрешено сортировать
+    SORTABLE_FIELDS = {'credits', 'xp', 'kills', 'damage', 'assist', 'block'}
+
     def get_queryset(self):
         """
         Получение отфильтрованного QuerySet с применением фильтров.
         """
         qs = (Replay.objects
               .select_related('tank', 'owner')
-              .prefetch_related('participants')  # чтобы не было N+1 для участников
-              .order_by('-battle_date', '-created_at'))
+              .prefetch_related('participants')
+              )
+        # СНАЧАЛА фильтры
         qs = self._apply_filters(qs)
+
+        # ПОТОМ сортировка (по уже отфильтрованному набору)
+        sort = (self.request.GET.get('sort') or '').strip()
+        direction = (self.request.GET.get('dir') or 'desc').lower()
+
+        if sort in self.SORTABLE_FIELDS:
+            order = sort if direction == 'asc' else f'-{sort}'
+            # вторичная сортировка для стабильности
+            qs = qs.order_by(order, '-battle_date', '-created_at')
+        else:
+            qs = qs.order_by('-battle_date', '-created_at')
+
         return qs
 
     def _apply_filters(self, queryset):
@@ -574,16 +590,22 @@ class ReplayListView(ListView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
 
-        # «Применены ли фильтры?» — игнорируем page=
-        # q = self.request.GET.copy()
-        # q.pop("page", None)
-        # has_filters_applied = any(v for k, v in q.lists())
         q = self.request.GET.copy()
-        q.pop("page", None)  # убираем page из фильтров
-        base_qs = q.urlencode()  # напр. "nation=usa&type=heavyTank"
+        q.pop("page", None)
+        base_qs = q.urlencode()
+
+        current_sort = (self.request.GET.get('sort') or '').strip()
+        current_dir = (self.request.GET.get('dir') or 'desc').lower()
+
+        def next_dir_for(field: str) -> str:
+            if current_sort == field and current_dir == 'desc':
+                return 'asc'
+            return 'desc'
+
+        # карта направлений для ссылок
+        next_dir = {f: next_dir_for(f) for f in self.SORTABLE_FIELDS}
 
         tank_types = Tank.objects.values_list("type", flat=True).distinct().order_by("type")
-        # print(f"tank_types: {tank_types}")
 
         ctx.update({
             "filter_data": {
@@ -598,9 +620,14 @@ class ReplayListView(ListView):
             "filters_url": reverse("replay_filters"),
             "reset_url": self.request.path,
 
-            # вот эти два поля — для пагинации
-            "page_qs": base_qs,                         # без page
-            "page_qs_prefix": (base_qs + "&") if base_qs else "",  # удобно подставлять перед page=...
+            # для пагинации и построения ссылок
+            "page_qs": base_qs,
+            "page_qs_prefix": (base_qs + "&") if base_qs else "",
+
+            # для сортировок
+            "current_sort": current_sort,
+            "current_dir": current_dir,
+            "next_dir": next_dir,
         })
         return ctx
 

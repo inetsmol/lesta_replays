@@ -8,11 +8,73 @@
     <link rel="stylesheet" href="{% static 'css/wot_record_skin.css' %}">
     {#    <div id="content" class="content content--solo">#}
 
-    <div class="filters-actions" style="display:flex; justify-content:flex-end; gap:10px; margin-bottom:12px;">
+    <div class="filters-actions"
+         style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px;">
+
+      <!-- СОРТИРОВКИ (слева) -->
+      <div class="sorters" style="display:flex; gap:8px; flex-wrap:wrap;">
+        {# Урон #}
+        <a class="btn btn--ghost {% if current_sort == 'damage' %}active{% endif %}"
+           href="?{{ page_qs_prefix }}sort=damage&dir={{ next_dir.damage }}"
+           title="Сортировать по урону">
+          <img src="{% static 'style/images/wot/library/BattleResultIcon-1.png' %}" alt="Damage" style="height:16px;vertical-align:-3px;">
+          Урон
+          {% if current_sort == 'damage' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
+        </a>
+
+        {# Кредиты #}
+        <a class="btn btn--ghost {% if current_sort == 'credits' %}active{% endif %}"
+           href="?{{ page_qs_prefix }}sort=credits&dir={{ next_dir.credits }}"
+           title="Сортировать по кредитам">
+          <img src="{% static 'style/images/wot/library/CreditsIconBig.png' %}" alt="Credits" style="height:16px;vertical-align:-3px;">
+          Кредиты
+          {% if current_sort == 'credits' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
+        </a>
+
+        {# Опыт #}
+        <a class="btn btn--ghost {% if current_sort == 'xp' %}active{% endif %}"
+           href="?{{ page_qs_prefix }}sort=xp&dir={{ next_dir.xp }}"
+           title="Сортировать по опыту">
+          <img src="{% static 'style/images/wot/library/XpIconBig.png' %}" alt="XP" style="height:16px;vertical-align:-3px;">
+          Опыт
+          {% if current_sort == 'xp' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
+        </a>
+
+        {# Фраги #}
+        <a class="btn btn--ghost {% if current_sort == 'kills' %}active{% endif %}"
+           href="?{{ page_qs_prefix }}sort=kills&dir={{ next_dir.kills }}"
+           title="Сортировать по фрагам">
+          <img src="{% static 'style/images/wot/buttons/Tank-ico.png' %}" alt="Kills" style="height:16px;vertical-align:-3px;">
+          Фраги
+          {% if current_sort == 'kills' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
+        </a>
+
+        {# Ассист #}
+        <a class="btn btn--ghost {% if current_sort == 'assist' %}active{% endif %}"
+           href="?{{ page_qs_prefix }}sort=assist&dir={{ next_dir.assist }}"
+           title="Сортировать по ассисту">
+          <img src="{% static 'style/images/wot/buttons/assist.png' %}" alt="Assist" style="height:16px;vertical-align:-3px;">
+          Ассист
+          {% if current_sort == 'assist' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
+        </a>
+
+        {# Заблокировано бронёй #}
+        <a class="btn btn--ghost {% if current_sort == 'block' %}active{% endif %}"
+           href="?{{ page_qs_prefix }}sort=block&dir={{ next_dir.block }}"
+           title="Сортировать по заблокированному урону">
+          <img src="{% static 'style/images/wot/buttons/blocked.png' %}" alt="Blocked" style="height:16px;vertical-align:-3px;">
+          Блок
+          {% if current_sort == 'block' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
+        </a>
+      </div>
+
+      <!-- КНОПКИ ФИЛЬТРОВ (справа) -->
+      <div style="display:flex; gap:10px;">
         <a class="btn btn--accent" href="{{ filters_url }}">Фильтры</a>
         {% if has_filters_applied %}
-            <a class="btn btn--ghost" href="{{ reset_url }}">Сбросить</a>
+          <a class="btn btn--ghost" href="{{ reset_url }}">Сбросить</a>
         {% endif %}
+      </div>
     </div>
 
     <main class="replay-grid replay-grid--rows">
