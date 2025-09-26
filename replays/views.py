@@ -157,12 +157,23 @@ class ReplayUploadView(View):
             # Получаем режим боя через helper
             battle_type = Extractor.get_battle_type_label(payload)
 
-            owner_nickname, owner_clan = Extractor.get_replay_owner_from_payload(payload)
+            owner_name, owner_real_name, owner_clan = Extractor.get_replay_owner_from_payload(payload)
 
             owner, created = Player.objects.get_or_create(
-                nickname=owner_nickname,
-                defaults={'clan_tag': owner_clan}
+                name=owner_name,  # искать ТОЛЬКО по уникальному name
+                defaults={'real_name': owner_real_name, 'clan_tag': owner_clan}
             )
+
+            updated = False
+            if not created:
+                if owner_real_name and owner.real_name != owner_real_name:
+                    owner.real_name = owner_real_name
+                    updated = True
+                if owner_clan and owner.clan_tag != owner_clan:
+                    owner.clan_tag = owner_clan
+                    updated = True
+                if updated:
+                    owner.save(update_fields=['real_name', 'clan_tag'])
 
             # Создаем объект реплея
             replay = Replay.objects.create(
@@ -395,12 +406,12 @@ class ReplayListView(ListView):
 
         owner_nick = (self.request.GET.get("owner_nick") or "").strip()
         if owner_nick:
-            queryset = queryset.filter(owner__nickname__icontains=owner_nick)
+            queryset = queryset.filter(owner__real_name__icontains=owner_nick)
 
         # --- НОВОЕ: поиск по нику ЛЮБОГО участника ---
         participant_nick = (self.request.GET.get("participant_nick") or "").strip()
         if participant_nick:
-            queryset = queryset.filter(participants__nickname__icontains=participant_nick)
+            queryset = queryset.filter(participants__real_name__icontains=participant_nick)
             m2m_used = True
 
         # --- НОВОЕ: клантег (без скобок, храним как у вас) ---
@@ -476,9 +487,7 @@ class ReplayFiltersView(TemplateView):
     def get_context_data(self, **kwargs):
         from django.urls import reverse
         ctx = super().get_context_data(**kwargs)
-        # TODO фильтр по клану
         tank_types = Tank.objects.values_list("type", flat=True).distinct().order_by("type")
-        print(f"tank_types: {tank_types}")
 
         ctx.update({
             "filter_data": {

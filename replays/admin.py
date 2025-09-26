@@ -13,8 +13,8 @@ class TankAdmin(admin.ModelAdmin):
 
 @admin.register(Player)
 class PlayerAdmin(admin.ModelAdmin):
-    list_display = ("nickname", "clan_tag")
-    search_fields = ("nickname", "clan_tag")
+    list_display = ("real_name", "name", "clan_tag")
+    search_fields = ("real_name", "name", "clan_tag")
 
 @admin.register(Replay)
 class ReplayAdmin(admin.ModelAdmin):

@@ -153,7 +153,7 @@ class Tank(models.Model):
     vehicleId = models.CharField(max_length=64, unique=True, help_text="Напр.: R174_BT-5")
     name = models.CharField(max_length=128)
     level = models.PositiveSmallIntegerField()
-    type = models.CharField(max_length=64)  # храним slug типа: lighttank/mediumtank/heavytank/at-spg/spg
+    type = models.CharField(max_length=64)  # храним slug типа: lightTank/mediumTank/heavyTank/AT-SPG/SPG
     nation = models.CharField(
         max_length=32,
         choices=Nation.choices,
@@ -212,12 +212,18 @@ class Player(models.Model):
     """
     Игрок World of Tanks.
     """
-    nickname = models.CharField(
-        "Ник",
+    name = models.CharField(
+        "Логин",
         max_length=50,
         unique=True,
+        help_text="Игровой логин (уникален в рамках сервера)"
+    )
+    real_name = models.CharField(
+        "Ник",
+        max_length=50,
         db_index=True,
-        help_text="Игровой ник (уникален в рамках сервера)"
+        default="",
+        help_text="Игровой ник"
     )
     clan_tag = models.CharField(
         "Клан",
@@ -230,11 +236,11 @@ class Player(models.Model):
     class Meta:
         verbose_name = "Игрок"
         verbose_name_plural = "Игроки"
-        ordering = ["nickname"]
+        ordering = ["real_name"]
         indexes = [
-            models.Index(fields=["nickname"]),
+            models.Index(fields=["real_name"]),
             models.Index(fields=["clan_tag"]),
         ]
 
     def __str__(self) -> str:
-        return f"[{self.clan_tag}] {self.nickname}" if self.clan_tag else self.nickname
+        return f"[{self.clan_tag}] {self.name}" if self.clan_tag else self.name

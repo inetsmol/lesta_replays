@@ -1605,23 +1605,15 @@ class Extractor:
     @staticmethod
     def get_replay_owner_from_payload(payload):
         """
-        Извлекает владельца реплея из payload.
-        Возвращает (nickname, clan_tag) или (None, None).
+        Возвращает кортеж (name, real_name, clan_tag) — всегда 3 значения, пустые строки если нет данных.
         """
-        # Ищем владельца в корне payload
-        owner_nickname = payload.get('playerName', '').strip()
-
-        print(f"owner_nickname {owner_nickname}")
-
-        if owner_nickname and 'players' in payload:
-            # Ищем клан владельца в списке игроков
-            for player_id, player_data in payload['players'].items():
-                if player_data.get('realName', '').strip() == owner_nickname:
-                    clan_tag = player_data.get('clanAbbrev', '').strip()
-
-                    return (owner_nickname, clan_tag)
-
-            # Если не нашли в players, возвращаем без клана
-            return (owner_nickname, '')
-
-        return (None, None)
+        owner_real_name = (payload.get('playerName') or '').strip()
+        if owner_real_name and 'players' in payload:
+            for _, player_data in (payload.get('players') or {}).items():
+                if (player_data.get('realName') or '').strip() == owner_real_name:
+                    owner_name = (player_data.get('name') or '').strip()
+                    clan_tag = (player_data.get('clanAbbrev') or '').strip()
+                    return owner_name, owner_real_name, clan_tag
+            # не нашли в players — вернём без клана, и name=real_name
+            return owner_real_name, owner_real_name, ''
+        return '', '', ''
