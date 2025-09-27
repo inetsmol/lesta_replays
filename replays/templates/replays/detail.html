@@ -602,15 +602,15 @@
           <div class="row top bonus" style="height:17px;">&nbsp;<span class="right">{{ detailed_report.economics.total_premium_xp|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold"><span class="bonus">126<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="Gold"></span></span></div>
         </div>
 
+
+      </div> <!-- /personal-data tab -->
+    </div> <!-- /tab-detailed -->
         <div class="right down-info">
           <span class="gray">Сервер:</span>{{ details.serverName }}
           <span class="gray">Режим боя:</span>Случайный бой
           <span class="gray">Текущая версия:</span>{{ details.clientVersion }}
           <span class="gray">Отправитель:</span>{{ details.playerName }}
         </div>
-      </div> <!-- /personal-data tab -->
-    </div> <!-- /tab-detailed -->
-
   </div> <!-- /replay-wrapper -->
 
 {% endif %}

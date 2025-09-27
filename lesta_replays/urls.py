@@ -15,9 +15,23 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.contrib.sitemaps import Sitemap
+from django.contrib.sitemaps.views import sitemap
 from django.urls import path, include
 
+from replays.models import Replay
+
+
+class ReplaySitemap(Sitemap):
+    changefreq = "weekly"
+    priority = 0.7
+    def items(self): return Replay.objects.filter(is_public=True)
+    def lastmod(self, obj): return obj.updated_at
+    def location(self, obj): return obj.get_absolute_url()
+
+sitemaps = {"replays": ReplaySitemap}
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="sitemap"),
+    path('adminn/', admin.site.urls),
     path("", include("replays.urls")),
 ]

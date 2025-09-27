@@ -4,8 +4,6 @@ from __future__ import annotations
 import json
 import logging
 import mimetypes
-import os
-import urllib.parse
 from datetime import datetime
 from pathlib import Path
 
@@ -14,8 +12,8 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
-from django.http import JsonResponse, Http404, FileResponse, HttpResponse, StreamingHttpResponse
-from django.shortcuts import redirect, get_object_or_404
+from django.http import JsonResponse, Http404, HttpResponse, StreamingHttpResponse, HttpRequest
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.dateparse import parse_date
 from django.utils.encoding import escape_uri_path
