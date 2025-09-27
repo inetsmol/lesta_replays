@@ -1,0 +1,52 @@
+{# templates/includes/sidebar/_support.html #}
+{% load static %}
+
+<div class="support-card">
+  <div class="support-card__title">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 6 4 4 6.5 4c1.74 0 3.41.81 4.5 2.09C12.09 4.81 13.76 4 15.5 4 18 4 20 6 20 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+    </svg>
+    Поддержать проект
+  </div>
+
+  <div class="support-card__text" id="support-phrase">
+    <!-- сюда подставится случайный текст -->
+  </div>
+
+  <div class="support-qr">
+    <img src="{% static 'donation_qr.png' %}" alt="QR-код для доната на поддержку проекта">
+    <div class="support-mini">Сканируйте камерой — оплата в один клик</div>
+  </div>
+
+  <a class="support-btn"
+     href="https://www.tinkoff.ru/rm/r_QOueoIJBoY.BitHUDZPXL/7F9Zp34216"
+     target="_blank" rel="noopener">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 3C7.03 3 3 7.03 3 12s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm1 5v3h3v2h-3v3h-2v-3H8v-2h3V8h2z"/>
+    </svg>
+    Сделать донат
+  </a>
+
+  <div class="support-note">
+    Спасибо! Любая сумма важна — вы прямо ускоряете разработку.
+  </div>
+</div>
+
+<script>
+(function() {
+  const phrases = [
+    "Каждая поддержка помогает серверу жить дольше и работать быстрее.",
+    "Если нравится портал — подкиньте немного топлива в бак!",
+    "Ваши 100 ₽ превращаются в сотни сохранённых реплеев.",
+    "Поддержка проекта — это как апгрейд танка: сильнее, быстрее, надёжнее.",
+    "Ваши 100 ₽ держат портал на ходу, как ремкомплект в бою.",
+    "Каждый вклад — это новые фичи и стабильная работа сервера.",
+    "Всего 100 ₽ — и ещё один день бесперебойной работы сайта.",
+    "Сайт работает благодаря вам — даже маленький взнос имеет значение.",
+    "100 ₽ от вас = новые возможности для аналитики и статистики.",
+    "Помогите нам продолжать: каждые 100 ₽ ускоряют разработку."
+  ];
+  const el = document.getElementById('support-phrase');
+  if (el) el.textContent = phrases[Math.floor(Math.random() * phrases.length)];
+})();
+</script>

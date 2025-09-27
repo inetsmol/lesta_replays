@@ -1,0 +1,62 @@
+{# templates/includes/sidebar/_friends.html #}
+{% load static %}
+
+<div class="friends-card">
+  <div class="friends-card__title">Наши друзья</div>
+  <div class="friends-card__lead">Каналы и сообщества, которые мы рекомендуем.</div>
+
+    <!-- Заголовок для блока JOHNNY -->
+  <div class="friends-card__title friends-card__title--sm">
+    JOHNNY И ЛУЧШИЕ БОИ МИРА ТАНКОВ И WORLD OF TANKS!
+  </div>
+  <ul class="friends-links" role="list">
+    <li>
+      <a href="https://www.youtube.com/@WOTJOHNNY" target="_blank" rel="noopener"
+         class="social-btns" aria-label="YouTube: WOTJOHNNY" title="YouTube: WOTJOHNNY">
+        <img class="social-icon" src="{% static 'channels4_profile.jpg' %}"
+             alt="YouTube канал WOTJOHNNY" loading="lazy">
+        <div class="social-meta">
+          <span class="social-name">WOTJOHNNY</span>
+          <span class="social-link">youtube.com/@WOTJOHNNY</span>
+        </div>
+      </a>
+    </li>
+  </ul>
+      <!-- Заголовок для блока новостей -->
+  <div class="friends-card__title">
+    Новости по миру танков
+  </div>
+    <ul class="friends-links" role="list">
+    <li>
+      <a href="https://t.me/Tanks_Time" target="_blank" rel="noopener"
+         class="social-btns" aria-label="Telegram: Tanks_Time" title="Telegram: Tanks_Time">
+        <span class="icon-wrap" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="12" />
+            <path d="M17.949 6.51c.206-.087.425-.1.6.03.175.13.237.33.177.62l-1.87 8.8c-.08.375-.315.48-.64.375l-3.07-1.015-1.484 1.438c-.164.16-.305.295-.6.295l.214-3.1 5.655-5.11c.246-.22-.053-.34-.38-.12l-6.99 4.4-3.01-.98c-.65-.205-.663-.65.14-.96l11.858-4.153Z"/>
+          </svg>
+        </span>
+        <div class="social-meta">
+          <span class="social-name">Tanks Time</span>
+          <span class="social-link">t.me/Tanks_Time</span>
+        </div>
+      </a>
+    </li>
+
+    <li>
+      <a href="https://vk.com/tanks_time" target="_blank" rel="noopener"
+         class="social-btns" aria-label="VK: tanks_time" title="VK: tanks_time">
+        <span class="icon-wrap" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="12" />
+            <path d="M4 8c0 4.97 4.03 9 9 9h1.08v-2.97c1.82.18 2.6 1.57 3.44 2.97H21c-.93-1.86-2.05-3.23-3.6-3.9 1.43-.74 2.37-1.86 2.77-3.5h-2.7c-.28 1.28-1.15 2.26-2.82 2.54V8h-2.5v6.86C8.86 13.82 7 11.5 6.4 8H4Z"/>
+          </svg>
+        </span>
+        <div class="social-meta">
+          <span class="social-name">Tanks Time</span>
+          <span class="social-link">vk.com/tanks_time</span>
+        </div>
+      </a>
+    </li>
+  </ul>
+</div>

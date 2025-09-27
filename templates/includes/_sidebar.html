@@ -1,0 +1,15 @@
+{# templates/includes/_sidebar.html #}
+{% comment %}
+  Ожидает переменную "widgets" — список путей к шаблонам-виджетам.
+  Пример: ["includes/sidebar/_support.html", "includes/sidebar/_friends.html"]
+{% endcomment %}
+
+<div class="sidebar">
+  {% for tpl in widgets %}
+    <div class="sidebar__item">
+      {% include tpl %}
+    </div>
+  {% empty %}
+    {# Пустой сайдбар — ничего не рендерим #}
+  {% endfor %}
+</div>

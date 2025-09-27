@@ -12,6 +12,7 @@
     <link rel="icon" href="{% static 'favicon.ico' %}">
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
     <link rel="stylesheet" href="{% static 'css/site.css' %}">
+    <link rel="stylesheet" href="{% static 'css/sidebar.css' %}">
 
     {% block extra_head %}{% endblock %}
 </head>
@@ -23,18 +24,18 @@
 <div id="content" class="content {% block content_mod %}{% endblock %}">
     <div style="display: flex">
 
-        <div style="width:15%"></div>
+        {% include "includes/_sidebar.html" with widgets=left_widgets %}
+
 
         <div class="container">
             {% block content %}{% endblock %}
             {% include "includes/_messages.html" %}
         </div>
-        <div style="width:15%">
-            {% include "includes/_friends_sidebar.html" %}
-        </div>
+
+
+        {% include "includes/_sidebar.html" with widgets=right_widgets %}
+
     </div>
-
-
 </div>
 {# ОТДЕЛЬНЫЙ контейнер сайдбара — НЕ внутри .container #}
 
