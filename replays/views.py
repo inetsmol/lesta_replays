@@ -43,11 +43,14 @@ class ReplayBatchUploadView(View):
     """
 
     # --- настройки/ограничения батча ---
-    MAX_FILES_PER_REQUEST = 50
-    MAX_TOTAL_SIZE = 300 * 1024 * 1024  # 300MB суммарно
+    MAX_FILES_PER_REQUEST = 5                         # не более 5 файлов за один раз
+    MAX_TOTAL_SIZE = 30 * 1024 * 1024               # 30MB суммарно
+    MAX_DESCRIPTION_LEN = 200
 
     def post(self, request: HttpRequest):
         files = request.FILES.getlist('files') or []
+        descriptions = request.POST.getlist('descriptions')  # массив описаний по индексу файлов
+
         if not files:
             return self._error_response("Файлы не выбраны")
 
@@ -56,15 +59,21 @@ class ReplayBatchUploadView(View):
 
         total_size = sum(f.size for f in files)
         if total_size > self.MAX_TOTAL_SIZE:
-            return self._error_response(f"Суммарный размер слишком большой. Лимит: {self.MAX_TOTAL_SIZE // (1024*1024)}MB")
+            return self._error_response(
+                f"Суммарный размер слишком большой. Лимит: {self.MAX_TOTAL_SIZE // (1024*1024)}MB"
+            )
 
         results = []
         created_count = 0
-        skipped_count = 0
         error_count = 0
 
-        for f in files:
+        for idx, f in enumerate(files):
             file_result = {"file": f.name}
+            # описание по индексу (может отсутствовать)
+            desc = (descriptions[idx] if idx < len(descriptions) else '').strip()
+            if len(desc) > self.MAX_DESCRIPTION_LEN:
+                desc = desc[: self.MAX_DESCRIPTION_LEN]
+
             try:
                 # валидация на уровне файла (расширение/размер/дубликат имени)
                 v_err = self._validate_file(f)
@@ -77,7 +86,7 @@ class ReplayBatchUploadView(View):
 
                 # отдельная транзакция на каждый файл
                 with transaction.atomic():
-                    replay = self._process_replay_file(f)
+                    replay = self._process_replay_file(f, description=desc)
 
                 file_result["ok"] = True
                 file_result["replay_id"] = replay.id
@@ -100,10 +109,8 @@ class ReplayBatchUploadView(View):
             results.append(file_result)
 
         processed = len(files)
-        # считаем пропуски как «ошибки» или «skip» — если понадобится, можно разделить
-        skipped_count = 0
 
-        # для обычного запроса (не AJAX) — положим флеши и кинем обратно на список
+        # для обычного запроса (не AJAX) — флеши и редирект на список
         if request.headers.get('X-Requested-With') != 'XMLHttpRequest':
             if created_count:
                 messages.success(request, f"Загружено успешно: {created_count} из {processed}")
@@ -117,14 +124,18 @@ class ReplayBatchUploadView(View):
                 "processed": processed,
                 "created": created_count,
                 "errors": error_count,
-                "skipped": skipped_count,
+                "skipped": 0,
             },
             "results": results,
-            # советуем фронту: если загружен один файл — перейти в detail, иначе — на список
-            "redirect_url": results[0]["redirect_url"] if processed == 1 and results and results[0].get("ok") else reverse('replay_list'),
+            # если загружен один успешный файл — отправим на его detail, иначе — на список
+            "redirect_url": (
+                results[0]["redirect_url"]
+                if processed == 1 and results and results[0].get("ok")
+                else reverse('replay_list')
+            ),
         }, status=200)
 
-    # ==== ниже — взято из твоего существующего класса, без изменений по смыслу ====
+    # ===================== helpers =====================
 
     def _extract_error_message(self, validation_error):
         if hasattr(validation_error, 'message_dict'):
@@ -145,7 +156,10 @@ class ReplayBatchUploadView(View):
 
     def _error_response(self, message: str):
         if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({"success": False, "error": message, "redirect_url": reverse('replay_list')}, status=400)
+            return JsonResponse(
+                {"success": False, "error": message, "redirect_url": reverse('replay_list')},
+                status=400
+            )
         else:
             messages.error(self.request, message)
             return redirect('replay_list')
@@ -162,102 +176,7 @@ class ReplayBatchUploadView(View):
             return "Файл с таким именем уже загружен"
         return None
 
-# class ReplayUploadView(View):
-#     """
-#     View для загрузки файлов реплеев Мир Танков.
-#     Принимает .mtreplay файлы, извлекает данные и создает объект Replay.
-#     """
-#
-#     def post(self, request):
-#         try:
-#             # Получаем файл из запроса
-#             uploaded_file = request.FILES.get('file')
-#             if not uploaded_file:
-#                 return self._error_response("Файл не выбран")
-#
-#             # Валидация файла
-#             validation_error = self._validate_file(uploaded_file)
-#             if validation_error:
-#                 return validation_error
-#
-#             # Сохраняем файл и создаем реплей
-#             with transaction.atomic():
-#                 replay = self._process_replay_file(uploaded_file)
-#
-#             messages.success(request, f"Реплей успешно загружен: {replay.file_name}")
-#
-#             # Для AJAX запросов возвращаем JSON с редиректом
-#             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#                 return JsonResponse({
-#                     'success': True,
-#                     'message': f"Реплей успешно загружен: {replay.file_name}",
-#                     'redirect_url': reverse('replay_detail', kwargs={'pk': replay.id})
-#                 })
-#
-#             return redirect('replay_detail', pk=replay.id)
-#
-#         except ValidationError as e:
-#             # ValidationError может содержать список ошибок или строку
-#             error_message = self._extract_error_message(e)
-#             logger.warning(f"Ошибка валидации реплея: {error_message}")
-#             return self._error_response(error_message)
-#
-#         except Exception as e:
-#             error_message = "Произошла ошибка при обработке файла"
-#             logger.error(f"Ошибка загрузки реплея: {str(e)}")
-#             return self._error_response(error_message)
-#
-#     def _extract_error_message(self, validation_error):
-#         """Извлекает читаемое сообщение об ошибке из ValidationError"""
-#         if hasattr(validation_error, 'message_dict'):
-#             # Ошибки формы
-#             messages = []
-#             for field, errors in validation_error.message_dict.items():
-#                 if isinstance(errors, list):
-#                     messages.extend(errors)
-#                 else:
-#                     messages.append(str(errors))
-#             return '; '.join(messages)
-#         elif hasattr(validation_error, 'messages'):
-#             # Список сообщений
-#             if isinstance(validation_error.messages, list):
-#                 return '; '.join(validation_error.messages)
-#             else:
-#                 return str(validation_error.messages)
-#         else:
-#             # Простое сообщение
-#             return str(validation_error)
-#
-#     def _error_response(self, message):
-#         """Возвращает ошибку в зависимости от типа запроса"""
-#         if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-#             return JsonResponse({
-#                 'success': False,
-#                 'error': message,
-#                 'redirect_url': reverse('replay_list')
-#             }, status=400)
-#         else:
-#             messages.error(self.request, message)
-#             return redirect('replay_list')
-#
-#     def _validate_file(self, uploaded_file):
-#         """Валидация загружаемого файла"""
-#         # Проверка расширения
-#         if not uploaded_file.name.lower().endswith('.mtreplay'):
-#             return self._error_response("Неподдерживаемый формат файла. Разрешены только .mtreplay файлы")
-#
-#         # Проверка размера (50MB)
-#         max_size = 50 * 1024 * 1024
-#         if uploaded_file.size > max_size:
-#             return self._error_response("Файл слишком большой. Максимальный размер: 50MB")
-#
-#         # Проверка уникальности имени файла
-#         if Replay.objects.filter(file_name=uploaded_file.name).exists():
-#             return self._error_response("Файл с таким именем уже загружен")
-#
-#         return None
-
-    def _process_replay_file(self, uploaded_file):
+    def _process_replay_file(self, uploaded_file, description: str = '') -> Replay:
         """
         Обрабатывает загруженный файл реплея:
         1. Сохраняет файл в MEDIA_ROOT
@@ -277,7 +196,7 @@ class ReplayBatchUploadView(View):
 
             # Извлекаем версию игры и режим боя из payload
             payload = replay_fields.get('payload', {})
-            game_version = payload.get('clientVersionFromXml')
+            game_version = payload.get('clientVersionFromExe')
 
             # Получаем режим боя через helper
             battle_type = Extractor.get_battle_type_label(payload)
@@ -300,7 +219,7 @@ class ReplayBatchUploadView(View):
                 if updated:
                     owner.save(update_fields=['real_name', 'clan_tag'])
 
-            # Создаем объект реплея
+            # Создаем объект реплея (добавлено short_description)
             replay = Replay.objects.create(
                 file_name=replay_fields.get('file_name'),
                 payload=payload,
@@ -317,7 +236,8 @@ class ReplayBatchUploadView(View):
                 assist=replay_fields.get('assist', 0),
                 block=replay_fields.get('block', 0),
                 game_version=game_version,
-                battle_type=battle_type
+                battle_type=battle_type,
+                short_description=(description or '')[: self.MAX_DESCRIPTION_LEN],
             )
 
             attach_players_to_replay(replay, payload)
@@ -329,12 +249,12 @@ class ReplayBatchUploadView(View):
             # Удаляем файл при ошибке парсинга
             file_path.unlink(missing_ok=True)
             raise ValidationError(f"Ошибка обработки файла реплея: {str(e)}")
-        except Exception as e:
-            # Удаляем файл при любой другой ошибке
+        except Exception:
+            # Удаляем файл при любой другой ошибке и пробрасываем
             file_path.unlink(missing_ok=True)
             raise
 
-    def _save_file(self, uploaded_file):
+    def _save_file(self, uploaded_file) -> Path:
         """Сохраняет загруженный файл в MEDIA_ROOT"""
         from django.conf import settings
 
@@ -388,11 +308,11 @@ class ReplayBatchUploadView(View):
 
         # Собираем ассист из различных компонентов
         assist = (
-                vehicle_stats.get("damageAssistedTrack", 0) +
-                vehicle_stats.get("damageAssistedRadio", 0) +
-                vehicle_stats.get("damageAssistedStun", 0) +
-                vehicle_stats.get("damageAssistedSmoke", 0) +
-                vehicle_stats.get("damageAssistedInspire", 0)
+            vehicle_stats.get("damageAssistedTrack", 0) +
+            vehicle_stats.get("damageAssistedRadio", 0) +
+            vehicle_stats.get("damageAssistedStun", 0) +
+            vehicle_stats.get("damageAssistedSmoke", 0) +
+            vehicle_stats.get("damageAssistedInspire", 0)
         )
 
         return {
@@ -411,7 +331,7 @@ class ReplayBatchUploadView(View):
 
     def _get_or_create_tank(self, vehicle_id):
         """
-        Находит существующий танк или создает заглушку если танк не найден
+        Находит существующий танк или создаёт заглушку, если танк не найден.
         """
         if not vehicle_id:
             return None
@@ -419,8 +339,7 @@ class ReplayBatchUploadView(View):
         try:
             return Tank.objects.get(vehicleId=vehicle_id)
         except Tank.DoesNotExist:
-            logger.warning(f"Танк с ID {vehicle_id} не найден в базе, создаем заглушку")
-            # Создаем заглушку для неизвестного танка
+            logger.warning(f"Танк с ID {vehicle_id} не найден в базе, создаём заглушку")
             return Tank.objects.create(
                 vehicleId=vehicle_id,
                 name=f"Неизвестный танк ({vehicle_id})",

@@ -94,8 +94,7 @@
                             <!-- ТАНК -->
                             {% if replay.tank %}
                                 <img class="tank"
-                                     src="
-                                             {% static 'style/images/wot/shop/vehicles/180x135/' %}{{ replay.tank.vehicleId }}.png"
+                                     src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ replay.tank.vehicleId }}.png"
                                      alt="{{ replay.tank.name }}"/>
                             {% endif %}
 
@@ -107,21 +106,24 @@
 
                         <div class="details">
                             <div class="title">{{ replay.tank.name|default:'Неизвестный танк' }}
-                                - {{ replay.map_display_name|default:replay.map_name }}</div>
+                                - {{ replay.map_display_name|default:replay.map_name }}
+                            </div>
 
-                            <div class="upload-info">
-                                  <span class="date-cont">
+                            <div class="table">
+
+                                <div class="upload-info">
                                     {{ replay.battle_date|default_if_none:replay.created_at|localtime|date:"d.m.Y H:i" }}
-                                  </span>
+                                </div>
+
+                                <div class="description">{{ replay.short_description }}</div>
+
                             </div>
 
                             <div class="table">
                                 {% if replay.mastery %}
                                     <div class="cell">
                                         <img class="mastery"
-                                             src="
-
-                                                     {% static 'style/images/wot/library/proficiency/class_icons_' %}{{ replay.mastery }}.png"
+                                             src="{% static 'style/images/wot/library/proficiency/class_icons_' %}{{ replay.mastery }}.png"
                                              alt="Mastery {{ replay.mastery }}"/>
                                     </div>
                                 {% endif %}
@@ -129,9 +131,7 @@
                                 {% if replay.tank.type %}
                                     <div class="cell">
                                         <img class="type"
-                                             src="
-
-                                                     {% static 'style/images/wot/vehicleTypes/' %}{{ replay.tank.type }}.png"
+                                             src="{% static 'style/images/wot/vehicleTypes/' %}{{ replay.tank.type }}.png"
                                              alt="Vehicle type"/>
                                     </div>
                                 {% endif %}
@@ -139,9 +139,7 @@
                                 {% if replay.tank.level %}
                                     <div class="cell">
                                         <img class="level"
-                                             src="
-
-                                                     {% static 'style/images/wot/levels/tank_level_' %}{{ replay.tank.level }}.png"
+                                             src="{% static 'style/images/wot/levels/tank_level_' %}{{ replay.tank.level }}.png"
                                              alt="Level {{ replay.tank.level }}"/>
                                     </div>
                                 {% endif %}

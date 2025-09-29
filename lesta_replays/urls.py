@@ -18,7 +18,9 @@ from django.contrib import admin
 from django.contrib.sitemaps import Sitemap
 from django.contrib.sitemaps.views import sitemap
 from django.urls import path, include
+from django.views.static import serve
 
+from lesta_replays import settings
 from replays.models import Replay
 
 
@@ -35,3 +37,10 @@ urlpatterns = [
     path('adminn/', admin.site.urls),
     path("", include("replays.urls")),
 ]
+
+if settings.DEBUG:
+    urlpatterns += [
+        path('static/<path:path>', serve, {
+            'document_root': settings.STATIC_ROOT,
+        }),
+    ]

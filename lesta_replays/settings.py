@@ -38,7 +38,6 @@ CSRF_TRUSTED_ORIGINS = [
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True  # пробрасывать Host от прокси (полезно при нескольких доменах)
 
-SECURE_SSL_REDIRECT = True
 
 # Application definition
 
@@ -86,28 +85,32 @@ TEMPLATES = [
 WSGI_APPLICATION = 'lesta_replays.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_DB"),
-        "USER": os.getenv("POSTGRES_USER"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-        "HOST": os.getenv("POSTGRES_HOST"),
-        "PORT": os.getenv("POSTGRES_PORT"),
-        "CONN_MAX_AGE": 60,              # держим соединение
-        # "OPTIONS": {"sslmode": "require"},  # если внешний managed-PG
+# ---------------------------------------------------------------------------
+# БАЗА ДАННЫХ
+# ---------------------------------------------------------------------------
+# По умолчанию — SQLite в DEV. Можно переключить на PostgreSQL через USE_POSTGRES=1.
+if os.getenv("USE_POSTGRES", "0") == "1":
+    # PostgreSQL — чтение параметров из окружения
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("POSTGRES_DB"),
+            "USER": os.getenv("POSTGRES_USER"),
+            "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+            "HOST": os.getenv("POSTGRES_HOST"),
+            "PORT": int(os.getenv("POSTGRES_PORT", "5432")),
+            "CONN_MAX_AGE": 60,  # держим соединения открытыми
+            # "OPTIONS": {"sslmode": "require"},  # если используешь внешний managed-PG
+        }
     }
-}
+else:
+    # Лёгкая SQLite для локальной разработки
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # Password validation

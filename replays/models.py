@@ -4,8 +4,16 @@ from django.db import models
 
 class Replay(models.Model):
     """
-    Модель для хранения реплеев World of Tanks с подробной статистикой боя.
+    Модель для хранения реплеев МИР ТАНКОВ с подробной статистикой боя.
     """
+    # НОВОЕ ПОЛЕ — короткое описание
+    short_description = models.CharField(
+        max_length=60,
+        blank=True,
+        default='',
+        help_text="Короткое описание боя (до 200 символов)"
+    )
+
     # Базовые поля файла
     file_name = models.CharField(
         max_length=255,
@@ -258,3 +266,21 @@ class Player(models.Model):
 
     def __str__(self) -> str:
         return f"[{self.clan_tag}] {self.name}" if self.clan_tag else self.name
+
+
+class Map(models.Model):
+    map_name = models.CharField(
+        "Ник",
+        max_length=50,
+        unique=True,
+        help_text="Уникальный ключ"
+    )
+
+    map_display_name = models.CharField(
+        "Ник",
+        max_length=50,
+        db_index=True,
+        help_text="Русское название карты"
+    )
+
+    image = models.CharField(max_length=500, blank=True, verbose_name="Изображение")
