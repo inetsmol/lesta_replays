@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import logging
 import mimetypes
+import urllib.parse
 from datetime import datetime
 from pathlib import Path
 
@@ -591,6 +592,20 @@ class ReplayDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
+        fallback = reverse("replay_list")
+        back = self.request.GET.get("back") or self.request.META.get("HTTP_REFERER", "")
+        safe_back = fallback
+        if back:
+            try:
+                back = urllib.parse.unquote(back)
+                u = urllib.parse.urlparse(back)
+                # запрещаем внешние адреса; разрешаем только относительные пути и путь списка
+                if not u.scheme and not u.netloc and u.path.startswith(urllib.parse.urlparse(fallback).path):
+                    safe_back = back
+            except Exception:
+                pass
+        context["back_url"] = safe_back
+
         try:
             # Парсим данные реплея
             replay_data = self.object.payload
@@ -599,7 +614,7 @@ class ReplayDetailView(DetailView):
 
             # === ДОСТИЖЕНИЯ ===
             achievements_ids = Extractor.get_achievements(replay_data)
-            print(f"achievements_ids: {achievements_ids}")
+            # print(f"achievements_ids: {achievements_ids}")
             if achievements_ids:
                 ach_nonbattle, ach_battle = Extractor.split_achievements_by_section(achievements_ids)
 
@@ -631,7 +646,7 @@ class ReplayDetailView(DetailView):
             # кладём как вложенный словарь, чтобы в шаблоне обращаться: {{ details.playerName }}
             details = Extractor.get_details_data(replay_data)
             context['details'] = details
-            print(f"details: {details}")
+            # print(f"details: {details}")
 
             context["interactions"] = Extractor.get_player_interactions(replay_data)
 

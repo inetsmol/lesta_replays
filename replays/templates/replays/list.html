@@ -81,8 +81,8 @@
         {% if items %}
             {% for replay in items %}
                 <a class="tovabb"
-                   href="{% url 'replay_detail' replay.id %}"
-                   title="{{ replay.tank.name|default:'Неизвестный танк' }} - {{ replay.map_display_name|default:replay.map_name }}">
+                    href="{% url 'replay_detail' replay.id %}?back={{ request.get_full_path|urlencode }}"
+                    title="{{ replay.tank.name|default:'Неизвестный танк' }} - {{ replay.map_display_name|default:replay.map_name }}">
                     <div class="wrapper">
 
                         <div class="img-container">

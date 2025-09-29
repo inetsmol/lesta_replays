@@ -519,7 +519,7 @@ class Extractor:
         player_id = payload.get("playerID")
 
         p = Extractor.get_personal_by_player_id(payload)
-        print(f"personal: {p}")
+        # print(f"personal: {p}")
         if not p:
             return []
         ach = p.get("achievements") or []

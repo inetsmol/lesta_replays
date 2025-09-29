@@ -13,12 +13,13 @@
   <div class="card error">
     <h2>Ошибка обработки реплея</h2>
     <p>Не удалось извлечь данные из файла реплея: {{ parse_error }}</p>
-    <a href="{% url 'replay_list' %}" class="btn btn--ghost">← К списку реплеев</a>
+    <a href="{{ back_url }}" class="btn btn--ghost">← К списку реплеев</a>
   </div>
 {% else %}
 
   <div class="replay-wrapper">
     <div class="replay-tabs">
+      <a href="{{ back_url }}" class="btn btn--ghost" style="margin-right:12px;">← Назад к списку</a>
       <div class="tab active" data-tab="personal">Личный результат</div>
       <div class="tab" data-tab="team">Командный результат</div>
       <div class="tab" data-tab="detailed">Подробный отчёт</div>
