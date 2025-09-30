@@ -1,7 +1,9 @@
 # wotreplay/helper/extractor.py
+import math
 import os
 import datetime
 import re
+from collections import defaultdict
 from typing import Any, Dict, List, Optional, Mapping, Iterable, Sequence, Tuple
 
 from django.db.models import Value, FloatField
@@ -115,6 +117,185 @@ class Extractor:
             return personal[numeric_keys[0]]
 
         return None
+
+    @staticmethod
+    def get_personal_data(replay_data: dict) -> dict:
+        p = Extractor.get_personal_by_player_id(replay_data) or {}
+
+        # ---- помощники
+        def as_dict_of_pairs(pairs):
+            """[['k', v], [k2, v2]] -> {k: v}"""
+            try:
+                return {k: v for k, v in (pairs or [])}
+            except Exception:
+                return {}
+
+        def as_tuple_or_list(val):
+            return tuple(val) if isinstance(val, (list, tuple)) else val
+
+        # ---- агрегаты по details
+        details = p.get("details") or {}
+        agg = defaultdict(int)
+        for v in details.values():
+            if not isinstance(v, dict):
+                continue
+            agg["details_fire"] += v.get("fire", 0)
+            agg["details_crits"] += v.get("crits", 0)
+            agg["details_spotted"] += v.get("spotted", 0)
+            agg["details_stun_num"] += v.get("stunNum", 0)
+            agg["details_direct_hits"] += v.get("directHits", 0)
+            agg["details_explosion_hits"] += v.get("explosionHits", 0)
+            agg["details_piercings"] += v.get("piercings", 0)
+            agg["details_damage_dealt"] += v.get("damageDealt", 0)
+            agg["details_damage_received"] += v.get("damageReceived", 0)
+            agg["details_direct_enemy_hits"] += v.get("directEnemyHits", 0)
+            agg["details_piercing_enemy_hits"] += v.get("piercingEnemyHits", 0)
+            agg["details_damage_assisted_stun"] += v.get("damageAssistedStun", 0)
+            agg["details_damage_assisted_radio"] += v.get("damageAssistedRadio", 0)
+            agg["details_damage_assisted_smoke"] += v.get("damageAssistedSmoke", 0)
+            agg["details_damage_assisted_track"] += v.get("damageAssistedTrack", 0)
+            agg["details_damage_blocked_by_armor"] += v.get("damageBlockedByArmor", 0)
+            agg["details_no_damage_direct_hits_received"] += v.get("noDamageDirectHitsReceived", 0)
+            agg["details_rickochets_received"] += v.get("rickochetsReceived", 0)  # да, тут так пишется в сыром json
+            agg["details_target_kills"] += v.get("targetKills", 0)
+            # stunDuration может быть float
+            try:
+                agg["details_stun_duration"] += float(v.get("stunDuration", 0.0))
+            except Exception:
+                pass
+
+        # ---- основная раскладка (плоские поля + удобные алиасы)
+        data = {
+            # командные / счётчики
+            "team": p.get("team"),
+            "index": p.get("index"),
+            "kills": p.get("kills"),
+            "tkills": p.get("tkills"),
+            "shots": p.get("shots"),
+            "spotted": p.get("spotted"),
+            "stun_num": p.get("stunNum"),
+            "life_time": p.get("lifeTime"),
+            "killer_id": p.get("killerID"),
+            "death_reason": p.get("deathReason"),
+            "death_count": p.get("deathCount"),
+
+            # боевые действия (итоги по верхнему уровню)
+            "damage_dealt": p.get("damageDealt"),
+            "damage_received": p.get("damageReceived"),
+            "damage_blocked": p.get("damageBlockedByArmor"),
+            "damage_assisted_radio": p.get("damageAssistedRadio"),
+            "damage_assisted_track": p.get("damageAssistedTrack"),
+            "damage_assisted_stun": p.get("damageAssistedStun"),
+            "damage_assisted_smoke": p.get("damageAssistedSmoke"),
+            "damage_assisted_inspire": p.get("damageAssistedInspire"),
+            "piercings": p.get("piercings"),
+            "direct_hits": p.get("directHits"),
+            "explosion_hits": p.get("explosionHits"),
+            "direct_enemy_hits": p.get("directEnemyHits"),
+            "piercing_enemy_hits": p.get("piercingEnemyHits"),
+            "direct_hits_received": p.get("directHitsReceived"),
+            "no_damage_direct_hits_received": p.get("noDamageDirectHitsReceived"),
+            "piercings_received": p.get("piercingsReceived"),
+            "ricochets_received": p.get("rickochetsReceived"),
+            "sniper_damage_dealt": p.get("sniperDamageDealt"),
+            "potential_damage_received": p.get("potentialDamageReceived"),
+            "destructibles_hits": p.get("destructiblesHits"),
+            "destructibles_damage_dealt": p.get("destructiblesDamageDealt"),
+            "destructibles_num_destroyed": p.get("destructiblesNumDestroyed"),
+            "damage_assisted_inspire_total": p.get("damageAssistedInspire"),
+
+            # экономика / валюты
+            "credits": p.get("credits"),
+            "original_credits": p.get("originalCredits"),
+            "subtotal_credits": p.get("subtotalCredits"),
+            "factual_credits": p.get("factualCredits"),
+            "credits_penalty": p.get("creditsPenalty"),
+            "credits_to_draw": p.get("creditsToDraw"),
+            "prem_squad_credits": p.get("premSquadCredits"),
+            "premium_credits_factor100": p.get("premiumCreditsFactor100"),
+            "premium_plus_credits_factor100": p.get("premiumPlusCreditsFactor100"),
+            "booster_credits": p.get("boosterCredits"),
+            "booster_credits_factor100": p.get("boosterCreditsFactor100"),
+            "gold": p.get("gold"),
+            "subtotal_gold": p.get("subtotalGold"),
+            "original_gold": p.get("originalGold"),
+            "crystal": p.get("crystal"),
+            "subtotal_crystal": p.get("subtotalCrystal"),
+            "original_crystal": p.get("originalCrystal"),
+            "bpcoin": p.get("bpcoin"),
+            "piggy_bank": p.get("piggyBank"),
+
+            # опыт
+            "xp": p.get("xp"),
+            "original_xp": p.get("originalXP"),
+            "subtotal_xp": p.get("subtotalXP"),
+            "factual_xp": p.get("factualXP"),
+            "xp_penalty": p.get("xpPenalty"),
+            "xp_by_tmen": as_dict_of_pairs(p.get("xpByTmen")),
+            "tmen_xp": p.get("tmenXP"),
+            "original_tmen_xp": p.get("originalTMenXP"),
+            "subtotal_tmen_xp": p.get("subtotalTMenXP"),
+            "free_xp": p.get("freeXP"),
+            "original_free_xp": p.get("originalFreeXP"),
+            "subtotal_free_xp": p.get("subtotalFreeXP"),
+            "factual_free_xp": p.get("factualFreeXP"),
+
+            # множители опыта
+            "premium_xp_factor100": p.get("premiumXPFactor100"),
+            "premium_plus_xp_factor100": p.get("premiumPlusXPFactor100"),
+            "daily_xp_factor10": p.get("dailyXPFactor10"),
+            "additional_xp_factor10": p.get("additionalXPFactor10"),
+            "applied_premium_xp_factor100": p.get("appliedPremiumXPFactor100"),
+            "applied_premium_tmen_xp_factor100": p.get("appliedPremiumTmenXPFactor100"),
+            "igr_xp_factor10": p.get("igrXPFactor10"),
+            "ref_system_xp_factor10": p.get("refSystemXPFactor10"),
+
+            # сервис/ремонт/расходы
+            "repair": p.get("repair"),
+            "auto_repair_cost": as_tuple_or_list(p.get("autoRepairCost")),
+            "auto_equip_cost": as_tuple_or_list(p.get("autoEquipCost")),
+            "auto_load_cost": as_tuple_or_list(p.get("autoLoadCost")),
+
+            # прочее состояние
+            "health": p.get("health"),
+            "max_health": p.get("maxHealth"),
+            "mileage": p.get("mileage"),
+            "marks_on_gun": p.get("marksOnGun"),
+            "mark_of_mastery": p.get("markOfMastery"),
+            "is_premium": p.get("isPremium"),
+            "is_first_blood": p.get("isFirstBlood"),
+            "is_team_killer": p.get("isTeamKiller"),
+            "account_dbid": p.get("accountDBID"),
+            "type_comp_descr": p.get("typeCompDescr"),
+
+            # цели/очки базы
+            "capture_points": p.get("capturePoints"),
+            "dropped_capture_points": p.get("droppedCapturePoints"),
+            "num_defended": p.get("numDefended"),
+            "flag_capture": p.get("flagCapture"),
+            "solo_flag_capture": p.get("soloFlagCapture"),
+            "win_points": p.get("winPoints"),
+
+            # проценты вклада
+            "kills_before_team_was_damaged": p.get("killsBeforeTeamWasDamaged"),
+            "damage_before_team_was_damaged": p.get("damageBeforeTeamWasDamaged"),
+            "percent_from_total_team_damage": p.get("percentFromTotalTeamDamage"),
+            "percent_from_second_best_damage": p.get("percentFromSecondBestDamage"),
+
+            # достижения/квесты/служебное
+            "achievements": list(p.get("achievements") or []),
+            "dossier_log_records": list(p.get("dossierLogRecords") or []),
+            "quests_progress": p.get("questsProgress") or {},
+            "c11n_progress": p.get("c11nProgress") or {},
+
+            # сводка по details (агрегаты сверху)
+            **agg,
+        }
+
+        # удобно вернуть и исходные details, чтобы при необходимости рисовать «по целям»
+        data["details"] = details
+
+        return data
 
     @staticmethod
     def get_battle_performance(data: list, account_id: str, replay_date: str) -> list:
@@ -535,10 +716,7 @@ class Extractor:
     @staticmethod
     def get_details_data(payload: Dict[str, Any]) -> Dict[str, Any]:
 
-        player_id = payload.get("playerID")
-
         personal = Extractor.get_personal_by_player_id(payload)
-        # print(f"personal: {personal}")
 
         details_data = {
             'xp': personal.get('xp'),
@@ -868,6 +1046,9 @@ class Extractor:
         victory_mult = 2 if is_first_win else 1
         xp_with_first_base = base_xp * victory_mult
         xp_with_first_prem = int(round(prem_xp * victory_mult))
+
+        # === Итого ===
+
 
         # --- меткость ---
         shots = int(p.get('shots') or 0)
@@ -1354,9 +1535,6 @@ class Extractor:
         # Пока возвращаем None - нужна дополнительная логика
         return None
 
-    # В replays/utils.py в класс Extractor добавляем:
-
-
     @staticmethod
     def get_detailed_report(payload: Mapping[str, Any]) -> Dict[str, Any]:
         """
@@ -1395,10 +1573,12 @@ class Extractor:
         # Базовые доходы
         original_credits = int(personal.get('originalCredits', 0))
         achievement_credits = int(personal.get('achievementCredits', 0))
+        team_subs_bonus_credits = int(personal.get("teamSubsBonusCredits", 0))
 
         # Штрафы и компенсации
         credits_penalty = int(personal.get('creditsPenalty', 0))
         team_damage_penalty = int(personal.get('originalCreditsPenalty', 0))
+        team_damage_xp_penalty = int(personal.get('originalXPPenalty', 0))
 
         # Расходы
         repair_cost = int(personal.get('repair', 0))
@@ -1427,9 +1607,9 @@ class Extractor:
         else:
             gold_spent = 0
 
-        # Промежуточные итоги
-        battle_earnings = original_credits + achievement_credits - team_damage_penalty
+        # Итоги
         total_expenses = auto_repair_cost + ammo_cost + equipment_credits_cost
+        battle_earnings = original_credits + achievement_credits + team_subs_bonus_credits - team_damage_penalty
         net_result = battle_earnings - total_expenses
 
         # Премиум факторы
@@ -1438,9 +1618,8 @@ class Extractor:
 
         # Премиум расчеты
         premium_original_credits = int(original_credits * premium_credit_factor)
-        premium_achievement_credits = int(
-            achievement_credits * premium_credit_factor) if achievement_credits > 0 else achievement_credits
-        premium_battle_earnings = premium_original_credits + premium_achievement_credits - team_damage_penalty
+        premium_achievement_credits = int(achievement_credits * premium_credit_factor) if achievement_credits > 0 else achievement_credits
+        premium_battle_earnings = premium_original_credits + premium_achievement_credits + team_subs_bonus_credits - team_damage_penalty
         premium_net_result = premium_battle_earnings - total_expenses
 
         # === ОПЫТ ===
@@ -1449,18 +1628,30 @@ class Extractor:
         event_xp = int(personal.get('eventXP', 0))
         event_free_xp = int(personal.get('eventFreeXP', 0))
 
-        total_original_xp = original_xp + event_xp
+        total_original_xp = original_xp + event_xp - team_damage_xp_penalty
+        if personal.get('isFirstBlood'):
+            total_original_xp = total_original_xp * 2
+
+        total_free_xp = original_free_xp + event_free_xp - team_damage_xp_penalty
+        if personal.get('isFirstBlood'):
+            total_free_xp = total_free_xp * 2
 
         premium_xp_factor = (int(personal.get('premiumXPFactor100', 100))) / 100.0
 
-        premium_xp = int(original_xp * premium_xp_factor)
-        premium_free_xp = int(original_free_xp * premium_xp_factor)
-        premium_event_xp = int(event_xp * premium_xp_factor)
-        premium_event_free_xp = int(event_free_xp * premium_xp_factor)
+        premium_xp = int(math.ceil(original_xp * premium_xp_factor))
+        premium_free_xp = int(math.ceil(original_free_xp * premium_xp_factor))
+        premium_event_xp = int(math.ceil(event_xp * premium_xp_factor))
+        premium_event_free_xp = int(math.ceil(event_free_xp * premium_xp_factor))
 
-        total_premium_xp = premium_xp + premium_event_xp
+        total_premium_xp = premium_xp + premium_event_xp - team_damage_xp_penalty
+        if personal.get('isFirstBlood'):
+            total_premium_xp = total_premium_xp * 2
 
-        # === БОНДЫ/КРИСТАЛЛЫ ===
+        total_premium_free_xp = premium_free_xp + premium_event_xp - team_damage_xp_penalty
+        if personal.get('isFirstBlood'):
+            total_premium_free_xp = total_premium_free_xp * 2
+
+        # === БОНЫ/КРИСТАЛЛЫ ===
         crystal = int(personal.get('crystal', 0))
         original_crystal = int(personal.get('originalCrystal', 0))
         achievement_crystal = crystal - original_crystal if crystal > original_crystal else 0
@@ -1470,11 +1661,15 @@ class Extractor:
             # Базовые доходы
             "original_credits": original_credits,
             "achievement_credits": achievement_credits,
+            "team_subs_bonus_credits": team_subs_bonus_credits,
+
             "battle_earnings": battle_earnings,
 
             # Премиум доходы
             "premium_original_credits": premium_original_credits,
             "premium_achievement_credits": premium_achievement_credits,
+            "premium_team_subs_bonus_credits": team_subs_bonus_credits,
+
             "premium_battle_earnings": premium_battle_earnings,
 
             # Расходы
@@ -1498,12 +1693,14 @@ class Extractor:
             "event_xp": event_xp,
             "event_free_xp": event_free_xp,
             "total_original_xp": total_original_xp,
+            "total_free_xp": total_free_xp,
 
             "premium_xp": premium_xp,
             "premium_free_xp": premium_free_xp,
             "premium_event_xp": premium_event_xp,
             "premium_event_free_xp": premium_event_free_xp,
             "total_premium_xp": total_premium_xp,
+            "total_premium_free_xp": total_premium_free_xp,
 
             # Кристаллы
             "achievement_crystal": achievement_crystal,

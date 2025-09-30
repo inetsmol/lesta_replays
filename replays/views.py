@@ -610,7 +610,9 @@ class ReplayDetailView(DetailView):
             # Парсим данные реплея
             replay_data = self.object.payload
 
-            # print(f"replay_data: {replay_data}")
+            # === Персональные данные ===
+            personal_data = Extractor.get_personal_data(replay_data)
+            context['personal_data'] = personal_data
 
             # === ДОСТИЖЕНИЯ ===
             achievements_ids = Extractor.get_achievements(replay_data)
@@ -643,10 +645,8 @@ class ReplayDetailView(DetailView):
                 context['achievements_battle'] = Achievement.objects.none()
                 context['achievements_count_in_badges'] = 0
 
-            # кладём как вложенный словарь, чтобы в шаблоне обращаться: {{ details.playerName }}
             details = Extractor.get_details_data(replay_data)
             context['details'] = details
-            # print(f"details: {details}")
 
             context["interactions"] = Extractor.get_player_interactions(replay_data)
 
