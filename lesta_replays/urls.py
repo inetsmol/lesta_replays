@@ -19,7 +19,6 @@ from django.contrib.sitemaps import Sitemap
 from django.contrib.sitemaps.views import sitemap
 from django.urls import path, include
 from django.views.static import serve
-
 from lesta_replays import settings
 from replays.models import Replay
 
@@ -27,13 +26,22 @@ from replays.models import Replay
 class ReplaySitemap(Sitemap):
     changefreq = "weekly"
     priority = 0.7
-    def items(self): return Replay.objects.filter(is_public=True)
-    def lastmod(self, obj): return obj.updated_at
-    def location(self, obj): return obj.get_absolute_url()
+
+    def items(self):
+        return Replay.objects.filter(is_public=True)
+
+    def lastmod(self, obj):
+        return obj.updated_at
+
+    def location(self, obj):
+        return obj.get_absolute_url()
+
 
 sitemaps = {"replays": ReplaySitemap}
+
 urlpatterns = [
     path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="sitemap"),
+    path("comments/", include("django_comments_xtd.urls")),
     path('adminn/', admin.site.urls),
     path("", include("replays.urls")),
 ]

@@ -95,16 +95,18 @@ class Replay:
 
 
 if __name__ == "__main__":
-    file = '../../media/20250923_0808_czech-Cz38_Projekt_SAT_502_kamchatka.mtreplay'
+    file = '../../media/20251001_1833_intunion_Un04_Vickers_MBT_EXP_11_murovanka.mtreplay'
     # file = '../../files/17580098444303_ussr_R40_T-54_ruinberg.wotreplay'
 
     r = Replay(file)
 
-    r.get_replay_fields()
+    print(f"replay_data$ {r.replay_data}")
 
-    replay_fields = r.replay_fields
+    # r.get_replay_fields()
+    #
+    # replay_fields = r.replay_fields
     # print(f"replay_fields {replay_fields}")
-    print(replay_fields.get('payload'))
+    # print(replay_fields.get('payload'))
     #
     # achievements_ids = Extractor.get_achievements(replay_fields.get('payload'))
     # print(f"achievements_ids {achievements_ids}")

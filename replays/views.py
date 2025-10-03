@@ -1,17 +1,14 @@
 # replays/views.py
 from __future__ import annotations
 
-import json
 import logging
 import mimetypes
 import urllib.parse
-from datetime import datetime
 from pathlib import Path
+from typing import List, Dict, Any
 
 from django.conf import settings
 from django.contrib import messages
-from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse, Http404, HttpResponse, StreamingHttpResponse, HttpRequest
 from django.shortcuts import redirect
@@ -21,10 +18,11 @@ from django.utils.encoding import escape_uri_path
 from django.views import View
 from django.views.generic import ListView, DetailView, TemplateView
 
-from wotreplay.helper.extractor import Extractor
-from wotreplay.mtreplay import Replay as Rpl
-from .models import Replay, Tank, Nation, Achievement, Player
-from .services import attach_players_to_replay
+from .error_handlers import ReplayErrorHandler
+from .models import Replay, Tank, Nation, Achievement
+from .parser.extractor import ExtractorV2
+from .services import ReplayProcessingService
+from .validators import BatchUploadValidator, ReplayFileValidator
 
 FILES_DIR = Path(settings.MEDIA_ROOT)
 FILES_DIR.mkdir(parents=True, exist_ok=True)
@@ -39,315 +37,166 @@ def health(request):
 class ReplayBatchUploadView(View):
     """
     Пакетная загрузка .mtreplay файлов.
-    Принимает несколько файлов (поле 'files'), валидирует и создаёт Replay по каждому.
-    Возвращает summary + пофайловые результаты.
+    Принимает несколько файлов, валидирует и создаёт Replay по каждому.
     """
 
-    # --- настройки/ограничения батча ---
-    MAX_FILES_PER_REQUEST = 5                         # не более 5 файлов за один раз
-    MAX_TOTAL_SIZE = 30 * 1024 * 1024               # 30MB суммарно
-    MAX_DESCRIPTION_LEN = 200
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.replay_service = ReplayProcessingService()
+        self.error_handler = ReplayErrorHandler()
 
     def post(self, request: HttpRequest):
+        """Обрабатывает POST запрос с файлами реплеев."""
         files = request.FILES.getlist('files') or []
-        descriptions = request.POST.getlist('descriptions')  # массив описаний по индексу файлов
+        descriptions = request.POST.getlist('descriptions')
 
-        if not files:
-            return self._error_response("Файлы не выбраны")
+        # Валидация пакета файлов
+        if batch_error := BatchUploadValidator.validate_batch(files):
+            return self._error_response(request, batch_error)
 
-        if len(files) > self.MAX_FILES_PER_REQUEST:
-            return self._error_response(f"Слишком много файлов. Максимум: {self.MAX_FILES_PER_REQUEST}")
+        # Обработка файлов
+        results = self._process_files(files, descriptions)
 
-        total_size = sum(f.size for f in files)
-        if total_size > self.MAX_TOTAL_SIZE:
-            return self._error_response(
-                f"Суммарный размер слишком большой. Лимит: {self.MAX_TOTAL_SIZE // (1024*1024)}MB"
-            )
+        # Формирование ответа
+        return self._build_response(request, results, len(files))
 
+    def _process_files(self, files: list, descriptions: list) -> List[Dict[str, Any]]:
+        """
+        Обрабатывает список файлов.
+
+        Args:
+            files: Список загруженных файлов
+            descriptions: Список описаний
+
+        Returns:
+            list: Результаты обработки каждого файла
+        """
         results = []
-        created_count = 0
-        error_count = 0
 
-        for idx, f in enumerate(files):
-            file_result = {"file": f.name}
-            # описание по индексу (может отсутствовать)
-            desc = (descriptions[idx] if idx < len(descriptions) else '').strip()
-            if len(desc) > self.MAX_DESCRIPTION_LEN:
-                desc = desc[: self.MAX_DESCRIPTION_LEN]
+        for idx, file in enumerate(files):
+            description = self._get_description(descriptions, idx)
+            result = self._process_single_file(file, description)
+            results.append(result)
 
-            try:
-                # валидация на уровне файла (расширение/размер/дубликат имени)
-                v_err = self._validate_file(f)
-                if v_err:
-                    file_result["ok"] = False
-                    file_result["error"] = v_err
-                    error_count += 1
-                    results.append(file_result)
-                    continue
+        return results
 
-                # отдельная транзакция на каждый файл
-                with transaction.atomic():
-                    replay = self._process_replay_file(f, description=desc)
+    def _process_single_file(self, file, description: str) -> Dict[str, Any]:
+        """
+        Обрабатывает один файл реплея.
 
-                file_result["ok"] = True
-                file_result["replay_id"] = replay.id
-                file_result["redirect_url"] = reverse('replay_detail', kwargs={'pk': replay.id})
-                created_count += 1
+        Args:
+            file: Загруженный файл
+            description: Описание
 
-            except ValidationError as e:
-                msg = self._extract_error_message(e)
-                logger.warning(f"[BATCH] Ошибка валидации '{f.name}': {msg}")
-                file_result["ok"] = False
-                file_result["error"] = msg
-                error_count += 1
+        Returns:
+            dict: Результат обработки файла
+        """
+        file_result = {"file": file.name}
 
-            except Exception as e:
-                logger.exception(f"[BATCH] Ошибка обработки '{f.name}': {e}")
-                file_result["ok"] = False
-                file_result["error"] = "Ошибка при обработке файла"
-                error_count += 1
+        # Валидация файла
+        if validation_error := ReplayFileValidator.validate(file):
+            logger.warning(f"[BATCH] Валидация не пройдена '{file.name}': {validation_error}")
+            file_result["ok"] = False
+            file_result["error"] = validation_error
+            return file_result
 
-            results.append(file_result)
+        # Обработка файла
+        try:
+            replay = self.replay_service.process_replay(file, description)
 
-        processed = len(files)
+            file_result["ok"] = True
+            file_result["replay_id"] = replay.id
+            file_result["redirect_url"] = reverse('replay_detail', kwargs={'pk': replay.id})
 
-        # для обычного запроса (не AJAX) — флеши и редирект на список
-        if request.headers.get('X-Requested-With') != 'XMLHttpRequest':
-            if created_count:
-                messages.success(request, f"Загружено успешно: {created_count} из {processed}")
-            if error_count:
-                messages.error(request, f"Ошибки при загрузке: {error_count} из {processed}")
-            return redirect('replay_list')
+            logger.info(f"[BATCH] Успешно загружен '{file.name}' (ID: {replay.id})")
+
+        except Exception as e:
+            file_result.update(self.error_handler.handle_error(e, file.name))
+
+        return file_result
+
+    @staticmethod
+    def _get_description(descriptions: list, index: int) -> str:
+        """Получает описание по индексу или возвращает пустую строку."""
+        if index < len(descriptions):
+            desc = descriptions[index].strip()
+            max_len = ReplayProcessingService.MAX_DESCRIPTION_LEN
+            return desc[:max_len] if len(desc) > max_len else desc
+        return ''
+
+    def _build_response(self, request: HttpRequest, results: List[Dict[str, Any]], total: int):
+        """
+        Формирует ответ на основе результатов обработки.
+
+        Args:
+            request: HTTP запрос
+            results: Результаты обработки файлов
+            total: Общее количество файлов
+
+        Returns:
+            JsonResponse или redirect
+        """
+        created_count = sum(1 for r in results if r.get("ok"))
+        error_count = total - created_count
+
+        # Для обычного запроса (не AJAX)
+        if not self._is_ajax_request(request):
+            return self._build_html_response(request, created_count, error_count, total)
+
+        # Для AJAX запроса
+        return self._build_json_response(results, total, created_count, error_count)
+
+    @staticmethod
+    def _is_ajax_request(request: HttpRequest) -> bool:
+        """Проверяет, является ли запрос AJAX."""
+        return request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    @staticmethod
+    def _build_html_response(request: HttpRequest, created: int, errors: int, total: int):
+        """Формирует HTML ответ с редиректом."""
+        if created:
+            messages.success(request, f"Загружено успешно: {created} из {total}")
+        if errors:
+            messages.error(request, f"Ошибки при загрузке: {errors} из {total}")
+
+        return redirect('replay_list')
+
+    @staticmethod
+    def _build_json_response(
+            results: List[Dict[str, Any]],
+            total: int,
+            created: int,
+            errors: int
+    ) -> JsonResponse:
+        """Формирует JSON ответ."""
+        # Определяем URL для редиректа
+        redirect_url = reverse('replay_list')
+        if total == 1 and results and results[0].get("ok"):
+            redirect_url = results[0]["redirect_url"]
 
         return JsonResponse({
             "success": True,
             "summary": {
-                "processed": processed,
-                "created": created_count,
-                "errors": error_count,
+                "processed": total,
+                "created": created,
+                "errors": errors,
                 "skipped": 0,
             },
             "results": results,
-            # если загружен один успешный файл — отправим на его detail, иначе — на список
-            "redirect_url": (
-                results[0]["redirect_url"]
-                if processed == 1 and results and results[0].get("ok")
-                else reverse('replay_list')
-            ),
+            "redirect_url": redirect_url,
         }, status=200)
 
-    # ===================== helpers =====================
+    def _error_response(self, request: HttpRequest, message: str):
+        """Формирует ответ с ошибкой."""
+        if self._is_ajax_request(request):
+            return JsonResponse({
+                "success": False,
+                "error": message,
+                "redirect_url": reverse('replay_list')
+            }, status=400)
 
-    def _extract_error_message(self, validation_error):
-        if hasattr(validation_error, 'message_dict'):
-            messages_ = []
-            for field, errors in validation_error.message_dict.items():
-                if isinstance(errors, list):
-                    messages_.extend(errors)
-                else:
-                    messages_.append(str(errors))
-            return '; '.join(messages_)
-        elif hasattr(validation_error, 'messages'):
-            if isinstance(validation_error.messages, list):
-                return '; '.join(validation_error.messages)
-            else:
-                return str(validation_error.messages)
-        else:
-            return str(validation_error)
-
-    def _error_response(self, message: str):
-        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse(
-                {"success": False, "error": message, "redirect_url": reverse('replay_list')},
-                status=400
-            )
-        else:
-            messages.error(self.request, message)
-            return redirect('replay_list')
-
-    def _validate_file(self, uploaded_file):
-        # расширение
-        if not uploaded_file.name.lower().endswith('.mtreplay'):
-            return "Неподдерживаемый формат файла. Разрешены только .mtreplay файлы"
-        # размер (50MB на файл)
-        if uploaded_file.size > 50 * 1024 * 1024:
-            return "Файл слишком большой. Максимальный размер: 50MB"
-        # уникальность имени
-        if Replay.objects.filter(file_name=uploaded_file.name).exists():
-            return "Файл с таким именем уже загружен"
-        return None
-
-    def _process_replay_file(self, uploaded_file, description: str = '') -> Replay:
-        """
-        Обрабатывает загруженный файл реплея:
-        1. Сохраняет файл в MEDIA_ROOT
-        2. Извлекает JSON данные
-        3. Парсит данные и создает объект Replay
-        """
-        # Сохраняем файл
-        file_path = self._save_file(uploaded_file)
-
-        r = Rpl(file_path)
-        r.get_replay_fields()
-        replay_fields = r.replay_fields
-
-        try:
-            # Находим или создаем танк
-            tank = self._get_or_create_tank(replay_fields.get('tank_tag'))
-
-            # Извлекаем версию игры и режим боя из payload
-            payload = replay_fields.get('payload', {})
-            game_version = payload.get('clientVersionFromExe')
-
-            # Получаем режим боя через helper
-            battle_type = Extractor.get_battle_type_label(payload)
-
-            owner_name, owner_real_name, owner_clan = Extractor.get_replay_owner_from_payload(payload)
-
-            owner, created = Player.objects.get_or_create(
-                name=owner_name,  # искать ТОЛЬКО по уникальному name
-                defaults={'real_name': owner_real_name, 'clan_tag': owner_clan}
-            )
-
-            updated = False
-            if not created:
-                if owner_real_name and owner.real_name != owner_real_name:
-                    owner.real_name = owner_real_name
-                    updated = True
-                if owner_clan and owner.clan_tag != owner_clan:
-                    owner.clan_tag = owner_clan
-                    updated = True
-                if updated:
-                    owner.save(update_fields=['real_name', 'clan_tag'])
-
-            # Создаем объект реплея (добавлено short_description)
-            replay = Replay.objects.create(
-                file_name=replay_fields.get('file_name'),
-                payload=payload,
-                tank=tank,
-                owner=owner,
-                battle_date=replay_fields.get('battle_date'),
-                map_name=replay_fields.get('map_name'),
-                map_display_name=replay_fields.get('map_display_name'),
-                mastery=replay_fields.get('mastery'),
-                credits=replay_fields.get('credits', 0),
-                xp=replay_fields.get('xp', 0),
-                kills=replay_fields.get('kills', 0),
-                damage=replay_fields.get('damage', 0),
-                assist=replay_fields.get('assist', 0),
-                block=replay_fields.get('block', 0),
-                game_version=game_version,
-                battle_type=battle_type,
-                short_description=(description or '')[: self.MAX_DESCRIPTION_LEN],
-            )
-
-            attach_players_to_replay(replay, payload)
-
-            logger.info(f"Реплей создан: {replay.id} - {uploaded_file.name}")
-            return replay
-
-        except (json.JSONDecodeError, ValueError) as e:
-            # Удаляем файл при ошибке парсинга
-            file_path.unlink(missing_ok=True)
-            raise ValidationError(f"Ошибка обработки файла реплея: {str(e)}")
-        except Exception:
-            # Удаляем файл при любой другой ошибке и пробрасываем
-            file_path.unlink(missing_ok=True)
-            raise
-
-    def _save_file(self, uploaded_file) -> Path:
-        """Сохраняет загруженный файл в MEDIA_ROOT"""
-        from django.conf import settings
-
-        files_dir = Path(settings.MEDIA_ROOT)
-        files_dir.mkdir(parents=True, exist_ok=True)
-
-        file_path = files_dir / uploaded_file.name
-
-        # Проверяем, что файл с таким именем не существует
-        if file_path.exists():
-            raise ValidationError("Файл с таким именем уже существует")
-
-        # Сохраняем файл
-        with open(file_path, 'wb') as f:
-            for chunk in uploaded_file.chunks():
-                f.write(chunk)
-
-        return file_path
-
-    def _parse_replay_data(self, payload):
-        """
-        Парсит JSON данные реплея и извлекает нужные поля.
-        Основано на структуре данных из закомментированной функции _extract_wot_brief_for_list
-        """
-        # Извлекаем ID техники (убираем префикс до '-')
-        player_vehicle = payload.get("playerVehicle", "")
-        if "-" in player_vehicle:
-            vehicle_id = player_vehicle.split("-", 1)[1]
-        else:
-            vehicle_id = player_vehicle
-
-        # Извлекаем статистику из personal секции
-        personal = payload.get("personal", {})
-        vehicle_stats = {}
-
-        # Ищем числовой ключ техники в personal
-        for key, value in personal.items():
-            if isinstance(key, str) and key.isdigit():
-                vehicle_stats = value
-                break
-
-        # Парсим дату боя
-        battle_date = None
-        date_str = payload.get("dateTime")
-        if date_str:
-            try:
-                # Формат: '25.08.2025 15:57:56'
-                battle_date = datetime.strptime(date_str, '%d.%m.%Y %H:%M:%S')
-            except ValueError:
-                logger.warning(f"Не удалось распарсить дату: {date_str}")
-
-        # Собираем ассист из различных компонентов
-        assist = (
-            vehicle_stats.get("damageAssistedTrack", 0) +
-            vehicle_stats.get("damageAssistedRadio", 0) +
-            vehicle_stats.get("damageAssistedStun", 0) +
-            vehicle_stats.get("damageAssistedSmoke", 0) +
-            vehicle_stats.get("damageAssistedInspire", 0)
-        )
-
-        return {
-            'vehicle_id': vehicle_id,
-            'battle_date': battle_date,
-            'map_name': payload.get('mapName'),
-            'map_display_name': payload.get('mapDisplayName'),
-            'mastery': vehicle_stats.get('markOfMastery'),
-            'credits': vehicle_stats.get('credits', 0),
-            'xp': vehicle_stats.get('xp', 0),
-            'kills': vehicle_stats.get('kills', 0),
-            'damage': vehicle_stats.get('damageDealt', 0),
-            'assist': assist,
-            'block': vehicle_stats.get('damageBlockedByArmor', 0)
-        }
-
-    def _get_or_create_tank(self, vehicle_id):
-        """
-        Находит существующий танк или создаёт заглушку, если танк не найден.
-        """
-        if not vehicle_id:
-            return None
-
-        try:
-            return Tank.objects.get(vehicleId=vehicle_id)
-        except Tank.DoesNotExist:
-            logger.warning(f"Танк с ID {vehicle_id} не найден в базе, создаём заглушку")
-            return Tank.objects.create(
-                vehicleId=vehicle_id,
-                name=f"Неизвестный танк ({vehicle_id})",
-                level=1,
-                type="unknown"
-            )
-
+        messages.error(request, message)
+        return redirect('replay_list')
 
 class ReplayListView(ListView):
     """
@@ -420,10 +269,7 @@ class ReplayListView(ListView):
 
         # map search
         if map_search := self.request.GET.get("map_search"):
-            queryset = queryset.filter(
-                Q(map_display_name__icontains=map_search) |
-                Q(map_name__icontains=map_search)
-            )
+            queryset = queryset.filter(map__map_display_name__icontains=map_search)
 
         # numeric ranges
         numeric = ["damage", "xp", "kills", "credits", "assist", "block"]
@@ -611,14 +457,14 @@ class ReplayDetailView(DetailView):
             replay_data = self.object.payload
 
             # === Персональные данные ===
-            personal_data = Extractor.get_personal_data(replay_data)
+            personal_data = ExtractorV2.get_personal_data(replay_data)
             context['personal_data'] = personal_data
 
             # === ДОСТИЖЕНИЯ ===
-            achievements_ids = Extractor.get_achievements(replay_data)
-            # print(f"achievements_ids: {achievements_ids}")
+            achievements_ids = ExtractorV2.get_achievements(replay_data)
+            print(f"achievements_ids: {achievements_ids}")
             if achievements_ids:
-                ach_nonbattle, ach_battle = Extractor.split_achievements_by_section(achievements_ids)
+                ach_nonbattle, ach_battle = ExtractorV2.split_achievements_by_section(achievements_ids)
 
                 context['achievements_nonbattle'] = ach_nonbattle
                 context['achievements_battle'] = ach_battle
@@ -645,27 +491,33 @@ class ReplayDetailView(DetailView):
                 context['achievements_battle'] = Achievement.objects.none()
                 context['achievements_count_in_badges'] = 0
 
-            details = Extractor.get_details_data(replay_data)
+            details = ExtractorV2.get_details_data(replay_data)
             context['details'] = details
 
-            context["interactions"] = Extractor.get_player_interactions(replay_data)
+            interactions = ExtractorV2.get_player_interactions(replay_data)
+            print(f"interactions: {interactions}")
+            context["interactions"] = interactions
 
-            interaction_rows = Extractor.build_interaction_rows(replay_data)
+
+            interaction_rows = ExtractorV2.build_interaction_rows(replay_data)
+            print(f"interaction_rows: {interaction_rows}")
             context["interaction_rows"] = interaction_rows
 
-            context["interactions_summary"] = Extractor.build_interactions_summary(interaction_rows)
+            interactions_summary = ExtractorV2.build_interactions_summary(interaction_rows)
+            print(f"interactions_summary: {interactions_summary}")
+            context["interactions_summary"] = interactions_summary
 
-            context['death_reason_text'] = Extractor.get_death_text(replay_data)
+            context['death_reason_text'] = ExtractorV2.get_death_text(replay_data)
 
-            context['income'] = Extractor.build_income_summary(replay_data)
+            context['income'] = ExtractorV2.build_income_summary(replay_data)
 
-            context["battle_type_label"] = Extractor.get_battle_type_label(replay_data)
+            context["battle_type_label"] = ExtractorV2.get_battle_type_label(replay_data)
 
-            context["battle_outcome"] = Extractor.get_battle_outcome(replay_data)
+            context["battle_outcome"] = ExtractorV2.get_battle_outcome(replay_data)
 
-            context['team_results'] = Extractor.get_team_results(replay_data)
+            context['team_results'] = ExtractorV2.get_team_results(replay_data)
 
-            context['detailed_report'] = Extractor.get_detailed_report(replay_data)
+            context['detailed_report'] = ExtractorV2.get_detailed_report(replay_data)
 
         except (KeyError, TypeError, ValueError) as e:
             logger.error(f"Ошибка парсинга реплея {self.object.id}: {str(e)}")
@@ -673,112 +525,112 @@ class ReplayDetailView(DetailView):
 
         return context
 
-    def _get_result_class(self, result: str) -> str:
-        """Возвращает CSS класс для результата боя"""
-        return {
-            'victory': 'victory',
-            'defeat': 'defeat',
-            'draw': 'draw'
-        }.get(result, 'unknown')
-
-    def _get_survival_status(self, death_reason: int) -> dict:
-        """Определяет статус выживания"""
-        if death_reason == -1:
-            return {'status': 'survived', 'text': 'Выжил', 'class': 'survived'}
-        else:
-            return {'status': 'died', 'text': 'Погиб', 'class': 'died'}
-
-    def _calculate_hit_efficiency(self, data: dict) -> dict:
-        """Вычисляет эффективность стрельбы"""
-        shots = data.get('shots', 0)
-        hits = data.get('direct_hits', 0)
-        piercings = data.get('piercings', 0)
-
-        return {
-            'hit_rate': data.get('hit_rate', 0),
-            'penetration_rate': round((piercings / hits * 100), 2) if hits > 0 else 0,
-            'shots_per_hit': round(shots / hits, 2) if hits > 0 else 0,
-        }
-
-    def _calculate_damage_efficiency(self, data: dict) -> dict:
-        """Вычисляет эффективность урона"""
-        damage = data.get('damage_dealt', 0)
-        shots = data.get('shots', 0)
-        max_hp = data.get('max_health', 1)
-
-        return {
-            'damage_per_shot': round(damage / shots, 1) if shots > 0 else 0,
-            'damage_ratio': data['battle_performance']['damage_ratio'],
-            'assist_ratio': round(data.get('total_assist', 0) / damage * 100, 1) if damage > 0 else 0,
-        }
-
-    def _calculate_armor_efficiency(self, data: dict) -> dict:
-        """Вычисляет эффективность брони"""
-        potential = data.get('potential_damage_received', 0)
-        received = data.get('damage_received', 0)
-        blocked = data.get('total_blocked_damage', 0)
-
-        return {
-            'damage_blocked': blocked,
-            'armor_use_ratio': round(blocked / potential * 100, 1) if potential > 0 else 0,
-            'ricochets': data.get('ricochets_received', 0),
-            'bounces': data.get('bounces_received', 0),
-        }
-
-    def _prepare_enemy_list(self, enemy_stats: dict) -> list:
-        """Подготавливает список противников для отображения"""
-        enemies = []
-        for enemy_id, stats in enemy_stats.items():
-            if stats['damage_dealt'] > 0 or stats['target_kills'] > 0:
-                enemy_info = stats.get('enemy_vehicle_info', {})
-                enemies.append({
-                    'id': enemy_id,
-                    'damage': stats['damage_dealt'],
-                    'hits': stats['direct_hits'],
-                    'piercings': stats['piercings'],
-                    'kills': stats['target_kills'],
-                    'crits': stats['crits_total'],
-                    'is_killed': enemy_info.get('is_dead', False) if enemy_info else False,
-                    'max_hp': enemy_info.get('max_health', 0) if enemy_info else 0,
-                })
-        return sorted(enemies, key=lambda x: x['damage'], reverse=True)
-
-    def _calculate_performance_rating(self, data: dict) -> dict:
-        """Вычисляет общую оценку эффективности с готовыми процентами"""
-        damage_rating = min(data.get('damage_dealt', 0) / 1000, 5.0)
-        survival_rating = 1.0 if data.get('survival_status') == -1 else 0.0
-        assist_rating = min(data.get('total_assist', 0) / 500, 2.0)
-        armor_rating = min(data.get('total_blocked_damage', 0) / 1000, 2.0)
-
-        total_rating = damage_rating + survival_rating + assist_rating + armor_rating
-
-        return {
-            'total': round(total_rating, 1),
-            'max': 10.0,
-            'percentage': round(total_rating / 10.0 * 100, 1),
-            'components': {
-                'damage': {
-                    'value': round(damage_rating, 1),
-                    'max': 5.0,
-                    'percentage': round(damage_rating / 5.0 * 100, 1),
-                },
-                'survival': {
-                    'value': round(survival_rating, 1),
-                    'max': 1.0,
-                    'percentage': round(survival_rating * 100, 1),
-                },
-                'assist': {
-                    'value': round(assist_rating, 1),
-                    'max': 2.0,
-                    'percentage': round(assist_rating / 2.0 * 100, 1),
-                },
-                'armor': {
-                    'value': round(armor_rating, 1),
-                    'max': 2.0,
-                    'percentage': round(armor_rating / 2.0 * 100, 1),
-                },
-            }
-        }
+    # def _get_result_class(self, result: str) -> str:
+    #     """Возвращает CSS класс для результата боя"""
+    #     return {
+    #         'victory': 'victory',
+    #         'defeat': 'defeat',
+    #         'draw': 'draw'
+    #     }.get(result, 'unknown')
+    #
+    # def _get_survival_status(self, death_reason: int) -> dict:
+    #     """Определяет статус выживания"""
+    #     if death_reason == -1:
+    #         return {'status': 'survived', 'text': 'Выжил', 'class': 'survived'}
+    #     else:
+    #         return {'status': 'died', 'text': 'Погиб', 'class': 'died'}
+    #
+    # def _calculate_hit_efficiency(self, data: dict) -> dict:
+    #     """Вычисляет эффективность стрельбы"""
+    #     shots = data.get('shots', 0)
+    #     hits = data.get('direct_hits', 0)
+    #     piercings = data.get('piercings', 0)
+    #
+    #     return {
+    #         'hit_rate': data.get('hit_rate', 0),
+    #         'penetration_rate': round((piercings / hits * 100), 2) if hits > 0 else 0,
+    #         'shots_per_hit': round(shots / hits, 2) if hits > 0 else 0,
+    #     }
+    #
+    # def _calculate_damage_efficiency(self, data: dict) -> dict:
+    #     """Вычисляет эффективность урона"""
+    #     damage = data.get('damage_dealt', 0)
+    #     shots = data.get('shots', 0)
+    #     max_hp = data.get('max_health', 1)
+    #
+    #     return {
+    #         'damage_per_shot': round(damage / shots, 1) if shots > 0 else 0,
+    #         'damage_ratio': data['battle_performance']['damage_ratio'],
+    #         'assist_ratio': round(data.get('total_assist', 0) / damage * 100, 1) if damage > 0 else 0,
+    #     }
+    #
+    # def _calculate_armor_efficiency(self, data: dict) -> dict:
+    #     """Вычисляет эффективность брони"""
+    #     potential = data.get('potential_damage_received', 0)
+    #     received = data.get('damage_received', 0)
+    #     blocked = data.get('total_blocked_damage', 0)
+    #
+    #     return {
+    #         'damage_blocked': blocked,
+    #         'armor_use_ratio': round(blocked / potential * 100, 1) if potential > 0 else 0,
+    #         'ricochets': data.get('ricochets_received', 0),
+    #         'bounces': data.get('bounces_received', 0),
+    #     }
+    #
+    # def _prepare_enemy_list(self, enemy_stats: dict) -> list:
+    #     """Подготавливает список противников для отображения"""
+    #     enemies = []
+    #     for enemy_id, stats in enemy_stats.items():
+    #         if stats['damage_dealt'] > 0 or stats['target_kills'] > 0:
+    #             enemy_info = stats.get('enemy_vehicle_info', {})
+    #             enemies.append({
+    #                 'id': enemy_id,
+    #                 'damage': stats['damage_dealt'],
+    #                 'hits': stats['direct_hits'],
+    #                 'piercings': stats['piercings'],
+    #                 'kills': stats['target_kills'],
+    #                 'crits': stats['crits_total'],
+    #                 'is_killed': enemy_info.get('is_dead', False) if enemy_info else False,
+    #                 'max_hp': enemy_info.get('max_health', 0) if enemy_info else 0,
+    #             })
+    #     return sorted(enemies, key=lambda x: x['damage'], reverse=True)
+    #
+    # def _calculate_performance_rating(self, data: dict) -> dict:
+    #     """Вычисляет общую оценку эффективности с готовыми процентами"""
+    #     damage_rating = min(data.get('damage_dealt', 0) / 1000, 5.0)
+    #     survival_rating = 1.0 if data.get('survival_status') == -1 else 0.0
+    #     assist_rating = min(data.get('total_assist', 0) / 500, 2.0)
+    #     armor_rating = min(data.get('total_blocked_damage', 0) / 1000, 2.0)
+    #
+    #     total_rating = damage_rating + survival_rating + assist_rating + armor_rating
+    #
+    #     return {
+    #         'total': round(total_rating, 1),
+    #         'max': 10.0,
+    #         'percentage': round(total_rating / 10.0 * 100, 1),
+    #         'components': {
+    #             'damage': {
+    #                 'value': round(damage_rating, 1),
+    #                 'max': 5.0,
+    #                 'percentage': round(damage_rating / 5.0 * 100, 1),
+    #             },
+    #             'survival': {
+    #                 'value': round(survival_rating, 1),
+    #                 'max': 1.0,
+    #                 'percentage': round(survival_rating * 100, 1),
+    #             },
+    #             'assist': {
+    #                 'value': round(assist_rating, 1),
+    #                 'max': 2.0,
+    #                 'percentage': round(assist_rating / 2.0 * 100, 1),
+    #             },
+    #             'armor': {
+    #                 'value': round(armor_rating, 1),
+    #                 'max': 2.0,
+    #                 'percentage': round(armor_rating / 2.0 * 100, 1),
+    #             },
+    #         }
+    #     }
 
 
 class ReplayDownloadView(View):

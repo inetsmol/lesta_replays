@@ -11,7 +11,7 @@ class Replay(models.Model):
         max_length=60,
         blank=True,
         default='',
-        help_text="Короткое описание боя (до 200 символов)"
+        help_text="Короткое описание боя (до 60 символов)"
     )
 
     # Базовые поля файла
@@ -62,11 +62,38 @@ class Replay(models.Model):
         help_text="Отображаемое название карты"
     )
 
+    # Связь с картой
+    map = models.ForeignKey(
+        'Map',
+        on_delete=models.PROTECT,          # карту нельзя удалить, если есть реплеи
+        null=True,                         # временно допускаем NULL, пока не мигрируем
+        blank=True,
+        related_name='replays',
+        help_text="Карта боя"
+    )
+
+    gameplay_id = models.CharField(
+        max_length=100,
+        default="ctf",
+        null=True,
+        blank=True,
+        help_text="Режим игры"
+    )
+
+    battle_type = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Режим боя (например: Стандартный бой, Штурм)"
+    )
+
     # Статистика боя
     credits = models.IntegerField(
         default=0,
         help_text="Заработанные кредиты"
     )
+
     xp = models.PositiveIntegerField(
         default=0,
         help_text="Полученный опыт"
@@ -97,14 +124,6 @@ class Replay(models.Model):
         help_text="Версия клиента игры (например: 1.26.0.3_13)"
     )
 
-    battle_type = models.CharField(
-        max_length=50,
-        null=True,
-        blank=True,
-        db_index=True,
-        help_text="Режим боя (например: Стандартный бой, Штурм)"
-    )
-
     # ИСПРАВЛЕНО: Связь с владельцем реплея
     owner = models.ForeignKey(
         'Player',
@@ -128,12 +147,8 @@ class Replay(models.Model):
         indexes = [
             models.Index(fields=["battle_date", "damage"]),
             models.Index(fields=["tank", "battle_date"]),
+            models.Index(fields=["map", "battle_date"]),
         ]
-
-    def __str__(self) -> str:
-        if self.tank and self.battle_date:
-            return f"{self.tank.name} - {self.battle_date.strftime('%d.%m.%Y %H:%M')}"
-        return self.file_name
 
 
 class Nation(models.TextChoices):
@@ -183,9 +198,6 @@ class Tank(models.Model):
         null=True,
         help_text="Страна/нация (slug из Танкопедии)"
     )
-
-    def __str__(self) -> str:
-        return f"{self.name} (lvl {self.level}, {self.type}, {self.nation or '?'})"
 
 
 class Achievement(models.Model):
@@ -270,17 +282,15 @@ class Player(models.Model):
 
 class Map(models.Model):
     map_name = models.CharField(
-        "Ник",
+        "Уникальный ключ",
         max_length=50,
         unique=True,
         help_text="Уникальный ключ"
     )
 
     map_display_name = models.CharField(
-        "Ник",
+        "Русское название карты",
         max_length=50,
         db_index=True,
         help_text="Русское название карты"
     )
-
-    image = models.CharField(max_length=500, blank=True, verbose_name="Изображение")

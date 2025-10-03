@@ -50,6 +50,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     "django.contrib.sitemaps",
+
+    "django.contrib.sites",
+    "django_comments_xtd",
+    "django_comments",
+
     'replays',
 ]
 
@@ -167,3 +172,34 @@ SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG
 SECURE_SSL_REDIRECT = not DEBUG
+
+
+# ===========================================================================
+# НАСТРОЙКИ DJANGO-COMMENTS-XTD
+# ===========================================================================
+
+SITE_ID = 1
+
+# Основные настройки комментариев
+COMMENTS_APP = 'django_comments_xtd'
+
+# КРИТИЧЕСКИ ВАЖНО: отключаем подтверждение email для анонимных пользователей
+COMMENTS_XTD_CONFIRM_EMAIL = False
+
+# Максимальная вложенность ответов
+COMMENTS_XTD_MAX_THREAD_LEVEL = 3
+
+# Порядок отображения комментариев
+COMMENTS_XTD_LIST_ORDER = ('-thread_id', 'order')
+
+# Кастомная форма (только имя и текст) - используем стандартный параметр
+COMMENT_FORM_CLASS = 'replays.forms.SimpleCommentForm'
+
+# Модерация комментариев
+COMMENTS_XTD_APP_MODEL_OPTIONS = {
+    'replays.replay': {
+        'allow_flagging': True,      # Разрешить жалобы на комментарии
+        'allow_feedback': True,       # Разрешить лайки/дизлайки
+        'show_feedback': True,        # Показывать счетчик лайков
+    }
+}

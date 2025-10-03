@@ -46,7 +46,7 @@
     <label for="owner_nick">Ник владельца</label>
     <input type="search" id="owner_nick" name="owner_nick"
            value="{{ current_filters.owner_nick.0|default_if_none:'' }}"
-           placeholder="Напр.: fridaynich">
+           placeholder="Напр.: unknowns2002">
   </div>
 
   <div class="field">
@@ -255,29 +255,29 @@
         </form>
     </section>
 
-    <script>
-        // Простой поиск по списку техники
-        (function () {
-            const search = document.getElementById('tank-search');
-            const list = document.getElementById('tank-list');
-            const count = document.querySelector('.tank-count');
-            if (!search || !list) return;
-            const items = Array.from(list.querySelectorAll('.tank-item'));
-            const update = () => {
-                const q = search.value.trim().toLowerCase();
-                let visible = 0;
-                items.forEach(it => {
-                    const ok = !q || (it.dataset.name || '').includes(q);
-                    it.style.display = ok ? 'block' : 'none';
-                    if (ok) visible++;
-                });
-                if (count) count.textContent = String(visible);
-            };
-            search.addEventListener('input', update);
-            update();
-        })();
-    </script>
-    <script>
+<script>
+    // Простой поиск по списку техники
+    (function () {
+        const search = document.getElementById('tank-search');
+        const list = document.getElementById('tank-list');
+        const count = document.querySelector('.tank-count');
+        if (!search || !list) return;
+        const items = Array.from(list.querySelectorAll('.tank-item'));
+        const update = () => {
+            const q = search.value.trim().toLowerCase();
+            let visible = 0;
+            items.forEach(it => {
+                const ok = !q || (it.dataset.name || '').includes(q);
+                it.style.display = ok ? 'block' : 'none';
+                if (ok) visible++;
+            });
+            if (count) count.textContent = String(visible);
+        };
+        search.addEventListener('input', update);
+        update();
+    })();
+</script>
+<script>
   // Фильтр по списку версий клиента
   (function () {
     const search = document.getElementById('gv-search');

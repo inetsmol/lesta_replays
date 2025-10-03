@@ -1,6 +1,7 @@
 {# replays/templates/replays/detail.html #}
 {% extends "base.html" %}
 {% load static humanize %}
+{% load comments_xtd comments %}
 
 {% block title %}Реплей #{{ replay.id }} - {{ replay_data.player_name }}{% endblock %}
 {% block body_class %}replays detail{% endblock %}
@@ -69,10 +70,12 @@
               <span class="count">{{ personal_data.xp|intcomma }}</span>
               <img src="{% static 'style/images/wot/library/XpIconBig.png' %}" alt="XP">
             </div>
-            <div class="bond">
-                <span class="count">{{ personal_data.crystal|intcomma }}</span>
-                <img src="{% static 'style/images/wot/library/crystal_16x16.png' %}" alt="Bond">
-            </div>
+            {% if personal_data.crystal %}
+                <div class="bond">
+                    <span class="count">{{ personal_data.crystal|intcomma }}</span>
+                    <img src="{% static 'style/images/wot/library/crystal_16x16.png' %}" alt="Bond">
+                </div>
+            {% endif %}
           </div>
 
           <div class="dossier" data-number="{{ achievements_battle_count }}">
@@ -91,7 +94,7 @@
       <div class="titles-line">
         <div class="half">
           <div class="battle-type">
-            <span class="map-name">{{ replay.map_display_name }}</span>&nbsp;&nbsp;-&nbsp;&nbsp;{{ battle_type_label }}
+            <span class="map-name">{{ replay.map.map_display_name }}</span>&nbsp;&nbsp;-&nbsp;&nbsp;{{ battle_type_label }}
           </div>
         </div>
         <div class="half">
@@ -147,8 +150,8 @@
         <div class="half">
           <div class="map-stat">
             <img class="map"
-                 src="{% static 'style/images/wot/map/stats/' %}{{ replay.map_name }}.png"
-                 alt="{{ replay.map_display_name|default:replay.map_name }}">
+                 src="{% static 'style/images/wot/map/stats/' %}{{ replay.map.map_name }}.png"
+                 alt="{{ replay.map.map_display_name|default:replay.map.map_name }}">
             <div class="stat">
                 <div style="display: flex">
                   <div class="stat-tank" >
@@ -163,7 +166,10 @@
                   </div>
 
                   <div class="stat-text" >
-                    <div class="name">{{ details.playerName }}</div>
+                    <div class="name">
+                      {{ details.playerName }}
+                      {% if details.clanAbbrev %} [{{ details.clanAbbrev }}]{% endif %}
+                    </div>
                     {{ replay.battle_date }}
                     <div class="death-reason">{{ death_reason_text }}</div>
                   </div>
@@ -300,7 +306,7 @@
             <div class="header {% if not player.is_alive %}dead{% endif %}">
               <div class="tank">
                 <img class="tank new" src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ player.vehicle_tag }}.png" alt="{{ player.vehicle_display_name }}">
-                <img class="type" src="{% static player.tank_type_icon %}" alt="">
+                <img class="type" src="{% static 'style/images/wot/vehicleTypes/' %}{{ player.tank_type }}.png" alt="">
                 <img class="level" src="{% static 'style/images/wot/levels/tank_level_' %}{{ player.tank_level }}.png" alt="">
               </div>
               <div class="info">
@@ -383,7 +389,7 @@
             <div class="header {% if not player.is_alive %}dead{% endif %}">
               <div class="tank">
                 <img class="tank new" src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ player.vehicle_tag }}.png" alt="{{ player.vehicle_display_name }}">
-                <img class="type" src="{% static player.tank_type_icon %}" alt="">
+                <img class="type" src="{% static 'style/images/wot/vehicleTypes/' %}{{ player.tank_type }}.png" alt="">
                 <img class="level" src="{% static 'style/images/wot/levels/tank_level_' %}{{ player.tank_level }}.png" alt="">
               </div>
               <div class="info">
@@ -674,6 +680,70 @@
 
 {% endif %}
 
+{#{% load comments %}#}
+{#{% load comments_xtd %}#}
+
+{#<hr class="comments-sep">#}
+{##}
+{#<section id="comments" class="comments-section">#}
+{#    <h3 class="comments-title">Комментарии</h3>#}
+{##}
+    {# Отображение существующих комментариев #}
+{#    {% get_comment_count for replay as comment_count %}#}
+{##}
+{#    {% if comment_count %}#}
+{#        <p class="comment-count">Комментариев: {{ comment_count }}</p>#}
+{#        {% render_xtdcomment_tree for replay %}#}
+{#    {% else %}#}
+{#        <p class="no-comments">Пока нет комментариев. Будьте первым!</p>#}
+{#    {% endif %}#}
+{##}
+    {# Форма добавления комментария #}
+{#    <div class="comment-form-wrapper">#}
+{#        <h4>Добавить комментарий</h4>#}
+{##}
+{#        {% get_comment_form for replay as form %}#}
+{##}
+{#        <form action="{% comment_form_target %}" method="post" class="comment-form">#}
+{#            {% csrf_token %}#}
+{##}
+            {# Служебные скрытые поля #}
+{#            {{ form.content_type }}#}
+{#            {{ form.object_pk }}#}
+{#            {{ form.timestamp }}#}
+{#            {{ form.security_hash }}#}
+{##}
+            {# Honeypot - защита от спама #}
+{#            <div style="display:none;">#}
+{#                {{ form.honeypot }}#}
+{#            </div>#}
+{##}
+            {# Редирект после отправки на ту же страницу #}
+{#            <input type="hidden" name="next" value="{{ request.path }}#comments">#}
+{##}
+            {# Поле имени #}
+{#            <div class="form-field">#}
+{#                {{ form.name.label_tag }}#}
+{#                {{ form.name }}#}
+{#                {% if form.name.errors %}#}
+{#                    <div class="error-message">{{ form.name.errors }}</div>#}
+{#                {% endif %}#}
+{#                <small class="field-help">Необязательное поле. По умолчанию: Гость</small>#}
+{#            </div>#}
+{##}
+            {# Поле комментария #}
+{#            <div class="form-field">#}
+{#                {{ form.comment.label_tag }}#}
+{#                {{ form.comment }}#}
+{#                {% if form.comment.errors %}#}
+{#                    <div class="error-message">{{ form.comment.errors }}</div>#}
+{#                {% endif %}#}
+{#            </div>#}
+{##}
+{#            <button type="submit" class="btn-submit-comment">Отправить комментарий</button>#}
+{#        </form>#}
+{#    </div>#}
+{#</section>#}
 <!-- Tabs init -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {

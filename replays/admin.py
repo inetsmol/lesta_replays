@@ -1,6 +1,6 @@
 # replays/admin.py
 from django.contrib import admin
-from .models import Tank, Player, Replay
+from .models import Tank, Player, Replay, Map
 
 
 @admin.register(Tank)
@@ -22,3 +22,8 @@ class ReplayAdmin(admin.ModelAdmin):
     list_filter = ("id", "tank", "battle_date", "game_version", "battle_type")
     search_fields = ("id", "file_name", "map_display_name", "map_name")
     filter_horizontal = ("participants",)  # удобный M2M виджет
+
+@admin.register(Map)
+class PlayerAdmin(admin.ModelAdmin):
+    list_display = ("id", "map_name", "map_display_name")
+    search_fields = ("id", "map_name", "map_display_name")
