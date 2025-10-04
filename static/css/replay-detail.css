@@ -1,0 +1,3275 @@
+img {
+    border: 0
+}
+
+.right {
+    float: right
+}
+
+.clearfix {
+    clear: both
+}
+
+.main h2, #content .right-panel h2 {
+    border-bottom: 1px solid rgb(170, 170, 170)
+}
+
+#content {
+    overflow: hidden;
+    padding-bottom: 15px;
+    min-height: calc(100vh - 202px);
+    position: relative
+}
+
+#content .left-panel {
+    padding: 0 25px 25px 25px;
+    display: inline-block;
+    width: 778px;
+    vertical-align: top;
+    position: relative
+}
+
+#content .left-panel.full {
+    padding: 0 25px 25px 25px;
+    width: 100%
+}
+
+#content .right-panel {
+    display: inline-block;
+    vertical-align: top;
+    width: 250px;
+    margin-bottom: 25px
+}
+
+#content .right-panel h2 {
+    font-family: "Oswald", sans-serif;
+    font-size: 20px;
+    margin-top: 25px
+}
+
+#content .right-panel h2:first-child {
+    margin-top: 0
+}
+
+#content .right-panel ol {
+    margin: 0 0 25px 0;
+    padding-left: 22px
+}
+
+#content .right-panel ul.top5 {
+    margin: 0 0 25px 0;
+    padding-left: 0;
+    list-style: none
+}
+
+#content .right-panel ul.top5 li {
+    margin-bottom: 7px;
+    white-space: nowrap;
+    line-height: 30px;
+    height: 30px;
+    width: 250px;
+    position: relative;
+    padding-left: 60px;
+    border: 1px solid #000;
+    border-radius: 4px;
+    padding-right: 5px;
+    background: #000;
+    color: #fff;
+    box-shadow: 1px 1px 4px 1px rgba(0, 0, 0, 0.64);
+    overflow: hidden;
+    text-shadow: 1px 1px 1px black, 1px 1px 1px black, 0 0 2px black;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    -o-transform: translateZ(0);
+    transition: all 200ms
+}
+
+#content .right-panel ul.top5 li:hover {
+    margin-left: -5px
+}
+
+#content .right-panel ul.top5 li a {
+    color: #E7E7E7;
+    text-decoration: none
+}
+
+#content .right-panel ul.top5 li .tank {
+    position: absolute;
+    left: -15px;
+    top: 0;
+    height: 48px;
+    margin-top: -8px
+}
+
+#content .right-panel ul.top5 li .map {
+    width: 248px;
+    height: 28px;
+    position: absolute;
+    left: 0;
+    border-radius: 3px;
+    background-size: cover;
+    background-position: 0% 292px;
+    opacity: 0.8
+}
+
+#content .right-panel ul.top5 li .cell {
+    display: inline-block;
+    font-size: 10px;
+    width: 50px;
+    position: relative;
+    z-index: 1
+}
+
+#content .right-panel ul.top5 li .cell img {
+    height: 12px;
+    margin-right: 3px;
+    vertical-align: text-bottom;
+    -webkit-filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 1));
+    filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 1))
+}
+
+#content .right-panel ul.top5 li .cell img.kill {
+    margin-bottom: 2px;
+    height: 10px
+}
+
+#content .right-panel ul.top5 li .right {
+    position: absolute;
+    right: 10px;
+    top: 0;
+    font-size: 10px
+}
+
+#content .right-panel a.tank-poll {
+    padding: 0 15px;
+    text-transform: uppercase;
+    border-radius: 4px;
+    font-family: "Oswald", sans-serif;
+    font-size: 20px;
+    color: #F2F2F2;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 1), 0 0 2px rgba(0, 0, 0, 1), 0 0 11px black;
+    position: relative;
+    top: 50%;
+    margin-top: 22px;
+    text-decoration: none;
+    display: block;
+    margin: 10px auto -7px auto;
+    border: 1px solid #080808;
+    background-color: #313131;
+    height: 50px;
+    background-position: right -30px;
+    line-height: 50px
+}
+
+.tank-list {
+    border-right: 1px solid rgb(210, 210, 210);
+    border-collapse: collapse;
+    width: 100%;
+    text-align: center;
+    clear: both
+}
+
+.tank-list a {
+    color: rgb(70, 70, 70);
+    text-decoration: none
+}
+
+.tank-list th {
+    background-color: #2D2C25;
+    cursor: url(../style/images/wot/cursors/cursor-pointer.png), pointer;
+    color: white;
+    line-height: 1.3;
+    height: 40px
+}
+
+.tank-list .sorting_asc {
+    background: #26251E url(../style/images/wot/results/ascendingSortArrow.png) no-repeat;
+    background-position: 4px 4px
+}
+
+.tank-list .sorting_desc {
+    background: #26251E url(../style/images/wot/results/descendingSortArrow.png) no-repeat;
+    background-position: 4px 4px
+}
+
+.tank-list .img-container {
+    width: 80px;
+    text-align: center;
+    display: inline-block;
+    vertical-align: middle
+}
+
+.tank-list .text-left {
+    text-align: left;
+    padding-top: 2px
+}
+
+.tank-list .sorting_1 {
+    background-color: rgba(215, 215, 215, 0.23)
+}
+
+.tank-list tr.even {
+    background: #EFEFEF
+}
+
+.tank-list .number-width {
+    width: 85px
+}
+
+.tank-list tr.odd {
+    background: #FFF
+}
+
+.tank-list tr {
+    height: 31px;
+    position: relative
+}
+
+.tank-list td {
+    padding: 0;
+    border: 1px solid rgb(210, 210, 210);
+    height: 31px
+}
+
+.tank-list .dataTables_empty {
+    vertical-align: middle
+}
+
+@keyframes flag-play {
+    100% {
+        background-position: -7000px
+    }
+}
+
+.achi-number-wrapper.diff, .main-stats .diff, .tank-list td.diff:after {
+    display: none !important
+}
+
+.achi-number-wrapper.diff.show, .main-stats .diff.show, .tank-list td.diff.show:after {
+    display: block !important
+}
+
+
+.stat-number .diff.red, .tank-list td.diff.red:after {
+    color: #CD3333
+}
+
+.gold.achi-number-wrapper {
+    bottom: 0
+}
+
+.gold .achi-number {
+    border: none
+}
+
+.gold .achi-number span {
+    width: 41px;
+    height: 25px;
+    border: none;
+    background: url(../style/images/wot/achievement/web/achievements-1.png);
+    padding-top: 3px
+}
+
+/*.ui-tooltip {*/
+/*    !*background: url("http://worldoftanks.eu/static/3.24.0.2/common/css/scss/content/tooltip/img/tooltip_bg.jpg") repeat scroll 0 0 rgba(0, 0, 0, 0);*!*/
+/*    background-color: rgba(0, 0, 0, 0.94);*/
+/*    border: 1px solid #454648;*/
+/*    border-radius: 3px;*/
+/*    box-shadow: 0 0 1px rgba(0, 0, 0, 0.85), 0 0 20px rgba(0, 0, 0, 0.25), 0 0 7px rgba(0, 0, 0, 0.21), 0 0 11px rgba(255, 255, 255, 0.03) inset;*/
+/*    color: #979899;*/
+/*    display: none;*/
+/*    float: left;*/
+/*    line-height: 130%;*/
+/*    margin: 0;*/
+/*    padding: 8px 13px;*/
+/*    position: absolute;*/
+/*    z-index: 10000;*/
+/*}*/
+
+.ui-tooltip.achi-tooltip {
+    background-color: #1b1b1b;
+    color: #e6e6e6; /* базовый цвет текста */
+    border: 1px solid #2a2b2f; /* граница */
+    width: 300px;
+    /*padding: 15px;*/
+      border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.35);
+  max-width: 360px;
+  line-height: 1.35;
+  z-index: 9999;                 /* поверх всего */
+}
+
+.ui-tooltip.achi-tooltip img {
+    display: block;
+    margin: 0 auto;
+    width: 180px;
+    height: 180px;
+}
+
+.ui-tooltip.achi-tooltip .title {
+    font-size: 18px;
+    /*font-family: "swiss721_cn_pflbold";*/
+    line-height: 20px;
+    color: #ffd27d;
+    font-weight: 600;
+    margin: 0 0 6px
+}
+
+.ui-tooltip.achi-tooltip .condition {
+    margin-top: 15px;
+    opacity: 0.6
+}
+
+.ui-tooltip.achi-tooltip img.achi {
+    margin: 20px auto
+}
+
+.hit-list-tooltip .title {
+    font-size: 16px !important;
+    /*font-family: "swiss721_cn_pflbold";*/
+    margin-top: 18px;
+    vertical-align: top;
+    line-height: 1.3
+}
+
+.hit-list-tooltip .gray {
+    font-size: 11px;
+    color: #54514c
+}
+
+.ui-tooltip .tooltip .img.left {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: block
+}
+
+.ui-tooltip .tooltip .title {
+    margin-bottom: 5px;
+    color: #fcf1d3;
+    font-weight: bold;
+    font-size: 14px
+}
+
+@-moz-keyframes spin {
+    from {
+        -moz-transform: rotate(0deg)
+    }
+    to {
+        -moz-transform: rotate(360deg)
+    }
+}
+
+@-webkit-keyframes spin {
+    from {
+        -webkit-transform: rotate(0deg)
+    }
+    to {
+        -webkit-transform: rotate(360deg)
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg)
+    }
+    to {
+        transform: rotate(360deg)
+    }
+}
+
+.vehicle-image.small img.tank {
+    height: 64px;
+    margin-top: -8px;
+    margin-left: 23px
+}
+
+.vehicle-image .tank {
+    height: 100%;
+    margin: 0 auto
+}
+
+.vehicle-image .type {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    z-index: 2
+}
+
+.vehicle-image .level {
+    position: absolute;
+    top: 5px;
+    left: 20px;
+    z-index: 2
+}
+
+.vehicle-image .name {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    z-index: 1;
+    text-align: right;
+    color: rgb(237, 237, 237);
+    text-shadow: 0 0 8px rgba(205, 205, 205, 0.8)
+}
+
+.tank-profile .vehicle-image .name {
+    bottom: auto;
+    top: 5px
+}
+
+.vehicle-image .name.premium {
+    color: #C57338;
+    text-shadow: 0 0 8px #B86D37
+}
+
+@-webkit-keyframes opacity-error {
+    0% {
+        opacity: 1
+    }
+    20% {
+        opacity: 1
+    }
+    60% {
+        opacity: 0
+    }
+    100% {
+        opacity: 1
+    }
+}
+
+@keyframes opacity-error {
+    0% {
+        opacity: 1
+    }
+    20% {
+        opacity: 1
+    }
+    60% {
+        opacity: 0
+    }
+    100% {
+        opacity: 1
+    }
+}
+
+.tank-profile .ammo-wrapper-line.active {
+    display: block;
+    margin-bottom: 10px;
+    margin-top: -3px
+}
+
+.tank-profile .ammo-wrapper .type {
+    position: absolute;
+    color: #949488;
+    font-family: "Oswald", sans-serif;
+    text-shadow: 0 0 3px black;
+    left: 4px;
+    top: 1px
+}
+
+.eqv-holder .overlay:hover + .bg-white, .eqv-holder.tank a:hover + .bg-white {
+    background: rgba(255, 255, 255, 0.10)
+}
+
+.eqv-holder.tank {
+    width: 152px;
+    padding-left: 27px
+}
+
+.eqv-row.margin-5 .eqv-holder.tank .bg-div {
+    background: none
+}
+
+.eqv-tank .name {
+    position: absolute;
+    right: 4px;
+    top: 3px;
+    color: #fff;
+    z-index: 1
+}
+
+.eqv-tank .type {
+    position: absolute;
+    left: 3px;
+    top: 3px
+}
+
+.eqv-tank .level {
+    position: absolute;
+    left: 15px;
+    top: 3px
+}
+
+.eqv-tank .tank {
+    position: absolute;
+    left: 10px;
+    top: 2px
+}
+
+.eqv-tooltip .title {
+    color: #f4efc5;
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 5px;
+    margin-bottom: 3px;
+    line-height: 1.3
+}
+
+.eqv-tooltip .credit {
+    margin: 0 5px -1px 5px
+}
+
+.eqv-tooltip .price .gold {
+    margin: 0 5px -1px 6px
+}
+
+.eqv-tooltip .price .first.or {
+    display: block;
+    margin: 2px 0 5px 0
+}
+
+.eqv-tooltip .condition {
+    color: #979899;
+    background: rgba(27, 26, 21, 0.3);
+    margin: -10px -12px -10px -12px;
+    padding: 15px 18px;
+    font-size: 11px
+}
+
+.eqv-tooltip .condition .title {
+    color: #5d5d53;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: bold
+}
+
+.eqv-tooltip .condition span {
+    color: #c9a372;
+    font-size: 13px;
+    font-weight: bold;
+    color: #f4efc5;
+    display: inline-block;
+    margin-bottom: 3px
+}
+
+.eqv-tooltip .complex .title {
+    color: #da741f;
+    font-size: 14px;
+    font-weight: bold;
+    margin-left: 5px;
+    display: inline-block;
+    margin-bottom: 10px
+}
+
+.eqv-tooltip .complex .icon {
+    margin-bottom: -3px
+}
+
+.eqv-tooltip .complex .gold {
+    margin-bottom: -3px
+}
+
+.eqv-tooltip .details .title {
+    color: #f4efc5;
+    margin-bottom: 5px;
+    font-size: 13px;
+    font-weight: bold
+}
+
+.eqv-tooltip .details .first, .eqv-tooltip .price .first, .eqv-tooltip .first {
+    color: #b8b7b2 !important;
+    width: 80px;
+    display: inline-block;
+    margin-right: 10px;
+    text-align: right;
+    font-size: inherit !important;
+    font-weight: inherit !important;
+    float: left
+}
+
+.eqv-tooltip .details .gray, .eqv-tooltip .gray {
+    color: #6c6d6f !important;
+    font-size: inherit !important;
+    font-weight: inherit !important
+}
+
+.battle-records {
+    display: flex;
+    justify-content: space-between;
+    height: 85px;
+    background: url(../style/images/wot/battleresults/battleResults-43.png) no-repeat center;
+    background-size: 150% 100%
+}
+
+.tanks-image.defeat .battle-records {
+    background: url(../style/images/wot/battleresults/battleResults-41.png) no-repeat center;
+    background-size: 130% 100%
+}
+
+.battle-records .dossier, .battle-records .achievements {
+    display: inline-block;
+    width: 42%;
+    height: 88px
+}
+
+.battle-records .achievements div, .battle-records .dossier div {
+    display: inline-block;
+    float: right;
+    height: 85px;
+    line-height: 85px;
+    margin: -4px -15px 0 -15px
+}
+
+.battle-records .achievements[data-number="7"] div img.mark.full {
+    margin: 0 0 -7px 0
+}
+
+.battle-records .dossier .achi-img-cont {
+    float: left;
+    margin: 0 -5px
+}
+
+.battle-records .achievements[data-number="8"] div {
+    margin: -4px -19px 0 -19px
+}
+
+.battle-records .achievements[data-number="9"] div {
+    margin: -4px -22px 0 -22px
+}
+
+.battle-records .achievements[data-number="10"] div {
+    margin: -4px -25px 0 -24px
+}
+
+.battle-records .dossier[data-number="7"] .achi-img-cont {
+    margin: 0 -9px
+}
+
+.battle-records .dossier[data-number="8"] .achi-img-cont {
+    margin: 0 -13px
+}
+
+.battle-records .dossier[data-number="9"] .achi-img-cont {
+    margin: 0 -16px
+}
+
+.battle-records .achievements[data-number="8"] .mark {
+    margin: 5px 3px 0 -4px !important
+}
+
+.battle-records .achievements .mastery {
+    margin: 2px 0 0 -15px;
+}
+
+.battle-records .achievements .mastery img {
+    height: 60px;
+    margin-top: -5px
+}
+
+.battle-records .achievements div img {
+    height: 90px;
+    vertical-align: middle
+}
+
+.battle-records .dossier div img {
+    height: 80px;
+    vertical-align: middle
+}
+
+.battle-records .dossier div.badge, .battle-records .achievements div.badge {
+    position: relative
+}
+
+.battle-records .dossier div.badge img, .battle-records .achievements div.badge img {
+    position: relative;
+    z-index: 11
+}
+
+.battle-records .dossier div.badge .ribbon, .battle-records .achievements div.badge .ribbon {
+    background: url(../style/images/wot/battleresults/battleResults-27.png) no-repeat center;
+    background-size: 77px 100%;
+    position: absolute;
+    width: 97px;
+    height: 87px;
+    z-index: 10;
+    top: -1px;
+    left: 50%;
+    margin-left: -48px
+}
+
+.battle-records .income {
+    color: white;
+    font-family: "Oswald", sans-serif;
+    font-size: 25px;
+    text-align: center;
+    padding-top: 8px;
+    line-height: 33px;
+    text-shadow: 1px 1px 5px #000;
+    display: inline-block;
+    vertical-align: top
+}
+
+.battle-records .income .credit img {
+    vertical-align: top;
+    margin-top: 10px
+}
+
+.battle-records .income.bond {
+    font-size: 22px;
+    line-height: 26px;
+    padding-top: 2px
+}
+
+.battle-records .income.bond .credit img {
+    margin-top: 6px
+}
+
+.battle-records .income.bond .xp img {
+    vertical-align: top;
+    margin-top: 3px
+}
+
+.battle-records .income.bond .bond img {
+    height: 28px;
+    vertical-align: top;
+    margin-top: -1px;
+    margin-left: 5px
+}
+
+.titles-line {
+    display: flex;
+    height: 34px;
+    border-bottom: 1px solid black;
+    background: #26251E;
+    border-top: 1px solid black;
+    color: #bcbdbe;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px #000
+}
+
+.titles-line .battle-type {
+    padding-left: 10px;
+    line-height: 34px
+}
+
+.tanks-image {
+    height: 220px;
+    background-size: 100%
+}
+
+.tanks-image.win {
+    background: url(../style/images/wot/battleresults/win.jpg)
+}
+
+.tanks-image.defeat {
+    background: url(../style/images/wot/battleresults/defeat.jpg)
+}
+
+.tanks-image.draw {
+    background: url(../style/images/wot/battleresults/draw.jpg)
+}
+
+.tanks-image.girls, .tanks-image.halloween, .tanks-image.halloween2, .tanks-image.soccer {
+    -webkit-box-shadow: inset 0 0 55px 29px rgba(20, 18, 14, 1);
+    -moz-box-shadow: inset 0 0 55px 29px rgba(20, 18, 14, 1);
+    box-shadow: inset 0 0 55px 29px rgba(20, 18, 14, 1);
+    background-size: 100%
+}
+
+.tanks-image.girls .battle-records {
+    background-size: 100% 100%
+}
+
+.tanks-image.win.girls {
+    background: url(../style/images/wot/battleresults/win_girls.png)
+}
+
+.tanks-image.defeat.girls {
+    background: url(../style/images/wot/battleresults/defeat_girls.png)
+}
+
+.tanks-image.draw.girls {
+    background: url(../style/images/wot/battleresults/draw_girls.png)
+}
+
+.tanks-image.halloween.win {
+    background: url(../style/images/wot/battleresults/halloween_win.png)
+}
+
+.tanks-image.halloween.defeat {
+    background: url(../style/images/wot/battleresults/halloween_defeat.png)
+}
+
+.tanks-image.halloween.draw {
+    background: url(../style/images/wot/battleresults/halloween_draw.png)
+}
+
+.tanks-image.halloween2.win {
+    background: url(../style/images/wot/battleresults/halloween_win2.png)
+}
+
+.tanks-image.halloween2.defeat {
+    background: url(../style/images/wot/battleresults/halloween_defeat2.png)
+}
+
+.tanks-image.halloween2.draw {
+    background: url(../style/images/wot/battleresults/halloween_draw2.png)
+}
+
+.tanks-image.soccer.win {
+    background: url(../style/images/wot/battleresults/soccer_win.jpg)
+}
+
+.tanks-image.soccer.defeat {
+    background: url(../style/images/wot/battleresults/soccer_defeat.jpg)
+}
+
+.tanks-image.soccer.draw {
+    background: url(../style/images/wot/battleresults/soccer_draw.jpg)
+}
+
+.tanks-image .winner-team {
+    color: #fff;
+    font-size: 40px;
+    text-align: center;
+    vertical-align: top;
+    font-family: "Oswald", sans-serif;
+    text-shadow: 0 0 5px #000;
+    text-transform: uppercase;
+    padding-top: 10px;
+    margin-bottom: 15px;
+    position: relative
+}
+
+.tanks-image .winner-team .reason {
+    font-size: 17px
+}
+
+.map-stat {
+    position: relative;
+    background: rgb(20, 18, 14);
+    height: 98px
+}
+
+.map-stat:before {
+    content: ' ';
+    width: 230px;
+    height: 98px;
+    /*background: url(../style/images/wot/map/stats/overlay.png) no-repeat;*/
+    top: 0;
+    left: 0;
+    z-index: 1;
+    position: absolute;
+    background: -moz-linear-gradient(left, rgba(20, 18, 14, 0) 0%, rgba(20, 18, 14, 0) 21%, rgba(20, 18, 14, 1) 82%, rgba(20, 18, 14, 1) 99%);
+    background: -webkit-linear-gradient(left, rgba(20, 18, 14, 0) 0%, rgba(20, 18, 14, 0) 21%, rgba(20, 18, 14, 1) 82%, rgba(20, 18, 14, 1) 99%);
+    background: linear-gradient(to right, rgba(20, 18, 14, 0) 0%, rgba(20, 18, 14, 0) 21%, rgba(20, 18, 14, 1) 82%, rgba(20, 18, 14, 1) 99%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#0014120e', endColorstr='#14120e', GradientType=1);
+}
+
+.map-stat img.map {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 97px
+}
+
+.map-stat .stat {
+    position: relative;
+    z-index: 5;
+    float: left
+}
+
+.map-stat .stat .stat-tank {
+    display: inline-block;
+    position: relative;
+    width: 252px;
+    text-align: right
+}
+
+.map-stat .stat .stat-tank .name {
+    position: absolute;
+    right: 20px;
+    bottom: 15px;
+    text-align: right;
+    color: rgb(237, 237, 237);
+    text-shadow: 0 0 8px rgba(205, 205, 205, 0.8)
+}
+
+.map-stat .stat .stat-tank .name.premium {
+    color: #C57338;
+    text-shadow: 0 0 8px #B86D37
+}
+
+.map-stat .stat .stat-tank img.tank {
+    height: 97px
+}
+
+.map-stat .stat .stat-tank img.tank.new {
+    margin-right: 20px
+}
+
+.map-stat .stat .stat-tank img.level, .map-stat .stat .stat-tank img.type {
+    position: absolute;
+    z-index: 10
+}
+
+.map-stat .stat .stat-tank img.type {
+    top: 5px;
+    right: 15px
+}
+
+.map-stat .stat .stat-tank img.level {
+    top: 5px;
+    right: 30px
+}
+
+.map-stat .stat .map-name, .map-stat .stat .status {
+    position: absolute;
+    left: 15px;
+    top: 5px;
+    font-family: "Oswald", sans-serif;
+    font-size: 16px;
+    text-shadow: 0 0 5px #FFFFFF, 0 0 5px #FFFFFF, 0 0 5px #FFFFFF;
+    text-transform: uppercase;
+    width: 130px
+}
+
+.map-stat .stat .status {
+    top: 10px;
+    font-size: 20px;
+    width: 150px;
+    text-align: center;
+    color: white;
+    text-shadow: 0 0 10px #5FA646, 0 0 10px #5FA646, 0 0 10px #5FA646, 1px 1px 1px #000, 1px 1px 1px #000
+}
+
+.map-stat .stat .status.defeat {
+    text-shadow: 0 0 10px #911C21, 0 0 10px #911C21, 0 0 10px #911C21, 1px 1px 1px #000, 1px 1px 1px #000
+}
+
+.map-stat .stat .stat-text {
+    display: inline-block;
+    vertical-align: top;
+    color: #959586;
+    width: 240px;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.map-stat .stat .stat-text .name a {
+    text-decoration: none;
+    color: #FEC264
+}
+
+.map-stat .stat .death-reason {
+    width: 240px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.map-stat .stat .stat-text .wn8 {
+    margin-top: 10px;
+    font-family: "Oswald", sans-serif;
+    font-size: 16px
+}
+
+.map-stat .stat .stat-text .wn8 span {
+    font-weight: bold;
+    text-shadow: 0 0 3px #000
+}
+
+.map-stat .stat .stat-text .name {
+    color: #FEC264;
+    font-family: "Oswald", sans-serif;
+    font-size: 17px;
+    margin-top: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.map-stat .stat .income {
+    display: inline-block;
+    vertical-align: top;
+    padding: 15px 25px 20px 10px;
+    line-height: 16px
+}
+
+.map-stat .stat .income table {
+    font-size: 12px;
+    color: #959586;
+    text-align: right;
+    border-collapse: collapse
+}
+
+.map-stat .stat .income table tr {
+    border-bottom: 1px dotted rgba(67, 66, 61, 0.75);
+    display: block;
+    vertical-align: top
+}
+
+.map-stat .stat .income table tr:first-child {
+    border: none;
+    font-weight: bold
+}
+
+.map-stat .stat .income table tr.no-border {
+    border-bottom: none
+}
+
+.map-stat .stat .income table td {
+    width: 124px;
+    position: relative;
+    padding-right: 15px
+}
+
+.map-stat .stat .income table td img.credit {
+    position: absolute;
+    right: 0;
+    top: 4px
+}
+
+.map-stat .stat .income table td img.xp {
+    position: absolute;
+    right: -3px;
+    top: 0
+}
+
+.map-stat .stat .income table .desc {
+    text-align: left;
+    width: 225px;
+    padding-right: 0
+}
+
+.map-stat .stat .income .inactive {
+    opacity: 0.5
+}
+
+.map-stat .stat .income .inactive img {
+    opacity: 0.5
+}
+
+.map-stat .stat .income .premium {
+    color: #FEC264;
+    margin-right: 34px
+}
+
+.map-stat .stat .income .premium-row td {
+    padding-right: 0
+}
+
+.map-stat .stat .income .premium-row td br {
+    display: none
+}
+
+.mission-section .mission-progress .condition {
+    display: inline-block;
+    width: 330px;
+    color: #8b8b83
+}
+
+table.tank-list.score {
+    table-layout: fixed;
+    color: #7C7969;
+    border: 0 solid rgb(14, 12, 9);
+    border-collapse: separate;
+    border-spacing: 0
+}
+
+table.tank-list.score tr:hover {
+    cursor: url(../style/images/wot/cursors/cursor-pointer.png), pointer;
+    color: rgb(116, 116, 116)
+}
+
+table.tank-list.score td {
+    position: relative;
+    height: 31px;
+    border: none;
+    border-bottom: 1px solid #26251E;
+    background: rgb(20, 18, 14) url(../style/images/wot/battleresults/row-bg-sprite.png);
+    background-repeat: no-repeat
+}
+
+table.tank-list.score td.player-platoon {
+    background-position: 0 0
+}
+
+table.tank-list.score td.player-names {
+    background-position: -33px 0
+}
+
+table.tank-list.score td.tanks-name {
+    background-position: -172px 0
+}
+
+table.tank-list.score td.damage {
+    background-position: -321px 0
+}
+
+table.tank-list.score td.kills {
+    background-position: -386px 0
+}
+
+table.tank-list.score td.xp {
+    background-position: -439px 0;
+    text-align: right
+}
+
+table.tank-list.score tr:hover td.player-platoon {
+    background-position: 0 -31px
+}
+
+table.tank-list.score tr:hover td.player-names {
+    background-position: -33px -31px
+}
+
+table.tank-list.score tr:hover td.tanks-name {
+    background-position: -172px -31px
+}
+
+table.tank-list.score tr:hover td.damage {
+    background-position: -321px -31px
+}
+
+table.tank-list.score tr:hover td.kills {
+    background-position: -386px -31px
+}
+
+table.tank-list.score tr:hover td.xp {
+    background-position: -439px -31px
+}
+
+table.tank-list.score tr.dead td.player-platoon {
+    background-position: 0 -62px
+}
+
+table.tank-list.score tr.dead td.player-names {
+    background-position: -33px -62px
+}
+
+table.tank-list.score tr.dead td.tanks-name {
+    background-position: -172px -62px
+}
+
+table.tank-list.score tr.dead td.damage {
+    background-position: -321px -62px
+}
+
+table.tank-list.score tr.dead td.kills {
+    background-position: -386px -62px
+}
+
+table.tank-list.score tr.dead td.xp {
+    background-position: -439px -62px
+}
+
+table.tank-list.score tr.dead:hover td.player-platoon {
+    background-position: 0 -93px
+}
+
+table.tank-list.score tr.dead:hover td.player-names {
+    background-position: -33px -93px
+}
+
+table.tank-list.score tr.dead:hover td.tanks-name {
+    background-position: -172px -93px
+}
+
+table.tank-list.score tr.dead:hover td.damage {
+    background-position: -321px -93px
+}
+
+table.tank-list.score tr.dead:hover td.kills {
+    background-position: -386px -93px
+}
+
+table.tank-list.score tr.dead:hover td.xp {
+    background-position: -439px -93px
+}
+
+table.tank-list.score th {
+    border-left: 1px solid #12110C;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none
+}
+
+table.tank-list.score th:first-child {
+    border-left: none
+}
+
+table.tank-list .sorting_1 {
+    background: none
+}
+
+table.tank-list th:hover {
+    box-shadow: inset 0 0 30px rgba(157, 122, 33, 0.12)
+}
+
+table.tank-list th.sorting_desc, table.tank-list th.sorting_asc {
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.9)
+}
+
+table.tank-list.score td.tanks-name img {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 48px;
+    margin-top: -8px
+}
+
+table.tank-list.score td.player-names img {
+    float: left;
+    vertical-align: top;
+    margin-bottom: -7px;
+    margin-top: -5px;
+    margin-left: -6px
+}
+
+table.tank-list.score tr.dead td img {
+    opacity: 0.5
+}
+
+table.tank-list.score th.tanks-name, table.tank-list.score td.tanks-name {
+    width: 140px !important;
+    max-width: 140px !important
+}
+
+table.tank-list.score td.tanks-name {
+    text-align: left;
+    padding-left: 70px;
+    padding-right: 5px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden
+}
+
+.tank-list.score td.tanks-name::after, .tank-list.score td.tanks-name::before {
+    content: "";
+    height: 1px;
+    width: 100%;
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 2;
+    background-color: #040402
+}
+
+.tank-list.score td.tanks-name::after {
+    top: auto;
+    bottom: 0
+}
+
+table.tank-list.score td.tanks-name span {
+    position: relative;
+    z-index: 1
+}
+
+table.tank-list.score td.tanks-name .medal {
+    position: absolute;
+    top: 2px;
+    left: 5px;
+    height: 25px;
+    width: 25px;
+    background: url("../style/images/wot/battleresults/battleResults-24.png")
+}
+
+table.tank-list.score td.tanks-name .medal .num {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: #000;
+    padding: 0 3px 0 3px;
+    border: 1px solid rgb(77, 77, 77);
+    font-size: 10px;
+    color: gray
+}
+
+table.tank-list.score th.player-platoon {
+    width: 30px !important;
+    max-width: 35px !important
+}
+
+table.tank-list.score td.player-platoon .number {
+    color: white;
+    padding-top: 5px;
+    font-size: 9px;
+    width: 31px;
+    height: 24px;
+    background-image: url("../style/images/wot/eventBoards/tableIcons/platoon.png")
+}
+
+table.tank-list.score tr.dead td.player-platoon .number {
+    opacity: 0.5
+}
+
+table.tank-list.score th.player-names {
+    width: 130px !important;
+    max-width: 140px !important
+}
+
+table.tank-list.score th.damage {
+    width: 60px !important
+}
+
+table.tank-list.score th.kills {
+    width: 50px !important
+}
+
+table.tank-list.score th.xp {
+    width: 58px !important
+}
+
+@-moz-document url-prefix() {
+    table.tank-list.score th.xp {
+        width: 57px !important
+    }
+    table.tank-list.score td.xp {
+        background-position: -439px 0
+    }
+    table.tank-list.score tr:hover td.xp {
+        background-position: -439px -31px
+    }
+    table.tank-list.score tr.dead td.xp {
+        background-position: -439px -62px
+    }
+    table.tank-list.score tr.dead:hover td.xp {
+        background-position: -439px -93px
+    }
+    table.tank-list.score td.player-platoon .number {
+        line-height: 8px
+    }
+}
+
+@media screen and (-ms-high-contrast: active),(-ms-high-contrast: none) {
+    table.tank-list.score th.xp {
+        width: 57px !important
+    }
+}
+
+table.tank-list.score td.player-names {
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-left: 5px
+}
+
+table.tank-list.score td.xp .xp {
+    display: inline-block;
+    margin-right: 5px;
+    background: url(../style/images/wot/library/XpIcon.png) no-repeat 50%;
+    width: 20px;
+    height: 15px;
+    margin-top: -3px;
+    vertical-align: middle
+}
+
+table.tank-list.score th {
+    background: #26251E
+}
+
+table.tank-list.score th.sorting_asc, table.tank-list.score th.sorting_desc {
+    background-image: url(../style/images/wot/results/ascendingSortArrow.png);
+    background-repeat: no-repeat;
+    background-position: 3px 23px
+}
+
+table.tank-list.score th.sorting_desc {
+    background-image: url(../style/images/wot/results/descendingSortArrow.png);
+    background-position: 3px 0
+}
+
+table.tank-list.score th.player-platoon div, table.tank-list.score th.player-names div, table.tank-list.score th.tanks-name div, table.tank-list.score th.damage div, table.tank-list.score th.kills div, table.tank-list.score th.xp div {
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 25px;
+    width: 100%
+}
+
+table.tank-list.score th.player-platoon div {
+    background-image: url(../style/images/wot/results/tbl_ico__squad.png)
+}
+
+table.tank-list.score th.player-names div {
+    background-image: url(../style/images/wot/results/tbl_ico__user.png)
+}
+
+table.tank-list.score th.tanks-name div {
+    background-image: url(../style/images/wot/results/tbl_ico__tank.png)
+}
+
+table.tank-list.score th.damage div {
+    background-image: url(../style/images/wot/results/tbl_ico__damage.png);
+    width: 50px;
+    margin: 0 auto
+}
+
+table.tank-list.score th.kills div {
+    background-image: url(../style/images/wot/results/tbl_ico__kills.png);
+    width: 50px;
+    margin: 0 auto
+}
+
+table.tank-list.score th.xp div {
+    background-image: url(../style/images/wot/results/tbl_ico__star.png)
+}
+
+.team-score .dataTables_wrapper .dataTables_scrollHeadInner, .team-score .dataTables_wrapper .dataTables_scrollHeadInner table {
+    width: 100% !important
+}
+
+.team-score .mCSB_container {
+    margin-right: 0 !important
+}
+
+.team-score .mCSB_scrollTools {
+    width: 5px !important
+}
+
+.team-score .mCSB_dragger_bar {
+    background-color: rgb(38, 37, 30) !important;
+    border-radius: 0 !important
+}
+
+.half {
+    width: 50%;
+    display: inline-block;
+    vertical-align: top
+}
+
+.half.score {
+    width: 50%;
+    border-top: 1px solid black
+}
+
+.half.score:nth-child(1) {
+    margin-right: 1px;
+    margin-left: 2px
+}
+
+.team-score {
+    background: rgb(20, 18, 14);
+    position: relative;
+    min-height: 497px;
+    display: flex
+}
+
+.team-score .personal-data {
+    height: 540px;
+    width: 501px;
+    border: 1px solid rgb(38, 37, 30);
+    border-top: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 50;
+    background: url(../style/images/wot/battleresults/battleResults-1.png);
+    color: #959586;
+    display: none
+}
+
+.team-score .personal-data.left {
+    left: 0;
+    right: auto
+}
+
+.team-score .personal-data.active {
+    display: block
+}
+
+.team-score .personal-data .header .info {
+    display: inline-block;
+    width: 330px;
+    vertical-align: top
+}
+
+.team-score .personal-data .header .name {
+    color: #FEC264;
+    font-family: "Oswald", sans-serif;
+    font-size: 17px;
+    margin-top: 12px;
+    margin-bottom: 1px
+}
+
+.team-score .personal-data .header .name a {
+    text-decoration: none;
+    color: #FEC264
+}
+
+.team-score .personal-data .header {
+    height: 102px;
+    border-bottom: 1px solid rgb(38, 37, 30)
+}
+
+.team-score .personal-data .header.dead {
+    background: url(../style/images/wot/battleresults/battleResults-2.png);
+    background-position: 0 -1px
+}
+
+.team-score .personal-data .header .tank {
+    display: inline-block;
+    position: relative
+}
+
+.team-score .personal-data .header .tank.new {
+    width: 120px;
+    margin: 5px 20px
+}
+
+.team-score .personal-data .header .tank img.type, .team-score .personal-data .header .tank img.level {
+    position: absolute;
+    z-index: 10
+}
+
+.team-score .personal-data .header .tank img.type {
+    top: 5px;
+    right: 5px
+}
+
+.team-score .personal-data .header .tank img.level {
+    top: 5px;
+    right: 20px
+}
+
+.team-score .personal-data .header .wn8 {
+    margin-top: 5px
+}
+
+.team-score .personal-data .medals {
+    text-align: center;
+    background-image: url(../style/images/wot/battleresults/battleResults-39.png);
+    background-size: 150% 100%;
+    background-position: 50% 0%;
+    margin-top: -1px;
+    margin-bottom: -5px;
+    height: 30px
+}
+
+.team-score .personal-data .medals img {
+    height: 60px;
+    margin-top: -15px;
+    margin-left: -3px;
+    margin-right: -3px
+}
+
+.team-score .personal-data .data-wrapper {
+    padding: 20px;
+    line-height: 14px
+}
+
+.team-score .personal-data .data-wrapper .row {
+    border-bottom: 1px dotted rgba(67, 66, 61, 0.75);
+    margin-bottom: 3px;
+    padding-bottom: 2px
+}
+
+.team-score .personal-data .data-wrapper .row.padding {
+    padding-left: 30px
+}
+
+.team-score .personal-data .close {
+    width: 150px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    margin: 0 auto;
+    background: url(../style/images/wot/buttons/sprite.png);
+    background-size: 150px 60px;
+    background-position: 0 -20px;
+    border-radius: 3px;
+    box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
+    font-weight: bold;
+    color: #cecebc;
+    font-size: 11px;
+    text-shadow: 0 0 2px #322A2A, 0 0 2px #3F3939;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    position: absolute;
+    bottom: 25px;
+    left: 50%;
+    margin-left: -75px
+}
+
+.team-score .personal-data .close:hover {
+    background-position: 0 -40px;
+    cursor: url(../style/images/wot/cursors/cursor-pointer.png), pointer;
+    text-shadow: 0 0 8px rgba(247, 245, 245, 0.3)
+}
+
+.team-score .personal-data .close:active {
+    margin-top: 1px
+}
+
+.team-score .team-info {
+    color: #7C7969;
+    padding: 0 7px 5px 7px
+}
+
+.team-score .team-info img {
+    vertical-align: middle;
+    margin-top: -3px;
+    margin-left: 9px
+}
+
+.team-score .team-info span {
+    display: inline-block;
+    color: #bcbdbe;
+    margin-left: 10px;
+    font-weight: normal
+}
+
+.team-score .team-info span:first-child {
+    margin-left: 0
+}
+
+.hit-list {
+    color: #959586;
+    margin-top: 1px
+}
+
+.hit-list table {
+    table-layout: fixed;
+    color: #7C7969;
+    border: 0 solid rgb(14, 12, 9);
+    border-collapse: separate;
+    border-spacing: 0
+}
+
+.hit-list .title {
+    background: #26251E
+}
+
+.titles-line .hit-list {
+    margin: 0
+}
+
+.titles-line .hit-list .info {
+    bottom: 2px;
+    right: -2px
+}
+
+.titles-line .hit-list .kill .info {
+    right: 5px
+}
+
+.titles-line .hit-list .title .table-title {
+    width: 320px !important;
+    max-width: 320px !important;
+    line-height: 28px;
+    color: #bcbdbe;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px #000;
+    padding-top: 3px
+}
+
+.hit-list table .name {
+    width: 147.5px !important;
+    max-width: 147.5px !important;
+    background-position: -16px 0;
+    text-align: right;
+    padding-right: 5px;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.hit-list table .name.bold {
+    font-weight: bold;
+    text-align: left;
+    color: #bcbdbe;
+    text-shadow: 1px 1px 2px #000;
+    font-size: 13px;
+    padding-left: 5px
+}
+
+.hit-list table .kill {
+    width: 34px !important;
+    max-width: 34px !important
+}
+
+.hit-list table .vehicle {
+    position: relative;
+    width: 153px !important;
+    max-width: 153px !important;
+    padding-left: 70px;
+    padding-right: 5px;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.hit-list table .vehicle img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0;
+    height: 48px;
+    width: auto;
+    margin-top: -8px
+}
+
+.hit-list table .dead .vehicle img {
+    opacity: 0.5
+}
+
+.hit-list.stun table .vehicle {
+    width: 140px !important;
+    max-width: 140px !important
+}
+
+.hit-list.stun table .name {
+    width: 147px !important;
+    max-width: 147px !important
+}
+
+.hit-list table tr td {
+    position: relative;
+    height: 31px;
+    max-width: 33px
+}
+
+.hit-list table img {
+    margin: 0 5px 0 5px;
+    display: block;
+    width: 22px;
+    height: 22px
+}
+
+.hit-list table img.bigger {
+    width: 24px;
+    height: 24px
+}
+
+.hit-list table .capture img.bigger {
+    margin-top: 2px
+}
+
+.hit-list table .info {
+    position: absolute;
+    bottom: 4px;
+    right: 1px;
+    background: #000;
+    padding: 0 2px 0 2px;
+    border: 1px solid rgba(77, 77, 77, 0.63);
+    font-size: 9px;
+    color: rgb(123, 120, 120)
+}
+
+.hit-list table .row td {
+    background-image: url(../style/images/wot/battleresults/hit-list-bg.png);
+    background-repeat: no-repeat
+}
+
+.hit-list table .row.dead td {
+    background-image: url(../style/images/wot/battleresults/hit-list-bg-dead.png);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.hit-list table .vehicle {
+    background-position: -170px 0;
+    overflow: hidden
+}
+
+.hit-list table .vehicle::after, .hit-list table .vehicle::before {
+    content: "";
+    height: 1px;
+    width: 100%;
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 2;
+    background-color: #040402
+}
+
+.hit-list table .vehicle::after {
+    top: auto;
+    bottom: 0
+}
+
+.hit-list table .space {
+    height: 1px
+}
+
+.hit-list table .spotted {
+    background-position: -285px 0
+}
+
+.hit-list table .assist {
+    background-position: -324px 0
+}
+
+.hit-list table .crits {
+    background-position: -369px 0
+}
+
+.hit-list table .damage {
+    background-position: -412px 0
+}
+
+.hit-list table .kill {
+    background-position: -456px 0
+}
+
+.hit-list .tank-scroll {
+    max-height: 352px;
+    overflow: hidden
+}
+
+.hit-list .tank-scroll .mCSB_container {
+    margin-right: 15px;
+    margin-right: 0 !important
+}
+
+.hit-list .tank-scroll .mCSB_scrollTools {
+}
+
+.hit-list .tank-scroll .mCSB_scrollTools .mCSB_dragger_bar {
+    background-color: rgba(43, 40, 31, 0.75) !important;
+    width: 13px !important;
+    border-radius: 0 !important;
+    border: 1px solid #5f5d51 !important;
+    position: relative
+}
+
+.hit-list .tank-scroll .mCSB_scrollTools .mCSB_dragger_bar:before {
+    content: " ";
+    height: 1px;
+    border-top: 1px solid #959289;
+    border-bottom: 1px solid #959289;
+    padding: 3px 0;
+    width: 7px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-left: -3px;
+    margin-top: -3px
+}
+
+.hit-list .tank-scroll .mCSB_scrollTools .mCSB_dragger_bar:after {
+    content: " ";
+    height: 1px;
+    margin-top: 1px;
+    background: #959289;
+    width: 7px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-left: -3px
+}
+
+.hit-list .tank-scroll .mCSB_scrollTools .mCSB_draggerContainer {
+    margin: 13px 0 !important
+}
+
+.hit-list .tank-scroll .mCSB_scrollTools .mCSB_buttonUp, .hit-list .tank-scroll .mCSB_scrollTools .mCSB_buttonDown {
+    width: 13px !important;
+    height: 13px !important;
+    border: 1px solid #5f5d51 !important;
+    opacity: 1 !important;
+    background: rgba(43, 40, 31, 0.75) url(../style/images/wot/buttons/buttonUp.png) no-repeat center center !important
+}
+
+.hit-list .tank-scroll .mCSB_scrollTools .mCSB_buttonDown {
+    bottom: 2px !important;
+    background-image: url(../style/images/wot/buttons/buttonDown.png) !important
+}
+
+.hit-list .tank-scroll .mCSB_draggerContainer {
+    width: 13px !important
+}
+
+.hit-list .tank-scroll .mCSB_scrollTools {
+    width: 13px !important;
+    margin-right: 3px !important
+}
+
+.hit-list .tank-scroll .mCSB_scrollTools .mCSB_draggerRail {
+    background: #2f2f27 !important;
+    width: 1px !important;
+    border-radius: 0 !important
+}
+
+.hit-list .tank-scroll .mCSB_scrollTools .mCSB_dragger {
+    margin: -1px 0 0 0 !important
+}
+
+.hit-list .tank-scroll table .row td.name {
+    width: 143px !important;
+    max-width: 143px !important
+}
+
+.hit-list.stun .tank-scroll table .row td.name {
+    width: 129px !important;
+    max-width: 129px !important
+}
+
+.titles-line .hit-list .title.scroll .table-title {
+    width: 297px !important;
+    max-width: 297px !important
+}
+
+.titles-line .hit-list .title.scroll.stun .table-title {
+    width: 270px !important;
+    max-width: 270px !important
+}
+
+.replay-download {
+    float: right;
+    margin-top: -46px
+}
+
+.replay-download a {
+    width: 152px;
+    height: 44px;
+    display: inline-block;
+    text-decoration: none;
+    text-align: center
+}
+
+.replay-download .edit {
+    margin-right: 10px;
+    position: relative
+}
+
+.replay-tabs .tab {
+    display: inline-block;
+    padding: 0 15px 0 15px;
+    line-height: 20px;
+    text-align: center;
+    margin-right: 3px;
+    background: url(../style/images/wot/buttons/sprite.png);
+    background-size: 100% 60px;
+    background-position: 0 -20px;
+    border-top-right-radius: 3px;
+    border-top-left-radius: 3px;
+    box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
+    font-weight: bold;
+    color: #cecebc;
+    font-size: 12px;
+    text-shadow: 0 0 2px #322A2A, 0 0 2px #3F3939;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none
+}
+
+.replay-tabs .tab:hover {
+    cursor: url(../style/images/wot/cursors/cursor-pointer.png), pointer;
+    background-position: 0 -60px
+}
+
+.replay-tabs .tab.active {
+    background-position: 0 -40px
+}
+
+.replay-tab-wrapper {
+    display: none;
+    background: #14120E
+}
+
+.replay-tab-wrapper.active {
+    display: block
+}
+
+.replay-tab-wrapper img {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -o-user-select: none;
+    user-select: none
+}
+
+.team-score .team-name {
+    height: 34px;
+    line-height: 34px;
+    padding-left: 7px;
+    color: #bcbdbe;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px #000
+}
+
+.personal-data.tab {
+    color: #959586
+}
+
+.personal-data.tab .data-wrapper {
+    display: inline-block;
+    margin: 10px 24px;
+    vertical-align: top
+}
+
+.personal-data.tab .data-wrapper .row {
+    border-bottom: 1px dotted rgba(67, 66, 61, 0.75);
+    margin-bottom: 3px;
+    padding-bottom: 2px
+}
+
+.personal-data.tab .data-wrapper .row.padding {
+    padding-left: 30px
+}
+
+.personal-data.tab .data-wrapper .row.top {
+    margin-top: 23px
+}
+
+.personal-data.tab .data-wrapper.stat, .personal-data.tab .data-wrapper.time {
+    width: 350px
+}
+
+.personal-data.tab .data-wrapper.credit .row, .personal-data.tab .data-wrapper.xp .row, .personal-data.tab .data-wrapper.bonds .row {
+    width: 390px
+}
+
+.personal-data.tab .data-wrapper.credit .row img, .personal-data.tab .data-wrapper.bonds .row img {
+    margin: 0 2px 0 5px
+}
+
+.personal-data.tab .data-wrapper.bonds .row img {
+    vertical-align: top;
+    margin-top: -2px
+}
+
+.personal-data.tab .data-wrapper.credit .row .gold, .personal-data.tab .data-wrapper.xp .row .bonus {
+    width: 40px;
+    display: inline-block;
+    text-align: right
+}
+
+.personal-data.tab .data-wrapper.credit.premium .row, .personal-data.tab .data-wrapper.xp.premium .row {
+    width: 69px
+}
+
+.personal-data.tab .data-wrapper.credit.premium .row.gold, .personal-data.tab .data-wrapper.xp.premium .row.bonus {
+    width: 112px
+}
+
+.personal-data.tab .data-wrapper .right .gold {
+    color: rgb(235, 190, 74)
+}
+
+.personal-data.tab .data-wrapper .red {
+    color: #920a16 !important
+}
+
+.personal-data.tab .data-wrapper.xp img {
+    margin-top: -6px;
+    margin-bottom: -2px;
+    margin-left: 2px
+}
+
+.personal-data.tab .titles-line {
+    line-height: 34px;
+    padding-left: 24px;
+    position: relative;
+    z-index: 5;
+    font-size: 14px
+}
+
+.personal-data.tab .titles-line.second {
+    margin-top: 50px
+}
+
+.personal-data.tab .titles-line span {
+    position: absolute
+}
+
+.personal-data.tab .titles-line .credit, .personal-data.tab .titles-line.second span {
+    left: 422px
+}
+
+.personal-data.tab .titles-line .premium {
+    left: 838px;
+    color: #FEC264
+}
+
+.personal-data.tab .titles-line .premium.inactive {
+    opacity: 0.3
+}
+
+.personal-data.tab .titles-line .base {
+    left: 694px;
+}
+
+.personal-data.tab .titles-line .base.inactive {
+    color: #42423a
+}
+
+.personal-data.tab .data-wrapper.inactive .right {
+    color: #42423a
+}
+
+.personal-data.tab .data-wrapper.inactive .right.red {
+    color: #571513 !important
+}
+
+.personal-data.tab .data-wrapper.inactive .right .gold {
+    color: #423c2e
+}
+
+.personal-data.tab .data-wrapper.inactive img {
+    opacity: 0.3
+}
+
+.personal-data.tab .data-wrapper.credit .left, .personal-data.tab .data-wrapper.xp .left, .personal-data.tab .data-wrapper.bonds .left {
+    width: 236px;
+    display: inline-block
+}
+
+.personal-data.tab .data-wrapper.xp .left {
+    width: 240px
+}
+
+.personal-data.tab .data-wrapper.credit .row, .personal-data.tab .data-wrapper.xp .row {
+    position: relative
+}
+
+.personal-data.tab .data-wrapper.credit .right, .personal-data.tab .data-wrapper.xp .right {
+    position: absolute;
+    right: 0;
+    bottom: 2px
+}
+
+.data-wrapper.credit.premium, .data-wrapper.xp.premium {
+    /*border-left: 2px solid #26231c;*/
+    margin-left: 0;
+    /*padding-left: 24px*/
+}
+
+.data-wrapper.xp.premium {
+    margin-bottom: 50px
+}
+
+.personal-data .data-wrapper.bonds {
+    float: right;
+    width: 605px;
+    vertical-align: top;
+    margin-right: -0px;
+    margin-bottom: -30px;
+    margin-left: -25px
+}
+
+.down-info {
+    color: rgb(70, 70, 70);
+    font-size: 11px
+}
+
+.down-info a {
+    color: rgb(70, 70, 70);
+    text-decoration: none
+}
+
+.down-info a:hover {
+    text-decoration: underline
+}
+
+.down-info .gray {
+    border-left: 1px solid rgb(70, 70, 70);
+    color: rgb(70, 70, 70);
+    margin: 5px 5px 0 10px;
+    padding-left: 10px;
+    display: inline-block
+}
+
+.down-info .gray:first-child {
+    margin-left: 0;
+    border: none
+}
+
+.pop-up .content {
+    display: inline-block;
+    background: rgb(215, 215, 215);
+    padding: 25px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 101;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(0, 0, 0, 0.5)
+}
+
+.pop-up .content input, .pop-up .content textarea {
+    width: 100%;
+    outline: none;
+    margin-bottom: 15px;
+    padding: 5px;
+    font-family: Arial;
+    font-size: 12px;
+    border: 1px solid darkgrey
+}
+
+.pop-up .content textarea {
+    height: 150px;
+    resize: none
+}
+
+.pop-up .content input[type=submit] {
+    margin-bottom: 0
+}
+
+.pop-up.replay-upload .content {
+    width: 500px
+}
+
+.pop-up .error {
+    border: 1px solid rgb(221, 14, 14) !important
+}
+
+.pop-up .content label input[type=checkbox] {
+    display: none
+}
+
+.pop-up .content label input[type=checkbox] + span {
+    display: inline-block;
+    height: 16px;
+    width: 16px;
+    background: url(../style/images/wot/buttons/checkbox-sprite.png);
+    margin-right: 2px;
+    margin-bottom: -3px
+}
+
+.pop-up .content label input[type=checkbox]:checked + span {
+    background-position: 0 -16px
+}
+
+.pop-up .content label:hover input[type=checkbox]:not(:checked) + span {
+    background-position: 0 -32px
+}
+
+.pop-up .content label {
+    margin-bottom: 20px;
+    display: inline-block
+}
+
+.pop-up .content label:hover {
+    cursor: url(../style/images/wot/cursors/cursor-pointer.png), pointer
+}
+
+.replay-list .wrapper {
+    height: 98px;
+    border-radius: 10px;
+    position: relative;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 10px 2px rgba(0, 0, 0, 0.6);
+    background: #14120e;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    -o-transform: translateZ(0);
+    transition: all 200ms;
+    width: 728px
+}
+
+.replay-list .wrapper.youtube .details .title {
+    width: 405px
+}
+
+.replay-list .wrapper .yt_logo {
+    position: absolute;
+    top: 2px;
+    right: 5px;
+    height: 65px
+}
+
+.replay-list .wrapper .img-container:before {
+    content: " ";
+    width: 100%;
+    height: 98px;
+    top: 0;
+    right: -1px;
+    z-index: 1;
+    position: absolute;
+    background: -moz-linear-gradient(left, rgba(20, 18, 14, 0) 0%, rgba(20, 18, 14, 0) 21%, rgba(20, 18, 14, 1) 82%, rgba(20, 18, 14, 1) 99%);
+    background: -webkit-linear-gradient(left, rgba(20, 18, 14, 0) 0%, rgba(20, 18, 14, 0) 21%, rgba(20, 18, 14, 1) 82%, rgba(20, 18, 14, 1) 99%);
+    background: linear-gradient(to right, rgba(20, 18, 14, 0) 0%, rgba(20, 18, 14, 0) 21%, rgba(20, 18, 14, 1) 82%, rgba(20, 18, 14, 1) 99%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#0014120e", endColorstr="#14120e", GradientType=1)
+}
+
+.replay-list .wrapper .img-container {
+    position: relative;
+    display: inline-block;
+    min-width: 231px;
+    height: 100%
+}
+
+.replay-list .wrapper .img-container img.map {
+    border-radius: 8px;
+    height: 98px;
+    display: block
+}
+
+.replay-list .wrapper .img-container img.tank {
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 2;
+    height: 98px
+}
+
+.replay-list .wrapper .img-container img.type, .replay-list .wrapper .img-container img.level {
+    position: absolute;
+    z-index: 10
+}
+
+.replay-list .wrapper .img-container img.type {
+    top: 5px;
+    right: 5px
+}
+
+.replay-list .wrapper .img-container img.level {
+    top: 5px;
+    right: 20px
+}
+
+.replay-list .wrapper .img-container .map-name {
+    position: absolute;
+    left: 10px;
+    top: 5px;
+    font-family: "Oswald", Arial, sans-serif;
+    font-size: 16px;
+    text-shadow: 0 0 5px #FFFFFF, 0 0 5px #FFFFFF, 0 0 5px #FFFFFF;
+    text-transform: uppercase;
+    z-index: 2;
+    color: rgb(57, 58, 58);
+    display: inline-block;
+    width: 135px
+}
+
+.replay-list .wrapper .img-container .name {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    text-align: right;
+    color: rgb(237, 237, 237);
+    text-shadow: 0 0 8px rgba(205, 205, 205, 0.8);
+    z-index: 2
+}
+
+.replay-list .wrapper .img-container .name.premium {
+    color: #C57338;
+    text-shadow: 0 0 8px #B86D37
+}
+
+.replay-list .wrapper .img-container .mastery {
+    position: absolute;
+    left: 5px;
+    bottom: 0;
+    z-index: 20;
+    height: auto;
+    width: auto
+}
+
+.replay-list .wrapper .img-container .game {
+    position: absolute;
+    left: 672px;
+    bottom: 1px;
+    z-index: 20;
+    height: auto;
+    width: 53px
+}
+
+.replay-list .wrapper .img-container .locked {
+    position: absolute;
+    right: 1px;
+    top: 23px;
+    z-index: 20;
+    height: auto;
+    width: auto
+}
+
+.replay-list .wrapper .details {
+    vertical-align: top;
+    display: inline-block;
+    width: 480px;
+    padding-left: 10px;
+    color: #959586;
+    height: 100%
+}
+
+.replay-list .wrapper .details .title {
+    color: #FEC264;
+    font-family: "Oswald", sans-serif;
+    font-size: 17px;
+    margin-top: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.replay-list .wrapper .details .upload-info {
+    font-size: 11px;
+    margin: 2px 0 0 0
+}
+
+.replay-list .wrapper .details .tovabb {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    margin-top: -25px;
+    display: block;
+    width: 70px;
+    text-align: center
+}
+
+.replay-list .wrapper .details .tovabb:hover img {
+    transform: rotateY(180deg);
+    -webkit-transform: rotateY(180deg);
+    -moz-transform: rotateY(180deg);
+    -ms-transform: rotateY(180deg);
+    -o-transform: rotateY(180deg)
+}
+
+.replay-list .wrapper .details .tovabb:hover div {
+    transform: rotateY(0deg);
+    -webkit-transform: rotateY(0deg);
+    -moz-transform: rotateY(0deg);
+    -ms-transform: rotateY(0deg);
+    -o-transform: rotateY(0deg)
+}
+
+.replay-list .wrapper .details .tovabb img {
+    height: 50px;
+    transition: all 500ms;
+    -webkit-transition: all 500ms;
+    -moz-transition: all 500ms;
+    -ms-transition: all 500ms;
+    -o-transition: all 500ms;
+    backface-visibility: hidden;
+    -webkit-visibility: hidden;
+    -moz-visibility: hidden
+}
+
+.replay-list .wrapper .details .tovabb div {
+    transform: rotateY(180deg);
+    -webkit-transform: rotateY(180deg);
+    -moz-transform: rotateY(180deg);
+    -ms-transform: rotateY(180deg);
+    -o-transform: rotateY(180deg);
+    color: rgb(128, 191, 38);
+    font-family: "Oswald", sans-serif;
+    font-size: 18px;
+    text-transform: uppercase;
+    text-decoration: none;
+    position: absolute;
+    top: 11px;
+    backface-visibility: hidden;
+    -webkit-visibility: hidden;
+    -moz-visibility: hidden;
+    transition: all 500ms;
+    -webkit-transition: all 500ms;
+    -moz-transition: all 500ms;
+    -ms-transition: all 500ms;
+    -o-transition: all 500ms;
+    text-align: center;
+    width: 100%;
+    text-shadow: 0 0 1px black, 0 0 1px black, 0 0 1px black
+}
+
+.replay-list .wrapper .details .cell {
+    display: inline-block;
+    width: 74px;
+    height: 22px
+}
+
+.replay-list .wrapper .details .cell span {
+    display: inline-block;
+    height: 30px;
+    line-height: 30px;
+    font-size: 11px;
+    padding-left: 2px
+}
+
+.replay-list .wrapper .details .cell img {
+    vertical-align: middle
+}
+
+.replay-list .wrapper .details .cell .icon_up {
+    margin: -3px 1px 0 -1px
+}
+
+.replay-list .wrapper .details .cell .icon_down {
+    margin: -3px 2px 0 0
+}
+
+.replay-list .wrapper .details .cell .icon_comment {
+    margin: 0 10px 0 5px
+}
+
+.replay-list .wrapper .details .cell .icon_view {
+    margin: -1px -1px 0 -3px
+}
+
+.replay-list .wrapper .details .cell .icon_download {
+    margin: -1px -2px 0 -2px;
+    transform: rotateX(180deg)
+}
+
+.replay-list .wrapper .details .cell .icon_credits {
+    height: 10px;
+    margin-right: 2px;
+    margin-top: -1px
+}
+
+.replay-list .wrapper .details .cell .icon_xp {
+    height: 14px;
+    margin-top: -2px
+}
+
+.replay-list .wrapper .details .cell .icon_kills {
+    height: 12px;
+    margin-top: -4px;
+    margin-right: 2px
+}
+
+.replay-list .wrapper .details .cell .icon_damage {
+    height: 14px;
+    margin: -2px 2px 0 0
+}
+
+.replay-list .wrapper .details .cell .icon_assist {
+    margin-left: -1px;
+    margin-right: 1px;
+    margin-top: -2px
+}
+
+.replay-list .wrapper .details .cell .icon_block {
+    margin-top: -3px
+}
+
+@-webkit-keyframes highlight {
+    0% {
+        background-color: rgba(255, 0, 0, 0.0)
+    }
+    50% {
+        background-color: rgba(255, 0, 0, 0.30)
+    }
+    100% {
+        background-color: rgba(255, 0, 0, 0.0)
+    }
+}
+
+@keyframes highlight {
+    0% {
+        background-color: rgba(255, 0, 0, 0.0)
+    }
+    50% {
+        background-color: rgba(255, 0, 0, 0.30)
+    }
+    100% {
+        background-color: rgba(255, 0, 0, 0.0)
+    }
+}
+
+.comment-section .list .name {
+    display: inline-block;
+    padding: 7px
+}
+
+.comment-section .list .name .owner {
+    color: rgb(232, 15, 15);
+    font-size: 15px;
+    font-family: "Oswald", sans-serif;
+    line-height: 13px;
+    margin-bottom: 1px;
+    display: block
+}
+
+.sort-wrapper a, .pagination a {
+    text-decoration: none;
+    display: inline-block;
+    padding: 0 7px;
+    line-height: 20px;
+    text-align: center;
+    margin-right: 7px;
+    background: url(../style/images/wot/buttons/sprite.png);
+    background-size: 100% 60px;
+    background-position: 0 -21px;
+    border-radius: 3px;
+    box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
+    font-weight: bold;
+    color: #cecebc;
+    font-size: 12px;
+    text-shadow: 0 0 2px #322A2A, 0 0 2px #3F3939;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    margin-bottom: 6px
+}
+
+.sort-wrapper a:hover, .pagination a:hover {
+    background-position: 0 -42px;
+    background-size: 100% 61px
+}
+
+.pagination {
+    text-align: center
+}
+
+.pagination a.inactive {
+    background-position: 0 -62px;
+    background-size: 100% 61px;
+    color: rgba(147, 147, 147, 1)
+}
+
+.youtube-list .item .time, .youtube-list .item .views {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 3px 7px;
+    font-family: "Oswald", sans-serif;
+    letter-spacing: 1px
+}
+
+.youtube-list .item .title {
+    font-family: "Oswald", sans-serif;
+    font-size: 13px;
+    padding: 5px 7px 7px 7px;
+    background: #000;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.replay-filter .title {
+    font-family: "Oswald", sans-serif;
+    font-size: 15px;
+    margin-bottom: 10px
+}
+
+.replay-filter .title .count {
+    font-size: 12px
+}
+
+.replay-filter .col label, .replay-filter .tank-list label {
+    display: block;
+    margin-bottom: 3px;
+    line-height: 15px;
+    padding-top: 2px
+}
+
+.replay-filter .mastery {
+    width: 110px
+}
+
+.replay-filter .tank-list, .replay-filter .map-list {
+    float: right;
+    width: 220px;
+    text-align: left;
+    border: none;
+    position: relative
+}
+
+.replay-filter .tank-list .list {
+    height: 216px;
+    overflow: hidden
+}
+
+.replay-filter .tank-list .list .mCSB_outside + .mCSB_scrollTools, .replay-filter .map-list .list .mCSB_outside + .mCSB_scrollTools {
+    right: 0
+}
+
+@-webkit-keyframes stretchdelay {
+    0%, 40%, 100% {
+        -webkit-transform: scaleY(0.4)
+    }
+    20% {
+        -webkit-transform: scaleY(1.0)
+    }
+}
+
+@keyframes stretchdelay {
+    0%, 40%, 100% {
+        transform: scaleY(0.4);
+        -webkit-transform: scaleY(0.4)
+    }
+    20% {
+        transform: scaleY(1.0);
+        -webkit-transform: scaleY(1.0)
+    }
+}
+
+.votes-section .item .name {
+    display: inline-block;
+    padding: 0 0 3px 1px;
+    font-family: "Oswald", sans-serif;
+    font-size: 15px;
+    color: rgb(82, 82, 82);
+    line-height: 24px;
+    margin-left: 2px
+}
+
+.votes-section .item .count {
+    display: inline-block;
+    border: 1px solid rgb(170, 170, 170);
+    height: 31px;
+    line-height: 30px;
+    color: rgb(82, 82, 82);
+    width: 100px;
+    text-align: center;
+    float: right
+}
+
+.votes-section .comment-section .list .name .owner {
+    line-height: inherit
+}
+
+form.contact .error {
+    border: 1px solid red !important
+}
+
+.blog-section .item .name, .blog-wrapper .name {
+    display: inline-block;
+    font-family: "Oswald", sans-serif;
+    font-size: 15px;
+    height: 30px;
+    line-height: 29px;
+    color: rgb(82, 82, 82);
+    vertical-align: bottom
+}
+
+.blog-wrapper .share .right {
+    color: rgb(70, 70, 70);
+    display: inline-block;
+    height: 15px;
+    line-height: 15px;
+    margin-top: 4px
+}
+
+.blog-wrapper .share .right span {
+    color: #000;
+    display: inline-block;
+    height: 13px;
+    border-right: 1px solid #000;
+    padding-right: 5px;
+    margin-right: 5px
+}
+
+.blog-wrapper .share .right span:last-child {
+    border-right: none;
+    padding-right: 0;
+    margin-right: 0
+}
+
+.chat-content .message .name {
+    float: left;
+    font-weight: bold;
+    margin-right: 5px
+}
+
+.chat-content .message .text {
+    word-break: break-word
+}
+
+.chat-content .message {
+    margin-bottom: 3px
+}
+
+.chat-remaining.red {
+    color: red
+}
+
+.map_container_wiki .map {
+    width: 220px;
+    float: left
+}
+
+.pop-up .maps.content {
+    padding-left: 17px !important;
+    padding-top: 17px !important;
+    padding-right: 2px !important;
+    padding-bottom: 2px !important;
+    box-shadow: none;
+    border: none;
+    background: none;
+    width: 533px;
+    height: 533px
+}
+
+.map_container_wiki .icon {
+    position: absolute;
+    width: 26px;
+    margin-top: -13px;
+    margin-left: -13px;
+    display: none
+}
+
+.map_container_wiki .icon.ctf {
+    display: block
+}
+
+.tank-profile .half + .half table {
+    float: right;
+    margin-right: 30px
+}
+
+.vehicle-details .gun-clip.active td, .vehicle-details .gun-single.active td {
+    display: table-cell
+}
+
+@media screen and (max-width: 1083px) {
+    header:before, header:after {
+        display: none
+    }
+
+    header {
+        width: 1053px
+    }
+
+    #content {
+        border: none
+    }
+}
+
+@media screen and (max-width: 2000px) {
+    html, body {
+        -webkit-text-size-adjust: none
+    }
+}
+
+.battle-records .achievements div img.mark {
+    height: 83px;
+    margin-top: 5px;
+    margin-right: -7px;
+    margin-left: 5px
+}
+
+.battle-records .achievements div img.mark.full {
+    margin-right: 10px
+}
+
+.map-stat .stat .stat-tank .select, .replay-filter .select {
+    position: absolute;
+    top: 50px;
+    left: 154px;
+    color: #959586
+}
+
+.map-stat .stat .stat-tank .select .custom, .replay-filter .select .custom {
+    width: 180px;
+    margin-top: 5px;
+    background: #101008;
+    position: relative;
+    border: 1px solid #34332e;
+    border-radius: 1px;
+    height: 20px
+}
+
+.map-stat .stat .stat-tank .select .custom:hover, .map-stat .stat .stat-tank .select .custom select:hover {
+    cursor: url(../style/images/wot/cursors/cursor-pointer.png), pointer !important
+}
+
+.map-stat .stat .stat-tank .select .custom .selected, .replay-filter .select .custom .selected {
+    padding: 0 25px 0 5px;
+    border: none;
+    background: none;
+    color: #959586;
+    line-height: 19px;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.map-stat .stat .stat-tank .select i, .replay-filter .select i {
+    display: block;
+    width: 18px;
+    height: 18px;
+    background: url(../style/images/wot/buttons/select.png);
+    position: absolute;
+    right: 1px;
+    top: -1px
+}
+
+.map-stat .stat .stat-tank .select .custom .list, .replay-filter .select .custom .list {
+    background: #101008;
+    position: absolute;
+    top: 19px;
+    z-index: 1;
+    border: 1px solid #34332e;
+    border-top: 0;
+    left: -1px;
+    width: 180px;
+    font-size: 11px;
+    display: none
+}
+
+.map-stat .stat .stat-tank .select .custom .list .row, .replay-filter .select .list .row {
+    padding: 4px 25px 4px 5px
+}
+
+.map-stat .stat .stat-tank .select .custom .list .row:hover, .replay-filter .select .list .row:hover {
+    background-color: #2e2e24
+}
+
+header .player-search .custom .list .row {
+    padding: 4px 25px 4px 5px;
+    height: 20px;
+    line-height: 13px;
+    color: #959586
+}
+
+body.gb #content {
+    background-color: rgba(239, 239, 239, 0.8)
+}
+
+body.phj #content, body.phj footer {
+    background-color: rgba(239, 239, 239, 0.95)
+}
+
+body.phj header .wrapper .logo img {
+    height: 52px;
+    margin-top: 5px
+}
+
+body.scheff header .wrapper .logo img {
+    height: 52px;
+    margin-top: 5px
+}
+
+body.dezgamez header .wrapper .logo img {
+    height: 52px;
+    margin-top: 5px
+}
+
+body.circon header .wrapper .logo img {
+    height: 52px;
+    margin-top: 5px
+}
+
+body.wotnoobians header .wrapper .logo img {
+    height: 52px;
+    margin-top: 5px
+}
+
+body.gb header .wrapper .logo img {
+    height: 51px;
+    margin-top: 5px
+}
+
+body.nejo12 header .wrapper .logo img {
+    height: 51px;
+    margin-top: 5px
+}
+
+body.bodzy header .wrapper .logo img {
+    height: 51px;
+    margin-top: 5px
+}
+
+body.ph3lan header .wrapper .logo img {
+    height: 51px;
+    margin-top: 5px
+}
+
+body.justforlolzfyi header .wrapper .logo img {
+    height: 51px;
+    margin-top: 5px
+}
+
+body.agingjedi header .wrapper .logo img {
+    height: 51px;
+    margin-top: 5px
+}
+
+body.sirhavoc header .wrapper .logo img {
+    height: auto;
+    margin-top: 17px
+}
+
+body.wotinfo header .wrapper .logo img {
+    height: 51px;
+    margin-top: 5px
+}
+
+body.mistercro header .wrapper .logo img {
+    height: 51px;
+    margin-top: 5px
+}
+
+body.saltyjedi header .wrapper .logo img {
+    height: 51px;
+    margin-top: 5px
+}
+
+body.quickybaby header .wrapper .logo img {
+    height: 51px;
+    margin-top: 5px
+}
+
+.team-score.convoy table.tank-list td.xp {
+    text-align: center
+}
+
+.tanks-image.convoy {
+    background: url(../style/images/wot/battleresults/win_mark1.jpg)
+}
+
+.tanks-image.convoy .battle-records {
+    background: none;
+    position: relative;
+    z-index: 2
+}
+
+.tanks-image.convoy .battle-records:before {
+    content: "";
+    background: url(../style/images/wot/battleresults/battleResults-43.png) no-repeat center;
+    opacity: 0.6;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    position: absolute;
+    z-index: -1
+}
+
+.right-panel .rss .title {
+    font-family: "Oswald", sans-serif;
+    font-size: 13px;
+    line-height: 18px;
+    color: rgb(70, 70, 70);
+    display: inline-block;
+    width: 165px;
+    vertical-align: middle
+}
+
+.right-panel .rss a:hover .title {
+    color: #000
+}
+
+#content .right-panel .youtube-list {
+    height: auto
+}
+
+#content .right-panel .youtube-list .item {
+    width: 100%
+}
+
+body.screenshot .replay-tabs, body.screenshot .replay-tabs, body.screenshot .replay-tab-wrapper, body.screenshot header .wrapper .logo img {
+    z-index: 11;
+    position: relative
+}
+
+body.screenshot header .wrapper .logo img {
+    height: auto;
+    width: auto;
+    margin-left: 20px
+}
+
+body.screenshot .replay-tabs {
+    z-index: 20
+}
+
+body.screenshot .replay-tab-wrapper {
+    box-shadow: 0 0 31px 10px rgba(0, 0, 0, 0.66);
+    border-right: 1px solid black;
+    border-bottom: 1px solid black;
+    border-left: 1px solid black
+}
+
+body.screenshot .replay-tab-wrapper .tanks-image {
+    border-top: 1px solid black
+}
+
+body.screenshot #content {
+    overflow: visible
+}
+
+body.screenshot #content .left-panel.full {
+    position: absolute;
+    top: -38px
+}
+
+body.screenshot .half.score {
+    width: 499px
+}
+
+body.screenshot .half.score:nth-child(1) {
+    margin-left: 1px
+}
+
+body.screenshot header .right {
+    display: none
+}
+
+body.screenshot .replay-tab-wrapper, body.screenshot header .wrapper > a:first-child {
+    z-index: 15;
+    position: relative
+}
+
+@keyframes example {
+    0% {
+        left: -20%;
+        top: 100%;
+        transform: rotate(0);
+        opacity: 0
+    }
+    10% {
+        transform: rotate(-30deg)
+    }
+    40% {
+        opacity: 0.6
+    }
+    90% {
+        transform: rotate(10deg);
+        opacity: 0
+    }
+    100% {
+        left: 100%;
+        top: 0%;
+        transform: rotate(0deg)
+    }
+}
+
+.tank-profile .ad_680_90.second > ins:not(:empty) {
+    margin-bottom: 10px;
+    margin-top: 5px
+}
+
+.pop-up[data-name="tank-image"] .content {
+    margin: 0 !important;
+    transform: translate(-50%, -50%);
+    padding: 0;
+    width: 95%;
+    height: 90%;
+    text-align: center;
+    background: none;
+    box-shadow: none;
+    border: none
+}
+
+.pop-up[data-name="tank-image"] .content img {
+    max-width: 100%;
+    max-height: 100%;
+    display: inline-block;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%)
+}
+
+.replay-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--border);
+    /*margin-bottom: 20px*/
+}
+
+.replay-tabs .tab {
+    padding: 12px 24px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.2s ease;
+    border-radius: 8px 8px 0 0;
+    margin-right: 2px
+}
+
+.replay-tabs .tab:hover {
+    background: var(--panel-2);
+    color: var(--text)
+}
+
+.replay-tabs .tab.active {
+    background: var(--bg);
+    color: var(--text);
+    border-color: var(--accent);
+    position: relative;
+    z-index: 1
+}
+
+.replay-tabs .tab.active::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--bg)
+}
+
+.replay-tab-wrapper {
+    display: none
+}
+
+.replay-tab-wrapper.active {
+    display: block
+}
+
+.replay-tab-wrapper.active {
+    animation: fadeIn 0.3s ease-in-out
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px)
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0)
+    }
+}
+
+.current-player {
+    color: rgba(254, 194, 100, 0.63) !important
+}
+
+/*Комментарии*/
+.comments-sep {
+  margin: 24px 0;
+  border: none;
+  border-top: 1px solid var(--line, #e5e7eb);
+}
+
+.comments-section {
+  margin: 16px 0 0;
+  padding: 12px 0 0;
+}
+
+.comments-title {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.comment-form form {
+  display: grid;
+  gap: 8px;
+}
+
+.comment-form input[type="text"],
+.comment-form input[type="email"],
+.comment-form input[type="url"],
+.comment-form textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--line, #e5e7eb);
+  border-radius: 8px;
+}
+
+.comment-form input[type="submit"] {
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}

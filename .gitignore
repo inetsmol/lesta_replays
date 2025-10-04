@@ -6,6 +6,6 @@ db.sqlite3
 /replays/migrations
 replays/management/commands/output
 staticfiles/
-static/
+
 _static/
 tools/

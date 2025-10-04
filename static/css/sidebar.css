@@ -1,0 +1,167 @@
+/* Общая обёртка сайдбара и отступы между виджетами */
+.sidebar {
+    display: grid;
+    margin-top: 52px;
+    /*width:15%;*/
+    gap: 12px;
+}
+
+.sidebar__item {
+    /* зарезервировано под общие отступы/рамки при необходимости */
+}
+
+/* ====== Карточки (единый тон) ====== */
+.support-card,
+.friends-card {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    color: #e9eef4;
+    font-size: 14px;
+}
+
+.support-card__title,
+.friends-card__title {
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* уменьшенный заголовок для длинных названий */
+.friends-card__title--sm {
+    font-size: 14px;
+}
+
+.support-card__text,
+.friends-card__lead {
+    line-height: 1.4;
+    opacity: 0.95;
+    margin-bottom: 10px;
+}
+
+/* ====== QR блок в донатах ====== */
+.support-qr {
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.support-qr img {
+    width: 100%;
+    max-width: 220px;
+    height: auto;
+    border-radius: 8px;
+    image-rendering: crisp-edges;
+}
+
+.support-mini {
+    font-size: 12px;
+    opacity: .85;
+    margin-top: 6px;
+    text-align: center;
+}
+
+/* ====== Кнопка доната ====== */
+.support-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+    text-decoration: none;
+    color: #e9eef4;
+    font-weight: 600;
+    transition: transform .06s ease, border-color .12s ease;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.support-btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.support-note {
+    margin-top: 8px;
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+/* ====== Друзья: список и элементы ====== */
+.friends-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+}
+
+.social-btns {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 10px;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 10px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+    transition: transform .06s ease, border-color .12s ease;
+    color: #e9eef4;
+}
+
+.social-btns:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.22);
+}
+
+.social-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: inline-block;
+    flex: 0 0 28px;
+}
+
+.icon-wrap {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: inline-grid;
+    place-items: center;
+    overflow: hidden;
+    flex: 0 0 28px;
+}
+
+.icon-wrap svg circle {
+    fill: rgba(255, 255, 255, 0.12);
+}
+
+.icon-wrap svg path {
+    fill: #ffffff;
+    opacity: .95;
+}
+
+.social-meta {
+    display: grid;
+    line-height: 1.2;
+}
+
+.social-name {
+    font-weight: 600;
+}
+
+.social-link {
+    font-size: 12px;
+    opacity: .8;
+}

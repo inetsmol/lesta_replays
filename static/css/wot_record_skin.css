@@ -1,0 +1,326 @@
+.replay-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px
+}
+
+.tovabb {
+    display: block;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-decoration: none;
+    animation: fadeIn 0.3s ease-in-out
+}
+
+.tovabb .wrapper {
+    display: flex;
+    align-items: stretch
+}
+
+.img-container {
+    position: relative;
+    width: 240px;
+    height: 120px;
+    background: #000;
+    overflow: hidden;
+    flex-shrink: 0
+}
+
+.img-container .map {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+    transition: opacity 0.2s ease
+}
+
+.img-container .tank {
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    height: 90px;
+    width: auto;
+    max-width: 135px;
+    object-fit: contain;
+    z-index: 3;
+    filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.7));
+    transition: opacity 0.2s ease
+}
+
+.img-container .game {
+    position: absolute;
+    left: 30px;
+    bottom: 6px;
+    height: 30px;
+    width: 30px;
+    z-index: 4;
+    transition: opacity 0.2s ease
+}
+
+.img-container .type {
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    height: 30px;
+    width: 30px;
+    z-index: 4;
+    transition: opacity 0.2s ease
+}
+
+.img-container .level {
+    position: absolute;
+    left: 15px;
+    top: 3px;
+    height: 30px;
+    width: 30px;
+    z-index: 4;
+    transition: opacity 0.2s ease
+}
+
+.img-container .mastery {
+    position: absolute;
+    right: 6px;
+    top: 6px;
+    height: 30px;
+    width: 30px;
+    z-index: 4;
+    transition: opacity 0.2s ease
+}
+
+.mastery.m4 {
+    filter: drop-shadow(0 0 4px var(--gold)) drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.8))
+}
+
+.mastery.m3 {
+    filter: drop-shadow(0 0 3px var(--accent)) drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.8))
+}
+
+.mastery.m2, .mastery.m1 {
+    filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.8))
+}
+
+.img-container .map-name {
+    position: absolute;
+    left: 10px;
+    top: 8px;
+    font-family: "Oswald", Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    text-shadow: 0 0 2px #fff, 0 0 6px #fff;
+    text-transform: uppercase;
+    z-index: 2;
+    color: #555;
+    display: inline-block;
+    max-width: 135px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(2px)
+}
+
+.img-container .name {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    z-index: 2;
+    color: var(--text);
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(2px)
+}
+
+.img-container .name.premium {
+    color: var(--gold)
+}
+
+.img-container .map:not([src]), .img-container .tank:not([src]), .img-container .mastery:not([src]), .img-container .game:not([src]), .img-container .type:not([src]), .img-container .level:not([src]) {
+    opacity: 0
+}
+
+.details {
+    flex: 1;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 120px
+}
+
+.details .title {
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 6px;
+    line-height: 1.2;
+    color: var(--text)
+}
+
+.details .description {
+    font-weight: 600;
+    font-size: 12px;
+    margin-bottom: 12px;
+    color: var(--text)
+
+}
+
+.details .upload-info {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 12px
+}
+
+.details .table {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    font-size: 14px;
+    align-items: center
+}
+
+.details .table .cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    flex-shrink: 0
+}
+
+.details .table .cell img {
+    height: 18px;
+    width: 18px;
+    object-fit: contain;
+    flex-shrink: 0
+}
+
+.details .table .cell span {
+    color: var(--text);
+    font-weight: 500
+}
+
+.details .table .cell .mastery, .details .table .cell .type, .details .table .cell .level {
+    height: 24px;
+    width: 37px
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px)
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0)
+    }
+}
+
+@media (max-width: 768px) {
+    .tovabb .wrapper {
+        flex-direction: column
+    }
+
+    .img-container {
+        width: 100%;
+        height: 150px
+    }
+
+    .img-container .tank {
+        height: 100px;
+        max-width: 140px
+    }
+
+    .img-container .map-name {
+        font-size: 12px;
+        max-width: 120px
+    }
+
+    .details {
+        padding: 12px
+    }
+
+    .details .table {
+        gap: 6px 12px;
+        font-size: 12px
+    }
+
+    .details .table .cell img {
+        height: 16px;
+        width: 16px
+    }
+}
+
+@media (max-width: 480px) {
+    .img-container {
+        height: 120px
+    }
+
+    .img-container .tank {
+        height: 80px;
+        max-width: 100px
+    }
+
+    .img-container .map-name, .img-container .name {
+        font-size: 10px;
+        padding: 2px 4px;
+        max-width: 100px
+    }
+
+    .details {
+        padding: 8px
+    }
+
+    .details .title {
+        font-size: 14px
+    }
+
+    .details .table {
+        gap: 4px 8px;
+        font-size: 11px
+    }
+}
+
+.empty {
+    text-align: center;
+    color: var(--muted);
+    font-size: 16px;
+    padding: 48px 24px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius)
+}
+
+.pagination-links {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap
+}
+
+.pagination-link {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--panel-2);
+    color: var(--text);
+    text-decoration: none;
+    transition: all 0.2s ease
+}
+
+.current-page {
+    padding: 8px 12px;
+    color: var(--muted);
+    font-weight: 500
+}
+
+.pagination-info {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 8px
+}

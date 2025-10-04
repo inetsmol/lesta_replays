@@ -5,6 +5,7 @@ tqdm~=4.67.1
 python-dotenv~=1.1.1
 gunicorn
 psycopg2-binary
+whitenoise
 
 django-contrib-comments~=2.2.0
 django-comments-xtd~=2.10.9

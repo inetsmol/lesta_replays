@@ -1,0 +1,33 @@
+.site-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+  font-size: 13px;
+}
+.site-banner--dev {
+  background: #fff6d6;            /* мягкий жёлтый */
+  color: #4a3b00;
+}
+.site-banner--dev a { color: inherit; text-decoration: underline; }
+.site-banner__inner { padding-right: 8px; }
+.site-banner__close {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  color: inherit;
+  opacity: .6;
+}
+.site-banner__close:hover { opacity: 1; }
+@media (prefers-color-scheme: dark) {
+  .site-banner--dev {
+    background: #3b3420;
+    color: #ffe9a6;
+    border-bottom-color: rgba(255,255,255,.1);
+  }
+}
