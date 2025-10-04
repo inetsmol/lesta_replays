@@ -161,6 +161,7 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
+WHITENOISE_MANIFEST_STRICT = False
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]  # для dev
