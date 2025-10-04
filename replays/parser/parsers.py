@@ -387,4 +387,4 @@ if __name__ == "__main__":
 
     # Для работы с JSON строкой
     # replay_data = extract_replay_data(json_string)
-    print(replay_data)
+    # print(replay_data)

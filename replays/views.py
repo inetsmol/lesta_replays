@@ -462,7 +462,7 @@ class ReplayDetailView(DetailView):
 
             # === ДОСТИЖЕНИЯ ===
             achievements_ids = ExtractorV2.get_achievements(replay_data)
-            print(f"achievements_ids: {achievements_ids}")
+            # print(f"achievements_ids: {achievements_ids}")
             if achievements_ids:
                 ach_nonbattle, ach_battle = ExtractorV2.split_achievements_by_section(achievements_ids)
 
@@ -495,16 +495,16 @@ class ReplayDetailView(DetailView):
             context['details'] = details
 
             interactions = ExtractorV2.get_player_interactions(replay_data)
-            print(f"interactions: {interactions}")
+            # print(f"interactions: {interactions}")
             context["interactions"] = interactions
 
 
             interaction_rows = ExtractorV2.build_interaction_rows(replay_data)
-            print(f"interaction_rows: {interaction_rows}")
+            # print(f"interaction_rows: {interaction_rows}")
             context["interaction_rows"] = interaction_rows
 
             interactions_summary = ExtractorV2.build_interactions_summary(interaction_rows)
-            print(f"interactions_summary: {interactions_summary}")
+            # print(f"interactions_summary: {interactions_summary}")
             context["interactions_summary"] = interactions_summary
 
             context['death_reason_text'] = ExtractorV2.get_death_text(replay_data)

@@ -721,7 +721,7 @@ class ExtractorV2:
         # 1) Берём details текущего игрока
         personal = ExtractorV2.get_personal_by_player_id(payload) or {}
         details = personal.get("details")
-        print(f"details: {details}")
+        # print(f"details: {details}")
         if not isinstance(details, Mapping) or not details:
             # Нет покиловой детализации — вернём пустые списки
             return {k: [] for k in ("spotted", "assist", "blocked", "crits", "damaged", "destroyed")}

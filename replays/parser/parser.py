@@ -116,4 +116,4 @@ if __name__ == "__main__":
     data = p.parse(file)
     # print(data)
     replay_fields = ExtractorV2.extract_replay_fields_v2(data, file_name)
-    print(replay_fields.get('tank_tag'))
+    # print(replay_fields.get('tank_tag'))
