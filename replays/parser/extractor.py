@@ -737,12 +737,12 @@ class ExtractorV2:
 
         # 2) Обходим цели в details: ключ "(avatarId,0)" -> значение с метриками по этой цели
         for key, d in details.items():
-            print(f"key: {key}")
+            # print(f"key: {key}")
 
             if not isinstance(d, Mapping):
                 continue
             avatar_id = ExtractorV2._parse_target_avatar_id(str(key))
-            print(f"avatar_id: {avatar_id}")
+            # print(f"avatar_id: {avatar_id}")
             if not avatar_id:
                 continue
 

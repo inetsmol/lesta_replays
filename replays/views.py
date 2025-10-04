@@ -198,6 +198,7 @@ class ReplayBatchUploadView(View):
         messages.error(request, message)
         return redirect('replay_list')
 
+
 class ReplayListView(ListView):
     """
     Представление списка реплеев с пагинацией и фильтрацией.
@@ -207,193 +208,219 @@ class ReplayListView(ListView):
     context_object_name = 'items'
     paginate_by = 10
 
-    # Какие поля разрешено сортировать
     SORTABLE_FIELDS = {'credits', 'xp', 'kills', 'damage', 'assist', 'block'}
+
+    def dispatch(self, request, *args, **kwargs):
+        """Логируем каждый запрос"""
+        try:
+            logger.info(f"ReplayListView: GET params = {dict(request.GET.lists())}")
+            return super().dispatch(request, *args, **kwargs)
+        except Exception as e:
+            logger.exception(f"Ошибка в ReplayListView.dispatch: {e}")
+            raise
 
     def get_queryset(self):
         """
         Получение отфильтрованного QuerySet с применением фильтров.
         """
-        qs = (Replay.objects
-              .select_related('tank', 'owner')
-              .prefetch_related('participants')
-              )
-        # СНАЧАЛА фильтры
-        qs = self._apply_filters(qs)
+        try:
+            qs = (Replay.objects
+                  .select_related('tank', 'owner')
+                  .prefetch_related('participants')
+                  )
 
-        # ПОТОМ сортировка (по уже отфильтрованному набору)
-        sort = (self.request.GET.get('sort') or '').strip()
-        direction = (self.request.GET.get('dir') or 'desc').lower()
+            # СНАЧАЛА фильтры
+            qs = self._apply_filters(qs)
 
-        if sort in self.SORTABLE_FIELDS:
-            order = sort if direction == 'asc' else f'-{sort}'
-            # вторичная сортировка для стабильности
-            qs = qs.order_by(order, '-battle_date', '-created_at')
-        else:
-            qs = qs.order_by('-battle_date', '-created_at')
+            # ПОТОМ сортировка
+            sort = (self.request.GET.get('sort') or '').strip()
+            direction = (self.request.GET.get('dir') or 'desc').lower()
 
-        return qs
+            if sort in self.SORTABLE_FIELDS:
+                order = sort if direction == 'asc' else f'-{sort}'
+                qs = qs.order_by(order, '-battle_date', '-created_at')
+            else:
+                qs = qs.order_by('-battle_date', '-created_at')
+
+            logger.debug(f"QuerySet построен, SQL: {qs.query}")
+            return qs
+
+        except Exception as e:
+            logger.exception(f"Ошибка в get_queryset: {e}")
+            raise
 
     def _apply_filters(self, queryset):
-        def _getlist(name):
-            return self.request.GET.getlist(name)
+        try:
+            def _getlist(name):
+                return self.request.GET.getlist(name)
 
-        def _to_int_set(vals):
-            out = set()
-            for v in vals:
-                try:
-                    out.add(int(v))
-                except (TypeError, ValueError):
-                    pass
-            return out
+            def _to_int_set(vals):
+                out = set()
+                for v in vals:
+                    try:
+                        out.add(int(v))
+                    except (TypeError, ValueError):
+                        pass
+                return out
 
-        m2m_used = False
+            m2m_used = False
 
-        # tanks (multi)
-        tank_ids = _to_int_set(_getlist("tank"))
-        if tank_ids:
-            queryset = queryset.filter(tank_id__in=tank_ids)
+            # tanks (multi)
+            tank_ids = _to_int_set(_getlist("tank"))
+            if tank_ids:
+                queryset = queryset.filter(tank_id__in=tank_ids)
+                logger.debug(f"Фильтр по танкам: {tank_ids}")
 
-        # mastery (multi)
-        mastery_vals = _to_int_set(_getlist("mastery"))
-        if mastery_vals:
-            queryset = queryset.filter(mastery__in=mastery_vals)
+            # mastery (multi)
+            mastery_vals = _to_int_set(_getlist("mastery"))
+            if mastery_vals:
+                queryset = queryset.filter(mastery__in=mastery_vals)
+                logger.debug(f"Фильтр по мастерству: {mastery_vals}")
 
-        # dates
-        if date_from := self.request.GET.get("date_from"):
-            if d := parse_date(date_from):
-                queryset = queryset.filter(battle_date__date__gte=d)
-        if date_to := self.request.GET.get("date_to"):
-            if d := parse_date(date_to):
-                queryset = queryset.filter(battle_date__date__lte=d)
+            # dates
+            if date_from := self.request.GET.get("date_from"):
+                if d := parse_date(date_from):
+                    queryset = queryset.filter(battle_date__date__gte=d)
+                    logger.debug(f"Фильтр date_from: {d}")
+            if date_to := self.request.GET.get("date_to"):
+                if d := parse_date(date_to):
+                    queryset = queryset.filter(battle_date__date__lte=d)
+                    logger.debug(f"Фильтр date_to: {d}")
 
-        # map search
-        if map_search := self.request.GET.get("map_search"):
-            queryset = queryset.filter(map__map_display_name__icontains=map_search)
+            # map search
+            if map_search := self.request.GET.get("map_search"):
+                queryset = queryset.filter(map__map_display_name__icontains=map_search)
+                logger.debug(f"Фильтр по карте: {map_search}")
 
-        # numeric ranges
-        numeric = ["damage", "xp", "kills", "credits", "assist", "block"]
-        for f in numeric:
-            vmin = self.request.GET.get(f"{f}_min")
-            vmax = self.request.GET.get(f"{f}_max")
-            if vmin:
-                try: queryset = queryset.filter(**{f"{f}__gte": int(vmin)})
-                except (TypeError, ValueError): pass
-            if vmax:
-                try: queryset = queryset.filter(**{f"{f}__lte": int(vmax)})
-                except (TypeError, ValueError): pass
+            # numeric ranges
+            numeric = ["damage", "xp", "kills", "credits", "assist", "block"]
+            for f in numeric:
+                vmin = self.request.GET.get(f"{f}_min")
+                vmax = self.request.GET.get(f"{f}_max")
+                if vmin:
+                    try:
+                        queryset = queryset.filter(**{f"{f}__gte": int(vmin)})
+                    except (TypeError, ValueError):
+                        pass
+                if vmax:
+                    try:
+                        queryset = queryset.filter(**{f"{f}__lte": int(vmax)})
+                    except (TypeError, ValueError):
+                        pass
 
-        # tank attrs (multi)
-        levels = _to_int_set(_getlist("level")) or _to_int_set(_getlist("tier"))
-        if levels:
-            queryset = queryset.filter(tank__level__in=levels)
+            # tank attrs (multi)
+            levels = _to_int_set(_getlist("level")) or _to_int_set(_getlist("tier"))
+            if levels:
+                queryset = queryset.filter(tank__level__in=levels)
 
-        types_ = set(_getlist("type"))
-        if types_:
-            queryset = queryset.filter(tank__type__in=types_)
+            types_ = set(_getlist("type"))
+            if types_:
+                queryset = queryset.filter(tank__type__in=types_)
 
-        nations = set(_getlist("nation"))
-        if nations:
-            queryset = queryset.filter(tank__nation__in=nations)
+            nations = set(_getlist("nation"))
+            if nations:
+                queryset = queryset.filter(tank__nation__in=nations)
 
-        # win/loss (если нет is_win — грубая эвристика)
-        vf = self.request.GET.get("victory")
-        if vf == "win":
-            queryset = queryset.filter(credits__gt=0)
-        elif vf == "loss":
-            queryset = queryset.filter(credits__lte=0)
+            # win/loss
+            vf = self.request.GET.get("victory")
+            if vf == "win":
+                queryset = queryset.filter(credits__gt=0)
+            elif vf == "loss":
+                queryset = queryset.filter(credits__lte=0)
 
-        # game version / battle type (как строки; при наличии полей)
-        gv = set(_getlist("game_version"))
-        if gv:
-            queryset = queryset.filter(game_version__in=gv)
-        bt = set(_getlist("battle_type"))
-        if bt:
-            queryset = queryset.filter(battle_type__in=bt)
+            # game version
+            gv = set(_getlist("game_version"))
+            if gv:
+                queryset = queryset.filter(game_version__in=gv)
 
-        owner_nick = (self.request.GET.get("owner_nick") or "").strip()
-        if owner_nick:
-            queryset = queryset.filter(owner__real_name__icontains=owner_nick)
+            bt = set(_getlist("battle_type"))
+            if bt:
+                queryset = queryset.filter(battle_type__in=bt)
 
-        # --- НОВОЕ: поиск по нику ЛЮБОГО участника ---
-        participant_nick = (self.request.GET.get("participant_nick") or "").strip()
-        if participant_nick:
-            queryset = queryset.filter(participants__real_name__icontains=participant_nick)
-            m2m_used = True
+            owner_nick = (self.request.GET.get("owner_nick") or "").strip()
+            if owner_nick:
+                queryset = queryset.filter(owner__real_name__icontains=owner_nick)
 
-        # --- НОВОЕ: клантег (без скобок, храним как у вас) ---
-        # 1) owner_clan: строго по владельцу
-        owner_clan = (self.request.GET.get("owner_clan") or "").strip().upper()
-        if owner_clan:
-            queryset = queryset.filter(owner__clan_tag__iexact=owner_clan)
+            # поиск по нику участника
+            participant_nick = (self.request.GET.get("participant_nick") or "").strip()
+            if participant_nick:
+                queryset = queryset.filter(participants__real_name__icontains=participant_nick)
+                m2m_used = True
 
-        # 2) clan: по владельцу ИЛИ по любому участнику
-        clan = (self.request.GET.get("clan") or "").strip().upper()
-        if clan:
-            queryset = queryset.filter(
-                Q(owner__clan_tag__iexact=clan) | Q(participants__clan_tag__iexact=clan)
-            )
-            m2m_used = True
+            # клантеги
+            owner_clan = (self.request.GET.get("owner_clan") or "").strip().upper()
+            if owner_clan:
+                queryset = queryset.filter(owner__clan_tag__iexact=owner_clan)
 
-        # --- НОВОЕ: «живой» поиск по версии клиента (подстрока) ---
-        game_version_search = (self.request.GET.get("game_version_search") or "").strip()
-        if game_version_search:
-            queryset = queryset.filter(game_version__icontains=game_version_search)
+            clan = (self.request.GET.get("clan") or "").strip().upper()
+            if clan:
+                queryset = queryset.filter(
+                    Q(owner__clan_tag__iexact=clan) | Q(participants__clan_tag__iexact=clan)
+                )
+                m2m_used = True
 
-        # --- существующее: точный выбор нескольких версий через чекбоксы ---
-        gv = set(_getlist("game_version"))
-        if gv:
-            queryset = queryset.filter(game_version__in=gv)
+            # поиск по версии
+            game_version_search = (self.request.GET.get("game_version_search") or "").strip()
+            if game_version_search:
+                queryset = queryset.filter(game_version__icontains=game_version_search)
 
-        # если был фильтр по participants (M2M) — убираем дубликаты
-        if m2m_used:
-            queryset = queryset.distinct()
+            if m2m_used:
+                queryset = queryset.distinct()
+                logger.debug("Применён distinct() из-за M2M фильтров")
 
-        return queryset
+            return queryset
+
+        except Exception as e:
+            logger.exception(f"Ошибка в _apply_filters: {e}")
+            raise
 
     def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
+        try:
+            ctx = super().get_context_data(**kwargs)
 
-        q = self.request.GET.copy()
-        q.pop("page", None)
-        base_qs = q.urlencode()
+            q = self.request.GET.copy()
+            q.pop("page", None)
+            base_qs = q.urlencode()
 
-        current_sort = (self.request.GET.get('sort') or '').strip()
-        current_dir = (self.request.GET.get('dir') or 'desc').lower()
+            current_sort = (self.request.GET.get('sort') or '').strip()
+            current_dir = (self.request.GET.get('dir') or 'desc').lower()
 
-        def next_dir_for(field: str) -> str:
-            if current_sort == field and current_dir == 'desc':
-                return 'asc'
-            return 'desc'
+            def next_dir_for(field: str) -> str:
+                if current_sort == field and current_dir == 'desc':
+                    return 'asc'
+                return 'desc'
 
-        # карта направлений для ссылок
-        next_dir = {f: next_dir_for(f) for f in self.SORTABLE_FIELDS}
+            next_dir = {f: next_dir_for(f) for f in self.SORTABLE_FIELDS}
 
-        tank_types = Tank.objects.values_list("type", flat=True).distinct().order_by("type")
+            tank_types = Tank.objects.values_list("type", flat=True).distinct().order_by("type")
 
-        ctx.update({
-            "filter_data": {
-                "tanks": Tank.objects.order_by("level", "name"),
-                "nations": Nation.choices,
-                "tank_types": tank_types,
-                "levels": Tank.objects.order_by('level').values_list('level', flat=True).distinct(),
-                "mastery_choices": [(i, f"Знак {i}") for i in range(5)],
-            },
-            "current_filters": dict(self.request.GET.lists()),
-            "has_filters_applied": bool(base_qs),
-            "filters_url": reverse("replay_filters"),
-            "reset_url": self.request.path,
+            ctx.update({
+                "filter_data": {
+                    "tanks": Tank.objects.order_by("level", "name"),
+                    "nations": Nation.choices,
+                    "tank_types": tank_types,
+                    "levels": Tank.objects.order_by('level').values_list('level', flat=True).distinct(),
+                    "mastery_choices": [(i, f"Знак {i}") for i in range(5)],
+                },
+                "current_filters": dict(self.request.GET.lists()),
+                "has_filters_applied": bool(base_qs),
+                "filters_url": reverse("replay_filters"),
+                "reset_url": self.request.path,
 
-            # для пагинации и построения ссылок
-            "page_qs": base_qs,
-            "page_qs_prefix": (base_qs + "&") if base_qs else "",
+                "page_qs": base_qs,
+                "page_qs_prefix": (base_qs + "&") if base_qs else "",
 
-            # для сортировок
-            "current_sort": current_sort,
-            "current_dir": current_dir,
-            "next_dir": next_dir,
-        })
-        return ctx
+                "current_sort": current_sort,
+                "current_dir": current_dir,
+                "next_dir": next_dir,
+            })
+
+            logger.debug(f"Context подготовлен успешно")
+            return ctx
+
+        except Exception as e:
+            logger.exception(f"Ошибка в get_context_data: {e}")
+            raise
 
 
 class ReplayFiltersView(TemplateView):

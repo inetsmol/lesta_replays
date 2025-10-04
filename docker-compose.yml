@@ -10,7 +10,6 @@ services:
     env_file:
       - .env
     volumes:
-      - ./staticfiles:/app/staticfiles
       - ./media:/app/media
     networks:
       bridge: {}
