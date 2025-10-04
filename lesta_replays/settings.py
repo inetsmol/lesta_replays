@@ -158,7 +158,7 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "lesta_replays.storage.ForgivingManifestStaticFilesStorage",
     },
 }
 WHITENOISE_MANIFEST_STRICT = False
