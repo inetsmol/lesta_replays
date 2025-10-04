@@ -152,6 +152,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+    },
+}
+
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]  # для dev
 STATIC_ROOT = BASE_DIR / "staticfiles"  # куда 'collectstatic' сложит финальные файлы
