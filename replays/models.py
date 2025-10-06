@@ -1,5 +1,6 @@
 # replays/models.py
 from django.db import models
+from django.urls import reverse
 
 
 class Replay(models.Model):
@@ -139,6 +140,10 @@ class Replay(models.Model):
         blank=True,
         help_text="Все участники этого боя"
     )
+
+    def get_absolute_url(self):
+        # если детальная страница по pk:
+        return reverse("replay_detail", kwargs={"pk": self.pk})
 
     class Meta:
         verbose_name = "Реплей"

@@ -17,10 +17,13 @@ Including another URLconf
 from django.contrib import admin
 from django.contrib.sitemaps import Sitemap
 from django.contrib.sitemaps.views import sitemap
+from django.http import HttpResponse
 from django.urls import path, include
 from django.views.static import serve
 from lesta_replays import settings
+
 from replays.models import Replay
+from replays.views import donate, donate_success
 
 
 class ReplaySitemap(Sitemap):
@@ -28,22 +31,32 @@ class ReplaySitemap(Sitemap):
     priority = 0.7
 
     def items(self):
-        return Replay.objects.filter(is_public=True)
+        return Replay.objects.filter()
 
     def lastmod(self, obj):
-        return obj.updated_at
-
-    def location(self, obj):
-        return obj.get_absolute_url()
-
+        return getattr(obj, "updated_at", None)
 
 sitemaps = {"replays": ReplaySitemap}
+
+
+def robots_txt(_):
+    content = (
+        "User-agent: *\n"
+        "Disallow: /adminn/\n"
+        "Disallow: /accounts/\n"
+        "Disallow: /__debug__/\n"
+        "Sitemap: https://lesta-replays.ru/sitemap.xml\n"
+        "Host: lesta-replays.ru\n"
+    )
+    return HttpResponse(content, content_type="text/plain")
 
 urlpatterns = [
     path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="sitemap"),
     path("comments/", include("django_comments_xtd.urls")),
     path('adminn/', admin.site.urls),
     path("", include("replays.urls")),
+    # path("donate/", donate, name="donate"),
+    # path("donate/success/", donate_success, name="donate_success"),
 ]
 
 if settings.DEBUG:
@@ -51,4 +64,5 @@ if settings.DEBUG:
         path('static/<path:path>', serve, {
             'document_root': settings.STATIC_ROOT,
         }),
+        path("robots.txt", robots_txt),
     ]

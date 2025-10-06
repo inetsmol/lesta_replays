@@ -11,7 +11,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.db.models import Q
 from django.http import JsonResponse, Http404, HttpResponse, StreamingHttpResponse, HttpRequest
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.dateparse import parse_date
 from django.utils.encoding import escape_uri_path
@@ -489,7 +489,7 @@ class ReplayDetailView(DetailView):
 
             # === ДОСТИЖЕНИЯ ===
             achievements_ids = ExtractorV2.get_achievements(replay_data)
-            # print(f"achievements_ids: {achievements_ids}")
+            print(f"achievements_ids: {achievements_ids}")
             if achievements_ids:
                 ach_nonbattle, ach_battle = ExtractorV2.split_achievements_by_section(achievements_ids)
 
@@ -881,3 +881,45 @@ class ReplayDownloadView(View):
 
 class AboutView(TemplateView):
     template_name = "about.html"
+
+
+def donate(request):
+    """
+    Показывает форму для доната: ввод суммы, выбор способа оплаты.
+    """
+    if request.method == "POST":
+        # получим сумму из формы
+        sum_amount = request.POST.get("sum")
+        payment_type = request.POST.get("paymentType")
+        # можно добавить в контекст, чтобы подставить в форму YooMoney
+        context = {
+            "receiver": settings.YOOMONEY_RECEIVER,
+            "sum": sum_amount,
+            "paymentType": payment_type,
+            "label": "donation",  # или что-то динамическое
+            "successURL": request.build_absolute_uri('/donate/success/'),
+        }
+        return render(request, "donations/redirect_to_yoomoney.html", context)
+    else:
+        return render(request, "donations/donate_form.html")
+
+
+def donate_success(request):
+    """
+    Страница благодарности после доната.
+    Пытается получить параметры операции из GET-параметров,
+    либо из контекста (если уведомление уже обработано).
+    """
+    # Параметры из GET
+    label = request.GET.get("label")
+    operation_id = request.GET.get("operation_id")
+    amount = request.GET.get("sum") or request.GET.get("amount")
+    notification_type = request.GET.get("notification_type")
+
+    context = {
+        "label": label,
+        "operation_id": operation_id,
+        "amount": amount,
+        "notification_type": notification_type,
+    }
+    return render(request, "donations/donate_success.html", context)

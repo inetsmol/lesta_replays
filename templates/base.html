@@ -7,7 +7,19 @@
 
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>{% block title %}Реплеи Мира танков{% endblock %}</title>
+    <title>{% block title %}{{ page_title|default:"Реплеи Мира танков" }}{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}{{ meta_description|default:"Смотри и анализируй реплеи МИРА ТАНКОВ." }}{% endblock %}">
+
+    <link rel="canonical" href="{% block canonical_url %}{{ canonical_url|default:request.build_absolute_uri }}{% endblock %}">
+
+    <meta property="og:title" content="{% block og_title %}{{ page_title|default:"Реплеи Мира танков" }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ meta_description|default:"Смотри и анализируй реплеи МИРА ТАНКОВ." }}{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ canonical_url|default:request.build_absolute_uri }}{% endblock %}">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:site_name" content="lesta-replays.ru">
+    <meta property="og:locale" content="ru_RU">
+
+    <meta name="twitter:card" content="summary_large_image">
 
     <link rel="icon" href="{% static 'favicon.ico' %}">
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
@@ -43,12 +55,12 @@
 {% include "includes/_upload_modal.html" %}
 {% include "includes/_alert_modal.html" %}
 
-<script src="{% static 'js/upload-modal.js' %}"></script>
-
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <!-- jQuery UI -->
 <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
+
+<script src="{% static 'js/upload-modal.js' %}"></script>
 
 {% block extra_js %}{% endblock %}
 

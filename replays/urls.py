@@ -7,7 +7,7 @@ from .views import ReplayListView, ReplayDetailView, ReplayDownloadView, AboutVi
 
 urlpatterns = [
     path('', ReplayListView.as_view(), name='replay_list'),
-    path('<int:pk>/', ReplayDetailView.as_view(), name='replay_detail'),
+    path('replays/<int:pk>/', ReplayDetailView.as_view(), name='replay_detail'),
     path("replays/filters/", ReplayFiltersView.as_view(), name="replay_filters"),
     path('replays/upload/', ReplayBatchUploadView.as_view(), name='replay_upload'),
     path('<int:pk>/download/', ReplayDownloadView.as_view(), name='replay_download'),
