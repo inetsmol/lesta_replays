@@ -9,9 +9,14 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+import logging
 import os
 from pathlib import Path
+
+import sentry_sdk
 from dotenv import load_dotenv
+from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 load_dotenv()
 
@@ -214,6 +219,63 @@ COMMENTS_XTD_APP_MODEL_OPTIONS = {
         'show_feedback': True,        # Показывать счетчик лайков
     }
 }
+
+YOOMONEY_RECEIVER = "4100118749299139"  # кошелек YooMoney
+
+
+SENTRY_DSN = os.getenv("SENTRY_DSN")
+SENTRY_ENV = os.getenv("SENTRY_ENV", "dev")
+SENTRY_RELEASE = os.getenv("SENTRY_RELEASE")  # можно подставлять git sha
+SENTRY_TRACES_SAMPLE_RATE = float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.0"))
+SENTRY_PROFILES_SAMPLE_RATE = float(os.getenv("SENTRY_PROFILES_SAMPLE_RATE", "0.0"))
+SENTRY_SEND_DEFAULT_PII = os.getenv("SENTRY_SEND_DEFAULT_PII", default=False)
+
+if SENTRY_DSN:
+    # Логирование: отправляем event на уровне ERROR, но breadcrumbs с INFO и выше
+    logging_integration = LoggingIntegration(
+        level=logging.INFO,
+        event_level=logging.ERROR,
+    )
+
+    def _before_send(event, hint):
+        """
+        Отсечь шум: healthchecks, DisallowedHost, BrokenPipe и т.п.
+        """
+        # 1) URL healthcheck
+        req = event.get("request", {})
+        url = (req.get("url") or "").lower()
+        if any(p in url for p in ("/health", "/healthz", "/ready", "/live")):
+            return None
+
+        # 2) Исключения, которые обычно не интересны
+        exc = hint.get("exc_info")
+        ignored_types = (
+            "django.core.exceptions.DisallowedHost",
+            "django.core.exceptions.SuspiciousFileOperation",
+            "django.http.response.ClientDisconnected",
+            "BrokenPipeError",
+        )
+        exc_type = None
+        if exc and exc[0]:
+            exc_type = f"{exc[0].__module__}.{exc[0].__name__}"
+        if exc_type and exc_type in ignored_types:
+            return None
+
+        return event
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        environment=SENTRY_ENV,
+        release=SENTRY_RELEASE,
+        integrations=[
+            DjangoIntegration(),
+            logging_integration,
+        ],
+        traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE,   # APM-трейсинг
+        profiles_sample_rate=SENTRY_PROFILES_SAMPLE_RATE,  # профайлинг
+        send_default_pii=SENTRY_SEND_DEFAULT_PII,       # PII отправлять осознанно
+        before_send=_before_send,
+    )
 
 LOGGING = {
     'version': 1,

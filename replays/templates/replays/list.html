@@ -190,8 +190,8 @@
       <div class="pagination">
         <span class="pagination-links">
           {% if page_obj.has_previous %}
-            <a class="pagination-link" href="?{{ page_qs_prefix }}page=1">&laquo; первая</a>
-            <a class="pagination-link" href="?{{ page_qs_prefix }}page={{ page_obj.previous_page_number }}">предыдущая</a>
+            <a class="pagination-link" href="?{{ page_qs_prefix }}page=1">&laquo;&laquo; Первая</a>
+            <a class="pagination-link" href="?{{ page_qs_prefix }}page={{ page_obj.previous_page_number }}">&laquo; Назад</a>
           {% endif %}
 
           <span class="current-page">
@@ -199,8 +199,8 @@
           </span>
 
           {% if page_obj.has_next %}
-            <a class="pagination-link" href="?{{ page_qs_prefix }}page={{ page_obj.next_page_number }}">следующая</a>
-            <a class="pagination-link" href="?{{ page_qs_prefix }}page={{ page_obj.paginator.num_pages }}">последняя &raquo;</a>
+            <a class="pagination-link" href="?{{ page_qs_prefix }}page={{ page_obj.next_page_number }}">Вперед &raquo;</a>
+            <a class="pagination-link" href="?{{ page_qs_prefix }}page={{ page_obj.paginator.num_pages }}">Последняя &raquo;&raquo;</a>
           {% endif %}
         </span>
 
