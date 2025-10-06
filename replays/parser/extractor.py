@@ -254,16 +254,25 @@ class ExtractorV2:
             logger.warning("Первый элемент battle_results не является словарем")
 
         personal = first_result.get('personal')
+        if not isinstance(personal, dict) or not personal:
+            logger.warning("Ключ 'personal' отсутствует или не является словарем")
+            return None
 
-        # --- Ищем числовые ключи ---
-        # Ключи приходят строками из JSON. Берём только те, что целиком состоят из цифр.
-        numeric_keys: Sequence[str] = [k for k in personal.keys() if isinstance(k, str) and k.isdigit()]
+            # Ищем первый числовой ключ в порядке следования
+        first_numeric_key = None
+        for k in personal.keys():
+            if isinstance(k, int):
+                first_numeric_key = k
+                break
+            if isinstance(k, str) and k.isdigit():
+                first_numeric_key = k
+                break
 
-        # --- Обработка числа найденных ключей ---
-        if len(numeric_keys) == 1:
-            return personal[numeric_keys[0]]
+        if first_numeric_key is None:
+            logger.warning("В 'personal' нет числовых ключей")
+            return None
 
-        return None
+        return personal[first_numeric_key]
 
     @staticmethod
     def extract_replay_fields_v2(replay_data: Any, file_name: str) -> Dict[str, Any]:
