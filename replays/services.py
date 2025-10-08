@@ -7,7 +7,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Any, List, Iterable
+from typing import Any, List, Iterable
 from typing import Optional, Tuple
 
 from django.conf import settings
@@ -17,7 +17,6 @@ from django.db import transaction
 from replays.models import Replay, Tank, Player, Map
 from replays.parser.extractor import ExtractorV2
 from replays.parser.parser import Parser
-from wotreplay.helper.extractor import Extractor
 
 logger = logging.getLogger(__name__)
 
