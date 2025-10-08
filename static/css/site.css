@@ -455,7 +455,7 @@ textarea {
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
     width: 100%;
     max-width: 520px;
-    max-height: 90vh;
+    /*max-height: 90vh;*/
     overflow: hidden;
     transform: scale(0.9) translateY(20px);
     transition: transform 0.3s ease;
@@ -541,6 +541,10 @@ textarea {
     justify-content: center
 }
 
+.file-desc {
+    padding: 0 0 12px;
+    border-bottom: 1px dashed var(--muted);
+}
 .upload-text {
     margin: 0;
     color: var(--text);
@@ -578,6 +582,7 @@ textarea {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    max-width: 100%;
 }
 
 .file-row {
@@ -604,7 +609,8 @@ textarea {
     background: var(--bg);
     border-radius: var(--radius-sm);
     border: 1px solid var(--border);
-    transition: all 0.2s ease
+    transition: all 0.2s ease;
+    flex-direction: column;
 }
 
 .file-name {
@@ -644,9 +650,9 @@ textarea {
 
 /* НОВЫЙ класс для общей информации */
 .file-total {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
+    /*margin-top: 12px;*/
+    /*padding-top: 12px;*/
+    /*border-top: 1px solid var(--border);*/
     color: var(--muted);
     font-size: 12px;
 }

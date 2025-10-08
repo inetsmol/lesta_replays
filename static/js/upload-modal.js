@@ -232,6 +232,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const total = selectedFiles.reduce((s, item)=> s + item.file.size, 0);
     const left = Math.max(0, MAX_FILES - selectedFiles.length);
     fileInfo.innerHTML = `
+      <div class="file-total">
+        Выбрано: ${selectedFiles.length}/${MAX_FILES}${left ? ` (можно добавить ещё ${left})` : ''} • ${fmtBytes(total)}
+      </div>
       <div class="file-list">
         ${selectedFiles.map((item,i)=>`
           <div class="file-row" data-idx="${i}">
@@ -239,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <span class="file-size">${fmtBytes(item.file.size)}</span>
             <button type="button" class="file-remove" aria-label="Удалить" data-remove="${i}">✕</button>
           </div>
-          <div class="file-desc" style="margin:6px 0 12px;">
+          <div class="file-desc">
             <input type="text"
                    class="file-desc-input"
                    data-desc-idx="${i}"
@@ -250,9 +253,7 @@ document.addEventListener('DOMContentLoaded', function () {
           </div>
         `).join('')}
       </div>
-      <div class="file-total">
-        Выбрано: ${selectedFiles.length}/${MAX_FILES}${left ? ` (можно добавить ещё ${left})` : ''} • ${fmtBytes(total)}
-      </div>
+
       <div id="upload-progress" class="upload-progress" style="display:none">
         <div class="bar"></div>
         <span class="label">0%</span>
