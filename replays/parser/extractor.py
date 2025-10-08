@@ -7,6 +7,7 @@ import logging
 import math
 import re
 from collections import defaultdict
+from logging import critical
 
 from typing import Any, Dict, List, Sequence, Tuple, Mapping, Optional, Iterable
 
@@ -14,6 +15,7 @@ from django.db.models.functions import Coalesce, Cast
 from django.db.models import Value, FloatField
 
 from replays.models import Tank
+from replays.utils import summarize_credits, summarize_xp, summarize_gold
 
 logger = logging.getLogger(__name__)
 
@@ -1507,9 +1509,20 @@ class ExtractorV2:
         }
 
         # === РАСШИРЕННАЯ ЭКОНОМИКА ===
+        # == Credits ==
+        credits = summarize_credits(personal)
+        xp = summarize_xp(personal)
+        gold = summarize_gold(personal)
+
+
+
         # Базовые доходы
         original_credits = int(personal.get('originalCredits', 0))
         achievement_credits = int(personal.get('achievementCredits', 0))
+        premium_booster_credits = int(personal.get("boosterCredits", 0)) # в файле цифра уже ждя према. базоу надо считать по boosterCreditsFactor100
+
+        booster_credits_factor100 = int(personal.get("boosterCreditsFactor100", 0))
+        base_booster_credits = premium_booster_credits * 100 // (100 + booster_credits_factor100)
         team_subs_bonus_credits = int(personal.get("teamSubsBonusCredits", 0))
 
         # Штрафы и компенсации
@@ -1546,7 +1559,7 @@ class ExtractorV2:
 
         # Итоги
         total_expenses = auto_repair_cost + ammo_cost + equipment_credits_cost
-        battle_earnings = original_credits + achievement_credits + team_subs_bonus_credits - team_damage_penalty
+        battle_earnings = original_credits + achievement_credits + base_booster_credits + team_subs_bonus_credits - team_damage_penalty
         net_result = battle_earnings - total_expenses
 
         # Премиум факторы
@@ -1556,10 +1569,12 @@ class ExtractorV2:
         # Премиум расчеты
         premium_original_credits = int(original_credits * premium_credit_factor)
         premium_achievement_credits = int(achievement_credits * premium_credit_factor) if achievement_credits > 0 else achievement_credits
-        premium_battle_earnings = premium_original_credits + premium_achievement_credits + team_subs_bonus_credits - team_damage_penalty
+        premium_battle_earnings = premium_original_credits + premium_achievement_credits + premium_booster_credits + team_subs_bonus_credits - team_damage_penalty
         premium_net_result = premium_battle_earnings - total_expenses
 
         # === ОПЫТ ===
+        # первая победа
+        daily_xp_factor10 =  int(int(personal.get('dailyXPFactor10')) / 10)
         original_xp = int(personal.get('originalXP', 0))
         original_free_xp = int(personal.get('originalFreeXP', 0))
         event_xp = int(personal.get('eventXP', 0))
@@ -1590,6 +1605,7 @@ class ExtractorV2:
 
         # === БОНЫ/КРИСТАЛЛЫ ===
         crystal = int(personal.get('crystal', 0))
+        event_crystal = int(personal.get("eventCrystal", 0))
         original_crystal = int(personal.get('originalCrystal', 0))
         achievement_crystal = crystal - original_crystal if crystal > original_crystal else 0
         special_vehicle_crystal = max(0, original_crystal)  # "За особые свойства машины"
@@ -1598,6 +1614,7 @@ class ExtractorV2:
             # Базовые доходы
             "original_credits": original_credits,
             "achievement_credits": achievement_credits,
+            "base_booster_credits": base_booster_credits,
             "team_subs_bonus_credits": team_subs_bonus_credits,
 
             "battle_earnings": battle_earnings,
@@ -1605,6 +1622,7 @@ class ExtractorV2:
             # Премиум доходы
             "premium_original_credits": premium_original_credits,
             "premium_achievement_credits": premium_achievement_credits,
+            "premium_booster_credits": premium_booster_credits,
             "premium_team_subs_bonus_credits": team_subs_bonus_credits,
 
             "premium_battle_earnings": premium_battle_earnings,
@@ -1625,6 +1643,7 @@ class ExtractorV2:
             "team_damage_penalty": team_damage_penalty,
 
             # Опыт
+            "daily_xp_factor10": daily_xp_factor10,
             "original_xp": original_xp,
             "original_free_xp": original_free_xp,
             "event_xp": event_xp,
@@ -1642,16 +1661,26 @@ class ExtractorV2:
             # Кристаллы
             "achievement_crystal": achievement_crystal,
             "special_vehicle_crystal": special_vehicle_crystal,
+            "event_crystal": event_crystal,
             "total_crystal": crystal,
 
             "is_premium": is_premium,
         }
 
         # === ВРЕМЯ ===
+
+        death_reason = int(personal.get('deathReason', -1))
+
         battle_duration = int(common.get('duration', 0))
+
         lifetime = int(personal.get('lifeTime', 0))
 
-        # Время создания арены (timestamp)
+        if death_reason >= 0:
+            lifetime_formatted = f"{lifetime // 60}:{lifetime % 60:02d}"
+        else:
+            lifetime_formatted = "-"
+
+            # Время создания арены (timestamp)
         arena_create_time = common.get('arenaCreateTime', 0)
         battle_start_datetime = None
         battle_start_formatted = ""
@@ -1679,7 +1708,7 @@ class ExtractorV2:
             "battle_duration": battle_duration,
             "battle_duration_formatted": f"{battle_duration // 60}:{battle_duration % 60:02d}",
             "lifetime": lifetime,
-            "lifetime_formatted": f"{lifetime // 60}:{lifetime % 60:02d}",
+            "lifetime_formatted": lifetime_formatted,
             "survival_time_percent": round((lifetime / battle_duration * 100), 1) if battle_duration > 0 else 0,
             "battle_start_time": arena_create_time,
             "battle_start_formatted": battle_start_formatted,
@@ -1704,6 +1733,9 @@ class ExtractorV2:
         return {
             "battle_stats": battle_stats,
             "economics": economics,
+            "credits": credits,
+            "xp": xp,
+            "gold": gold,
             "time_stats": time_stats,
             "vehicle_info": vehicle_info,
         }

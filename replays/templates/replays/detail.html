@@ -202,7 +202,7 @@
 
                   {% if income.is_first_win %}
                   <tr>
-                    <td class="desc">Опыт<br>Награда за первую победу в день (2x)</td>
+                    <td class="desc">Опыт<br>Награда за первую победу в день (x{{ detailed_report.economics.multipliers.daily }})</td>
                     <td class="inactive">
                       {{ income.xp_with_first_base|default:0|intcomma }}
                       <img class="xp" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">
@@ -481,9 +481,9 @@
         </div>
 
         <!-- Две колонки -->
-        <div class="columns" style="display:flex; gap:16px; align-items:flex-start;">
+        <div class="columns grid-2">
           <!-- СТАТИСТИКА -->
-          <div class="col-left" style="flex:1;">
+          <div class="col-left">
             <div class="data-wrapper stat">
               <div class="row"><span class="left">Произведено выстрелов</span><span class="right">{{ detailed_report.battle_stats.shots }}</span></div>
               <div class="row padding"><span class="left">прямых попаданий/пробитий</span><span class="right">{{ detailed_report.battle_stats.direct_hits }}/{{ detailed_report.battle_stats.piercings }}</span></div>
@@ -512,77 +512,117 @@
           </div>
 
           <!-- КРЕДИТЫ + БОНЫ -->
-          <div class="col-right" style="flex:1;">
+          <div class="col-right">
             <div class="data-wrapper credit normal {% if not detailed_report.economics.is_premium %}active{% else %}inactive{% endif %}" style="margin-left: 0px !important;">
-              <div class="row"><span class="left">Начислено за бой</span><span class="right">{{ detailed_report.economics.original_credits|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
-              {% if detailed_report.economics.team_subs_bonus_credits > 0 %}
-                <div class="row"><span class="left">Командный бонус от игроков с подпиской</span><span class="right">{{ detailed_report.economics.team_subs_bonus_credits|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
-              {% endif %}
+  <div class="row"><span class="left">Начислено за бой</span><span class="right">{{ detailed_report.credits.base.accrued|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
 
-              {% if detailed_report.economics.achievement_credits > 0 %}
-              <div class="row"><span class="left">За достойное сопротивление</span><span class="right">{{ detailed_report.economics.achievement_credits|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
-              {% endif %}
-              <div class="row top"><span class="left">Штраф за урон союзникам</span><span class="right">{{ detailed_report.economics.team_damage_penalty|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
-              <div class="row"><span class="left">Компенсация за урон от союзников</span><span class="right">0<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
-              <div class="row top"><span class="left">Итого за бой:</span><span class="right">{{ detailed_report.economics.battle_earnings|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
-              <div class="row top"><span class="left">Автоматический ремонт техники</span><span class="right red">-{{ detailed_report.economics.auto_repair_cost|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
-              <div class="row"><span class="left">Автопополнение боекомплекта</span><span class="right red">-{{ detailed_report.economics.ammo_cost|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
-              {% if detailed_report.economics.equipment_credits_cost > 0 or detailed_report.economics.gold_spent > 0 %}
-              <div class="row gold">
-                <span class="left">Автопополнение снаряжения</span>
-                <span class="right red">-{{ detailed_report.economics.equipment_credits_cost|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
-                <span class="gold">{{ detailed_report.economics.gold_spent }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>
-                </span>
-              </div>
-              {% endif %}
+  {% if detailed_report.credits.base.order_credits > 0 %}
+    <div class="row"><span class="left">Боевые выплаты</span><span class="right">{{ detailed_report.credits.base.order_credits|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+  {% endif %}
 
-              <div class="row top gold">
-                <span class="left">Итого:</span>
-                <span class="right {% if detailed_report.economics.net_result < 0 %}red{% endif %}">{{ detailed_report.economics.net_result|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
+  {% if detailed_report.credits.base.booster_effect > 0 %}
+    <div class="row"><span class="left">Эффект от личных резервов</span><span class="right">{{ detailed_report.credits.base.booster_effect|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+  {% endif %}
 
-                  <span class="gold">{{ detailed_report.economics.gold_spent }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>
+  {% if detailed_report.credits.event_credits > 0 %}
+    <div class="row"><span class="left">Бонус за боевые задачи и события</span><span class="right">{{ detailed_report.credits.event_credits|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+  {% endif %}
 
-                </span>
-              </div>
-            </div>
+  {% if detailed_report.credits.base.team_subs_bonus > 0 %}
+    <div class="row"><span class="left">Командный бонус от игроков с подпиской</span><span class="right">{{ detailed_report.credits.base.team_subs_bonus|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+  {% endif %}
 
-            <div class="data-wrapper credit premium {% if detailed_report.economics.is_premium %}active{% else %}inactive{% endif %}">
-              <div class="row">&nbsp;<span class="right">{{ detailed_report.economics.premium_original_credits|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
-              {% if detailed_report.economics.premium_team_subs_bonus_credits > 0 %}
-                <div class="row">&nbsp;<span class="right">{{ detailed_report.economics.premium_team_subs_bonus_credits|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
-              {% endif %}
+  {% if detailed_report.credits.base.achievement > 0 %}
+    <div class="row"><span class="left">За достойное сопротивление</span><span class="right">{{ detailed_report.credits.base.achievement|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+  {% endif %}
 
-              {% if detailed_report.economics.achievement_credits > 0 %}
-              <div class="row" >&nbsp;<span class="right">{{ detailed_report.economics.premium_achievement_credits|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
-              {% endif %}
-              <div class="row top">&nbsp;<span class="right">{{ detailed_report.economics.team_damage_penalty|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
-              <div class="row">&nbsp;<span class="right">0<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
-              <div class="row top">&nbsp;<span class="right">{{ detailed_report.economics.premium_battle_earnings|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
-              <div class="row top">&nbsp;<span class="right red">-{{ detailed_report.economics.auto_repair_cost|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
-              <div class="row">&nbsp;<span class="right red">-{{ detailed_report.economics.ammo_cost|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
-              {% if detailed_report.economics.equipment_credits_cost > 0 or detailed_report.economics.gold_spent > 0 %}
-              <div class="row gold">&nbsp;<span class="right red">-{{ detailed_report.economics.equipment_credits_cost|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
+  <div class="row top"><span class="left">Штраф за урон союзникам</span><span class="right">{{ detailed_report.credits.base.team_damage_penalty|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+  <div class="row"><span class="left">Компенсация за урон от союзников</span><span class="right">{{ detailed_report.credits.base.team_damage_compensation|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
 
-                <span class="gold">{{ detailed_report.economics.gold_spent }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>
+  <div class="row top"><span class="left">Итого за бой:</span><span class="right">{{ detailed_report.credits.base.total_for_battle|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
 
-              </span></div>
-              {% endif %}
-              <div class="row top {% if detailed_report.economics.equipment_credits_cost > 0 or detailed_report.economics.gold_spent > 0 %}gold{% endif %}" style="height:17px;">
-                &nbsp;<span class="right {% if detailed_report.economics.premium_net_result < 0 %}red{% endif %}">{{ detailed_report.economics.premium_net_result|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
+  <div class="row top"><span class="left">Автоматический ремонт техники</span><span class="right red">-{{ detailed_report.credits.costs.auto_repair|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+  <div class="row"><span class="left">Автопополнение боекомплекта</span><span class="right red">-{{ detailed_report.credits.costs.auto_ammo|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
 
-                  <span class="gold">{{ detailed_report.economics.gold_spent }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>
+  {% if detailed_report.credits.costs.auto_equipment > 0 or detailed_report.gold.spent > 0 %}
+  <div class="row gold">
+    <span class="left">Автопополнение снаряжения</span>
+    <span class="right red">-{{ detailed_report.credits.costs.auto_equipment|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
+      <span class="gold">{{ detailed_report.gold.spent|default:0|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>
+    </span>
+  </div>
+  {% endif %}
 
-                </span>
-              </div>
-            </div>
+  <div class="row top gold" >
+    <span class="left">Итого:</span>
+    <span class="right {% if detailed_report.credits.base.after_costs < 0 %}red{% endif %}">{{ detailed_report.credits.base.after_costs|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
+      <span class="gold">{{ detailed_report.gold.spent|default:0|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>
+    </span>
+  </div>
+</div>
+
+          <div class="data-wrapper credit premium {% if detailed_report.economics.is_premium %}active{% else %}inactive{% endif %}">
+  <div class="row">&nbsp;<span class="right">{{ detailed_report.credits.premium.accrued|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+
+  {% if detailed_report.credits.premium.order_credits > 0 %}
+    <div class="row">&nbsp;<span class="right">{{ detailed_report.credits.premium.order_credits|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+  {% endif %}
+
+  {% if detailed_report.credits.premium.booster_effect > 0 %}
+    <div class="row">&nbsp;<span class="right">{{ detailed_report.credits.premium.booster_effect|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+  {% endif %}
+
+  {% if detailed_report.credits.event_credits > 0 %}
+    <div class="row">&nbsp;<span class="right">{{ detailed_report.credits.event_credits|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+  {% endif %}
+
+  {% if detailed_report.credits.premium.team_subs_bonus > 0 %}
+    <div class="row">&nbsp;<span class="right">{{ detailed_report.credits.premium.team_subs_bonus|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+  {% endif %}
+
+  {% if detailed_report.credits.premium.achievement > 0 %}
+    <div class="row">&nbsp;<span class="right">{{ detailed_report.credits.premium.achievement|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+  {% endif %}
+
+  <div class="row top">&nbsp;<span class="right">{{ detailed_report.credits.premium.team_damage_penalty|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+  <div class="row">&nbsp;<span class="right">{{ detailed_report.credits.premium.team_damage_compensation|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+
+  <div class="row top">&nbsp;<span class="right">{{ detailed_report.credits.premium.total_for_battle|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+
+  <div class="row top">&nbsp;<span class="right red">-{{ detailed_report.credits.costs.auto_repair|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+  <div class="row">&nbsp;<span class="right red">-{{ detailed_report.credits.costs.auto_ammo|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+
+  {% if detailed_report.credits.costs.auto_equipment > 0 or detailed_report.gold.spent > 0 %}
+  <div class="row gold">&nbsp;
+    <span class="right red">-{{ detailed_report.credits.costs.auto_equipment|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
+      <span class="gold">{{ detailed_report.gold.spent|default:0|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>
+    </span>
+  </div>
+  {% endif %}
+
+  <div class="row top {% if detailed_report.credits.costs.auto_equipment > 0 or detailed_report.gold.spent > 0 %}gold{% endif %}" style="height:20px;">
+    &nbsp;<span class="right {% if detailed_report.credits.premium.after_costs < 0 %}red{% endif %}">{{ detailed_report.credits.premium.after_costs|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
+      <span class="gold">{{ detailed_report.gold.spent|default:0|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>
+    </span>
+  </div>
+</div>
 
             <div class="data-wrapper bonds">
-              <div class="titles-line"><span>Боны</span></div>
-              <div class="data-wrapper">
-                <div class="row"><span class="left">За достижения</span><span class="right">{{ detailed_report.economics.achievement_crystal }}<img class="credit" src="{% static 'style/images/wot/library/crystal_16x16.png' %}" alt=""></span></div>
-                <div class="row"><span class="left">За особые свойства машины</span><span class="right">{{ detailed_report.economics.special_vehicle_crystal }}<img class="credit" src="{% static 'style/images/wot/library/crystal_16x16.png' %}" alt=""></span></div>
-                <div class="row top"><span class="left">Итого:</span><span class="right">{{ detailed_report.economics.total_crystal }}<img class="credit" src="{% static 'style/images/wot/library/crystal_16x16.png' %}" alt=""></span></div>
-              </div>
+                {% if detailed_report.economics.total_crystal > 0 %}
+                  <div class="titles-line"><span>Боны</span></div>
+                      <div class="data-wrapper">
+                        {% if detailed_report.economics.achievement_crystal > 0 %}
+                            <div class="row"><span class="left">За достижения</span><span class="right">{{ detailed_report.economics.achievement_crystal }}<img class="credit" src="{% static 'style/images/wot/library/crystal_16x16.png' %}" alt=""></span></div>
+                        {% endif %}
+                        {% if detailed_report.economics.event_crystal > 0 %}
+                            <div class="row"><span class="left">За выполнение задач</span><span class="right">{{ detailed_report.economics.event_crystal }}<img class="credit" src="{% static 'style/images/wot/library/crystal_16x16.png' %}" alt=""></span></div>
+                        {% endif %}
+                        {% if detailed_report.economics.special_vehicle_crystal > 0 %}
+                            <div class="row"><span class="left">За особые свойства машины</span><span class="right">{{ detailed_report.economics.special_vehicle_crystal }}<img class="credit" src="{% static 'style/images/wot/library/crystal_16x16.png' %}" alt=""></span></div>
+                        {% endif %}
+                        <div class="row top"><span class="left">Итого:</span><span class="right">{{ detailed_report.economics.total_crystal }}<img class="credit" src="{% static 'style/images/wot/library/crystal_16x16.png' %}" alt=""></span></div>
+                      </div>
+                {% endif %}
             </div>
           </div> <!-- /col-right -->
         </div> <!-- /columns -->
@@ -592,85 +632,104 @@
         <div class="titles-line second">Время<span>Опыт</span></div>
         <div class="data-wrapper time">
           <div class="row">Начало боя<span class="right">{{ detailed_report.time_stats.battle_start_formatted }}</span></div>
-          <div class="row">Продолжительность боя<span class="right">{{ detailed_report.time_stats.lifetime_formatted }}</span></div>
-          <div class="row">Время в бою до уничтожения<span class="right">{{ detailed_report.time_stats.battle_duration_formatted }}</span></div>
+          <div class="row">Продолжительность боя<span class="right">{{ detailed_report.time_stats.battle_duration_formatted }}</span></div>
+          <div class="row">Время в бою до уничтожения<span class="right">{{ detailed_report.time_stats.lifetime_formatted }}</span></div>
         </div>
 
         <div class="data-wrapper xp normal {% if not detailed_report.economics.is_premium %}active{% else %}inactive{% endif %}">
           <div class="row bonus">
             <span class="left">Начислено за бой</span>
-            <span class="right">{{ detailed_report.economics.original_xp|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold">
-              <span class="bonus">{{ detailed_report.economics.original_free_xp|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="Gold"></span>
+            <span class="right">
+              {{ detailed_report.xp.base.accrued|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">
+              <span class="bonus">{{ detailed_report.xp.base.free_accrued|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="FreeXP"></span>
             </span>
           </div>
+
+{#          <div class="row">#}
+{#            <span class="left">Штраф за урон союзникам</span>#}
+{#            <span class="right">{{ detailed_report.xp.base.penalty|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP"></span>#}
+{#          </div>#}
+{##}
+{#          {% if income.is_first_win %}#}
 {#          <div class="row bonus">#}
-{#            <span class="left">За достойное сопротивление</span>#}
-{#            <span class="right">{{ detailed_report.economics.event_xp|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold">#}
-{#              <span class="bonus">{{ detailed_report.economics.event_free_xp|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="Gold"></span>#}
+{#            <span class="left">Награда за первую победу в день</span>#}
+{#            <span class="right">x{{ detailed_report.xp.multipliers.daily }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">#}
+{#                <span class="bonus">x{{ detailed_report.xp.multipliers.daily }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="XP"></span>#}
 {#            </span>#}
 {#          </div>#}
-          <div class="row">
-              <span class="left">Штраф за урон союзникам</span>
-              <span class="right">{{ detailed_report.economics.team_damage_penalty|intcomma }}
-                  <img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold">
-              </span>
-          </div>
-          {% if income.is_first_win %}
-              <div class="row">
-                  <span class="left">Награда за первую победу в день</span>
-                  <span class="right">x2
-                      <img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold">
-                  </span>
-              </div>
-          {% endif %}
-          <div class="row top bonus">
-            <span class="left">Итого:</span>
-            <span class="right">{{ detailed_report.economics.total_original_xp|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold">
-              <span class="bonus">{{ detailed_report.economics.total_free_xp|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="Gold"></span>
+{#          {% endif %}#}
+{##}
+{#          {% if detailed_report.xp.multipliers.managed > 1 %}#}
+{#          <div class="row bonus">#}
+{#            <span class="left">Управляемый бонус к опыту</span>#}
+{#            <span class="right">x{{ detailed_report.xp.multipliers.managed }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">#}
+{#                <span class="bonus">x{{ detailed_report.xp.multipliers.managed }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="XP"></span>#}
+{#            </span>#}
+{#          </div>#}
+{#          {% endif %}#}
+{##}
+{#          <div class="row bonus">#}
+{#            <span class="left">Эффект от личных резервов</span>#}
+{#            <span class="right">#}
+{#              {{ detailed_report.xp.base.boosters.xp|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">#}
+{#              <span class="bonus">{{ detailed_report.xp.base.boosters.free_xp|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="FreeXP"></span>#}
+{#            </span>#}
+{#          </div>#}
+{##}
+{#          <div class="row top bonus">#}
+{#            <span class="left">Итого:</span>#}
+{#            <span class="right">#}
+{#              {{ detailed_report.xp.base.total|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">#}
+{#              <span class="bonus">{{ detailed_report.xp.base.free_total|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="FreeXP"></span>#}
+{#            </span>#}
+{#          </div>#}
+        </div>
+
+
+      <div class="data-wrapper xp premium {% if detailed_report.economics.is_premium %}active{% else %}inactive{% endif %}">
+          <div class="row bonus" style="height:20px;">
+
+            <span class="right">
+              {{ detailed_report.xp.premium.accrued|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">
+              <span class="bonus">{{ detailed_report.xp.premium.free_accrued|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="FreeXP"></span>
             </span>
           </div>
-        </div>
 
-        <div class="data-wrapper xp premium {% if detailed_report.economics.is_premium %}active{% else %}inactive{% endif %}">
-          <div class="row bonus" style="height:17px;">&nbsp;
-              <span class="right">{{ detailed_report.economics.premium_xp|intcomma }}
-                <img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold">
-                  <span class="bonus">{{ detailed_report.economics.premium_free_xp|intcomma }}
-                      <img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="Gold">
-                  </span>
-              </span>
-          </div>
-          <div class="row" style="height:17px;">&nbsp;
-              <span class="right">{{ detailed_report.economics.team_damage_penalty|intcomma }}
-                  <img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold">
-              </span>
-          </div>
-          {% if income.is_first_win %}
-              <div class="row" style="height:17px;">&nbsp;
-                  <span class="right">x2
-                      <img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold">
-                  </span>
-              </div>
-          {% endif %}
-{#          <div class="row bonus" style="height:17px;">&nbsp;#}
-{#              <span class="right">{{ detailed_report.economics.premium_event_xp|intcomma }}#}
-{#                  <img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold">#}
-{#                  <span class="bonus">{{ detailed_report.economics.premium_event_free_xp|intcomma }}#}
-{#                      <img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="Gold">#}
-{#                  </span>#}
-{#              </span>#}
+{#          <div class="row" style="height:20px;">#}
+{##}
+{#            <span class="right">{{ detailed_report.xp.premium.penalty|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP"></span>#}
 {#          </div>#}
-
-          <div class="row top bonus" style="height:17px;">&nbsp;
-              <span class="right">{{ detailed_report.economics.total_premium_xp|intcomma }}
-                  <img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="Gold">
-                  <span class="bonus">{{ detailed_report.economics.total_premium_free_xp|intcomma }}
-                      <img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="Gold">
-                  </span>
-              </span>
-          </div>
+{##}
+{#          {% if income.is_first_win %}#}
+{#          <div class="row bonus" style="height:20px;">#}
+{#            <span class="right">x{{ detailed_report.xp.multipliers.daily }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">#}
+{#                <span class="bonus">x{{ detailed_report.xp.multipliers.daily }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="XP"></span>#}
+{#            </span>#}
+{#          </div>#}
+{#          {% endif %}#}
+{#          {% if detailed_report.xp.multipliers.managed > 1 %}#}
+{#          <div class="row bonus" style="height:20px;">#}
+{#            <span class="right">x{{ detailed_report.xp.multipliers.managed }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">#}
+{#                 <span class="bonus">x{{ detailed_report.xp.multipliers.managed }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="XP"></span>#}
+{#            </span>#}
+{#          </div>#}
+{#          {% endif %}#}
+{##}
+{#          <div class="row bonus" style="height:20px;">#}
+{##}
+{#            <span class="right">#}
+{#              {{ detailed_report.xp.premium.boosters.xp|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">#}
+{#              <span class="bonus">{{ detailed_report.xp.premium.boosters.free_xp|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="FreeXP"></span>#}
+{#            </span>#}
+{#          </div>#}
+{##}
+{#          <div class="row top bonus" style="height:20px;">#}
+{#            <span class="right">#}
+{#              {{ detailed_report.xp.premium.total|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">#}
+{#              <span class="bonus">{{ detailed_report.xp.premium.free_total|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="FreeXP"></span>#}
+{#            </span>#}
+{#          </div>#}
         </div>
-
 
       </div> <!-- /personal-data tab -->
     </div> <!-- /tab-detailed -->
@@ -684,70 +743,6 @@
 
 {% endif %}
 
-{#{% load comments %}#}
-{#{% load comments_xtd %}#}
-
-{#<hr class="comments-sep">#}
-{##}
-{#<section id="comments" class="comments-section">#}
-{#    <h3 class="comments-title">Комментарии</h3>#}
-{##}
-    {# Отображение существующих комментариев #}
-{#    {% get_comment_count for replay as comment_count %}#}
-{##}
-{#    {% if comment_count %}#}
-{#        <p class="comment-count">Комментариев: {{ comment_count }}</p>#}
-{#        {% render_xtdcomment_tree for replay %}#}
-{#    {% else %}#}
-{#        <p class="no-comments">Пока нет комментариев. Будьте первым!</p>#}
-{#    {% endif %}#}
-{##}
-    {# Форма добавления комментария #}
-{#    <div class="comment-form-wrapper">#}
-{#        <h4>Добавить комментарий</h4>#}
-{##}
-{#        {% get_comment_form for replay as form %}#}
-{##}
-{#        <form action="{% comment_form_target %}" method="post" class="comment-form">#}
-{#            {% csrf_token %}#}
-{##}
-            {# Служебные скрытые поля #}
-{#            {{ form.content_type }}#}
-{#            {{ form.object_pk }}#}
-{#            {{ form.timestamp }}#}
-{#            {{ form.security_hash }}#}
-{##}
-            {# Honeypot - защита от спама #}
-{#            <div style="display:none;">#}
-{#                {{ form.honeypot }}#}
-{#            </div>#}
-{##}
-            {# Редирект после отправки на ту же страницу #}
-{#            <input type="hidden" name="next" value="{{ request.path }}#comments">#}
-{##}
-            {# Поле имени #}
-{#            <div class="form-field">#}
-{#                {{ form.name.label_tag }}#}
-{#                {{ form.name }}#}
-{#                {% if form.name.errors %}#}
-{#                    <div class="error-message">{{ form.name.errors }}</div>#}
-{#                {% endif %}#}
-{#                <small class="field-help">Необязательное поле. По умолчанию: Гость</small>#}
-{#            </div>#}
-{##}
-            {# Поле комментария #}
-{#            <div class="form-field">#}
-{#                {{ form.comment.label_tag }}#}
-{#                {{ form.comment }}#}
-{#                {% if form.comment.errors %}#}
-{#                    <div class="error-message">{{ form.comment.errors }}</div>#}
-{#                {% endif %}#}
-{#            </div>#}
-{##}
-{#            <button type="submit" class="btn-submit-comment">Отправить комментарий</button>#}
-{#        </form>#}
-{#    </div>#}
-{#</section>#}
 <!-- Tabs init -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {

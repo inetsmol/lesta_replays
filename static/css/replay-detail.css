@@ -2034,8 +2034,14 @@ table.tank-list.score th.xp div {
 }
 
 .personal-data.tab .data-wrapper.credit .row, .personal-data.tab .data-wrapper.xp .row, .personal-data.tab .data-wrapper.bonds .row {
-    width: 390px
+    position: relative;
+    width: 336px
 }
+
+/*.personal-data.tab .data-wrapper.credit .row, .personal-data.tab .data-wrapper.xp .row {*/
+
+/*    width: 300px*/
+/*}*/
 
 .personal-data.tab .data-wrapper.credit .row img, .personal-data.tab .data-wrapper.bonds .row img {
     margin: 0 2px 0 5px
@@ -2046,18 +2052,23 @@ table.tank-list.score th.xp div {
     margin-top: -2px
 }
 
+.personal-data.tab .data-wrapper.credit .row.gold, .personal-data.tab .data-wrapper.xp .row.bonus {
+    width: 390px
+}
+
+
 .personal-data.tab .data-wrapper.credit .row .gold, .personal-data.tab .data-wrapper.xp .row .bonus {
-    width: 40px;
+    width: 50px;
     display: inline-block;
     text-align: right
 }
 
 .personal-data.tab .data-wrapper.credit.premium .row, .personal-data.tab .data-wrapper.xp.premium .row {
-    width: 69px
+    width: 66px
 }
 
 .personal-data.tab .data-wrapper.credit.premium .row.gold, .personal-data.tab .data-wrapper.xp.premium .row.bonus {
-    width: 112px
+    width: 121px
 }
 
 .personal-data.tab .data-wrapper .right .gold {
@@ -2134,10 +2145,6 @@ table.tank-list.score th.xp div {
 
 .personal-data.tab .data-wrapper.xp .left {
     width: 240px
-}
-
-.personal-data.tab .data-wrapper.credit .row, .personal-data.tab .data-wrapper.xp .row {
-    position: relative
 }
 
 .personal-data.tab .data-wrapper.credit .right, .personal-data.tab .data-wrapper.xp .right {
@@ -3273,3 +3280,45 @@ body.screenshot .replay-tab-wrapper, body.screenshot header .wrapper > a:first-c
   border-radius: 8px;
   cursor: pointer;
 }
+
+/* макет колонок */
+.grid-2 { display:flex; gap:16px; align-items:flex-start; }
+.col-left, .col-right { flex:1; }
+
+/*!* панель/таблица блока *!*/
+/*.panel { background:#111; border:1px solid #2a2a2a; border-radius:8px; padding:10px 12px; margin-bottom:12px; }*/
+/*.panel .row { display:flex; justify-content:space-between; align-items:center; padding:2px 0; min-height:18px; }*/
+/*.panel .row .left { opacity:.9; }*/
+/*.panel .row .right { display:inline-flex; align-items:center; gap:6px; font-variant-numeric:tabular-nums; }*/
+
+/*!* отступы для подстрок *!*/
+/*.row--pad { padding-left:14px; }*/
+/*.row--sep { margin-top:6px; }*/
+/*.row--total { border-top:1px dashed #3a3a3a; padding-top:6px; margin-top:4px; }*/
+/*.row--cost .right { color:#d9534f; }            !* отрицательные суммы *!*/
+/*.row--grand { font-weight:700; }*/
+/*.row--bonus .bonus { margin-left:10px; opacity:.9; }*/
+/*.row--hint { opacity:.9; font-size:0.95em; }*/
+
+/*!* актив/неактив колонок *!*/
+/*.is-active {}*/
+/*.is-inactive { opacity:.45; filter:saturate(85%) contrast(.95); pointer-events:none; }*/
+
+/*!* иконки-юниты *!*/
+/*.unit { width:16px; height:16px; vertical-align:middle; }*/
+/*.unit--cr   { !* кредиты *! }*/
+/*.unit--gold { !* золото  *! }*/
+/*.unit--xp   { !* опыт    *! }*/
+/*.unit--free { !* свободный опыт *! }*/
+/*.unit--bond { !* боны    *! }*/
+
+/*!* утилиты *!*/
+/*.text-red { color:#d9534f; }*/
+/*.negative .right { color:#d9534f; }*/
+
+/*!* заголовочная полоса *!*/
+/*.titles-line { display:flex; gap:16px; align-items:center; margin:8px 0; }*/
+/*.titles-line .base, .titles-line .premium { padding:2px 6px; border-radius:4px; }*/
+/*.titles-line .base.active, .titles-line .premium.active { background:#1c2a10; }*/
+/*.titles-line .base.inactive, .titles-line .premium.inactive { opacity:.55; }*/
+
