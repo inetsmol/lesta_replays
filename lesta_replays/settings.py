@@ -93,16 +93,13 @@ ACCOUNT_UNIQUE_EMAIL = True
 # ВАЖНО: Подтверждение email для ОБЫЧНОЙ регистрации
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
-# Поля регистрации
-ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
-
 # Лимиты
 ACCOUNT_RATE_LIMITS = {
     'login_failed': '8/5m',
 }
 
 # Кастомная форма регистрации
-ACCOUNT_SIGNUP_FORM_CLASS = 'accounts.forms.SignupForm'
+ACCOUNT_SIGNUP_FORM_CLASS = 'accounts.forms.CustomSignupForm'
 
 # Перенаправления
 LOGIN_REDIRECT_URL = 'replay_list'

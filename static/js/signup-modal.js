@@ -6,16 +6,15 @@
   const nextField = document.getElementById('signup-next-field');
   const submitBtn = document.getElementById('signup-submit-btn');
 
-  if (!modal) return;
+  if (!modal || !form) return;
 
-  // Функция открытия с передачей next параметра
+  // Функция открытия
   function openSignupModal(nextUrl) {
     if (nextUrl && nextField) {
       nextField.value = nextUrl;
     }
     window.modalManager.open('signup-modal');
 
-    // Автофокус на первом поле
     setTimeout(() => {
       const firstInput = form.querySelector('input[type="email"]');
       if (firstInput) firstInput.focus();
@@ -35,12 +34,7 @@
         : 'bg-blue-900/50 border border-blue-700 text-blue-200'
     }`;
 
-    if (typeof message === 'string') {
-      messagesDiv.textContent = message;
-    } else {
-      messagesDiv.innerHTML = '';
-      messagesDiv.appendChild(message);
-    }
+    messagesDiv.textContent = message;
   }
 
   // Валидация паролей
@@ -68,21 +62,21 @@
   // Обработка отправки формы
   if (form) {
     form.addEventListener('submit', function(e) {
-      e.preventDefault();
-
-      // Скрыть предыдущие сообщения
+      // НЕ предотвращаем отправку, проверяем валидацию
       if (messagesDiv) messagesDiv.classList.add('hidden');
 
       // Валидация
       if (!validatePasswords()) {
-        return;
+        e.preventDefault();
+        return false;
       }
 
       // Проверка согласия с правилами
       const termsCheckbox = form.querySelector('input[name="terms"]');
       if (termsCheckbox && !termsCheckbox.checked) {
+        e.preventDefault();
         showSignupMessage('Необходимо согласиться с правилами сервиса', 'error');
-        return;
+        return false;
       }
 
       // Блокировка кнопки
@@ -91,93 +85,26 @@
         submitBtn.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></span>Регистрация...';
       }
 
-      // Отправка формы
-      const formData = new FormData(form);
-
-      fetch(form.action, {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-      })
-      .then(response => response.text())
-      .then(html => {
-        // Парсинг ответа для поиска ошибок
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const errors = doc.querySelectorAll('.errorlist, .alert-danger, .error');
-
-        if (errors.length > 0) {
-          // Есть ошибки
-          const errorList = document.createElement('ul');
-          errorList.className = 'list-disc list-inside space-y-1';
-
-          errors.forEach(errorEl => {
-            const items = errorEl.querySelectorAll('li');
-            if (items.length > 0) {
-              items.forEach(item => {
-                const li = document.createElement('li');
-                li.textContent = item.textContent.trim();
-                errorList.appendChild(li);
-              });
-            } else {
-              const li = document.createElement('li');
-              li.textContent = errorEl.textContent.trim();
-              errorList.appendChild(li);
-            }
-          });
-
-          showSignupMessage(errorList, 'error');
-
-          // Разблокировка кнопки
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Зарегистрироваться';
-          }
-        } else {
-          // Успешная регистрация
-          showSignupMessage('Регистрация успешна! Проверьте почту для подтверждения.', 'success');
-
-          // Через 2 секунды закрыть модалку и перезагрузить или перенаправить
-          setTimeout(() => {
-            window.modalManager.close('signup-modal');
-            const nextUrl = nextField?.value || '/';
-            window.location.href = nextUrl;
-          }, 2000);
-        }
-      })
-      .catch(error => {
-        console.error('Ошибка регистрации:', error);
-        showSignupMessage('Произошла ошибка. Попробуйте позже.', 'error');
-
-        // Разблокировка кнопки
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Зарегистрироваться';
-        }
-      });
+      // Форма отправляется стандартно - Django обработает и перенаправит
+      return true;
     });
   }
 
-  // Переключение между модалками логина и регистрации
+  // Переключение между модалками
   document.addEventListener('click', (e) => {
     const switchBtn = e.target.closest('[data-switch-to]');
-    if (!switchBtn) return;
+    if (!switchBtn || !switchBtn.closest('#signup-modal')) return;
 
     e.preventDefault();
     const targetModal = switchBtn.dataset.switchTo;
 
-    // Закрыть текущую модалку
     window.modalManager.close('signup-modal');
-
-    // Открыть целевую модалку
     setTimeout(() => {
       window.modalManager.open(targetModal);
     }, 150);
   });
 
-  // Перехват кликов по ссылкам на страницу регистрации
+  // Перехват кликов по ссылкам регистрации
   document.addEventListener('click', (e) => {
     const link = e.target.closest('a[href]');
     if (!link) return;
@@ -189,12 +116,10 @@
         const nextUrl = url.searchParams.get('next') || window.location.pathname + window.location.search;
         openSignupModal(nextUrl);
       }
-    } catch (err) {
-      // Игнорируем ошибки парсинга URL
-    }
+    } catch (err) {}
   });
 
-  // Если находимся на странице /accounts/signup/ - открыть модалку автоматически
+  // Автооткрытие на странице signup
   if (window.location.pathname.startsWith('/accounts/signup')) {
     const nextUrl = new URLSearchParams(window.location.search).get('next');
     openSignupModal(nextUrl);
@@ -212,6 +137,5 @@
     });
   }
 
-  // Глобальная функция для открытия из других скриптов
   window.openSignupModal = openSignupModal;
 })();

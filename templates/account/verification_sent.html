@@ -4,24 +4,35 @@
 
 {% block title %}Подтвердите email{% endblock %}
 
+{% block extra_head %}
+<style>
+  #content { display: none !important; }
+</style>
+{% endblock %}
+
 {% block content %}
-{# Пустой контент - все в модалке #}
+<!-- Контент скрыт, всё в модалке -->
 {% endblock %}
 
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Открываем модальное окно автоматически
-  if (window.modalManager) {
-    window.modalManager.open('email-verification-modal');
+  console.log('Email verification page loaded');
 
-    // Вставляем email если есть
-    {% if user.email %}
+  if (window.modalManager) {
+    setTimeout(() => {
+      window.modalManager.open('email-verification-modal');
+
+      // Получаем email пользователя
       const emailEl = document.getElementById('verification-email');
       if (emailEl) {
-        emailEl.textContent = '{{ user.email }}';
+        {% if user.email %}
+          emailEl.textContent = '{{ user.email }}';
+        {% else %}
+          emailEl.textContent = 'вашу почту';
+        {% endif %}
       }
-    {% endif %}
+    }, 100);
   }
 });
 </script>
