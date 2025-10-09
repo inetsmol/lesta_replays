@@ -1,10 +1,35 @@
+{# templates/account/email_confirm.html #}
 {% extends "base.html" %}
-{% block title %}Подтверждение e-mail{% endblock %}
+{% load static %}
+
+{% block title %}Подтверждение email{% endblock %}
+
 {% block content %}
-<h1>Подтверждение e-mail</h1>
-<p>Адрес: <strong>{{ email_address.email }}</strong></p>
-<form method="post" action="{% url 'account_confirm_email' key=confirmation.key %}">
-  {% csrf_token %}
-  <button type="submit">Подтвердить</button>
-</form>
+{# Пустой контент - все в модалке #}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const confirmation = {{ confirmation|yesno:"true,false" }};
+
+  if (window.modalManager) {
+    if (confirmation) {
+      // Успешное подтверждение
+      window.modalManager.open('email-confirmed-modal');
+    } else {
+      // Ошибка подтверждения
+      window.modalManager.open('email-confirm-error-modal');
+
+      // Можно добавить конкретное сообщение об ошибке
+      {% if form.errors %}
+        const errorMsg = document.getElementById('error-message');
+        if (errorMsg) {
+          errorMsg.textContent = 'Ошибка: {{ form.errors|striptags }}';
+        }
+      {% endif %}
+    }
+  }
+});
+</script>
 {% endblock %}

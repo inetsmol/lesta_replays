@@ -1,0 +1,48 @@
+{# templates/account/verification_sent.html #}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Подтвердите email{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* Скрываем основной контент */
+  #content {
+    display: none !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+{# Пустой контент - все в модалке #}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('Verification sent page loaded');
+
+  // Открываем модальное окно автоматически
+  if (window.modalManager) {
+    // Небольшая задержка для корректной инициализации
+    setTimeout(() => {
+      window.modalManager.open('email-verification-modal');
+
+      // Вставляем email из контекста Django
+      const emailEl = document.getElementById('verification-email');
+      if (emailEl) {
+        {% if user.email %}
+          emailEl.textContent = '{{ user.email }}';
+        {% elif form.email.value %}
+          emailEl.textContent = '{{ form.email.value }}';
+        {% else %}
+          emailEl.textContent = 'вашу почту';
+        {% endif %}
+      }
+    }, 100);
+  } else {
+    console.error('ModalManager not found');
+  }
+});
+</script>
+{% endblock %}

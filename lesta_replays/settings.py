@@ -72,46 +72,114 @@ INSTALLED_APPS = [
     "accounts",
 ]
 
+# ===========================================================================
+# DJANGO-ALLAUTH - АКТУАЛЬНЫЕ НАСТРОЙКИ ДЛЯ ВЕРСИИ 65.x
+# ===========================================================================
+
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
-LOGIN_REDIRECT_URL = "replay_list"       # поменяйте на вашу главную/страницу реплеев
-LOGOUT_REDIRECT_URL = "replay_list"
+# ===========================================================================
+# ОСНОВНЫЕ НАСТРОЙКИ АККАУНТОВ
+# ===========================================================================
 
-# Подтверждение e-mail
 ACCOUNT_LOGIN_METHODS = {'email', "username"}  # логин по нику или e-mail
+ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"          # без подтверждения вход запрещён
-# 2) Какие ВСТРОЕННЫЕ поля требуются на форме регистрации allauth
-# (звёздочка = поле обязательно). Ваши кастомные поля (lesta_nickname, clan)
-# остаются в SignupForm и на эту настройку не зависят.
-ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
 
-# 3) Лимиты
+# ВАЖНО: Подтверждение email для ОБЫЧНОЙ регистрации
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+
+# Поля регистрации
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+
+# Лимиты
 ACCOUNT_RATE_LIMITS = {
-    # проваленные логины: не более 8 за 5 минут с IP/учётки
-    "login_failed": "8/5m",
-    # (по желанию) общие лимиты:
-    # "login": "20/1h",
-    # "signup": "5/1h",
+    'login_failed': '8/5m',
 }
 
-# Пользовательские поля при регистрации (см. forms.py ниже)
-ACCOUNT_SIGNUP_FORM_CLASS = "accounts.forms.SignupForm"
+# Кастомная форма регистрации
+ACCOUNT_SIGNUP_FORM_CLASS = 'accounts.forms.SignupForm'
 
-# E-mail backend
-# На dev:
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-# На проде задайте SMTP:
-# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-# EMAIL_HOST = "smtp.yandex.ru"
-# EMAIL_PORT = 465
-# EMAIL_USE_SSL = True
-# EMAIL_HOST_USER = "no-reply@ваш-домен"
-# EMAIL_HOST_PASSWORD = "пароль_приложения"
-DEFAULT_FROM_EMAIL = "no-reply@lesta-replays.ru"
+# Перенаправления
+LOGIN_REDIRECT_URL = 'replay_list'
+LOGOUT_REDIRECT_URL = 'replay_list'
+ACCOUNT_LOGOUT_ON_GET = True
+
+# ===========================================================================
+# СОЦИАЛЬНЫЕ СЕТИ (OAuth) - АКТУАЛЬНЫЕ НАСТРОЙКИ
+# ===========================================================================
+
+# Автоматическая регистрация через соцсети
+SOCIALACCOUNT_AUTO_SIGNUP = True
+
+# КРИТИЧНО: Email от соцсетей НЕ требует подтверждения
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'  # Переопределяет ACCOUNT_EMAIL_VERIFICATION
+
+# Email настройки
+SOCIALACCOUNT_EMAIL_REQUIRED = False
+SOCIALACCOUNT_QUERY_EMAIL = True
+
+# Убираем промежуточную страницу "Вы собираетесь войти..."
+SOCIALACCOUNT_LOGIN_ON_GET = True
+
+# Автосвязывание аккаунтов по email
+SOCIALACCOUNT_AUTO_CONNECT = True
+
+# Сохранять токены
+SOCIALACCOUNT_STORE_TOKENS = True
+
+SOCIALACCOUNT_ADAPTER = 'accounts.adapters.CustomSocialAccountAdapter'
+
+# ===========================================================================
+# НАСТРОЙКИ ПРОВАЙДЕРОВ (КЛЮЧЕВАЯ ЧАСТЬ!)
+# ===========================================================================
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        # КРИТИЧНО: Email от Google считаем уже подтвержденным
+        'VERIFIED_EMAIL': True,
+        # Можно также использовать EMAIL_AUTHENTICATION для автологина
+        # 'EMAIL_AUTHENTICATION': True,
+    },
+    'vk': {
+        'SCOPE': ['email'],
+        'METHOD': 'oauth2',
+        # КРИТИЧНО: Email от VK считаем уже подтвержденным
+        'VERIFIED_EMAIL': True,
+    },
+    'yandex': {
+        'SCOPE': ['login:email', 'login:info'],
+        # КРИТИЧНО: Email от Yandex считаем уже подтвержденным
+        'VERIFIED_EMAIL': True,
+    },
+}
+
+# ===========================================================================
+# EMAIL BACKEND
+# ===========================================================================
+
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.yandex.ru'
+    EMAIL_PORT = 465
+    EMAIL_USE_SSL = True
+    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+
+DEFAULT_FROM_EMAIL = 'no-reply@lesta-replays.ru'
 
 
 MIDDLEWARE = [

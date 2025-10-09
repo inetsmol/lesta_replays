@@ -1,72 +1,164 @@
+{# templates/includes/_auth_modal.html #}
 {% load static socialaccount %}
 
-<!-- Backdrop -->
-<div id="authBackdrop" class="hidden fixed inset-0 bg-black/50 backdrop-blur-[1px] z-40"></div>
+<div id="auth-modal"
+     class="fixed inset-0 z-[9999] hidden opacity-0 pointer-events-none transition-opacity duration-300"
+     aria-hidden="true"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="auth-modal-title">
 
-<!-- Modal -->
-<div id="authModal" class="hidden fixed inset-0 z-50 grid place-items-center p-4">
-  <div class="relative w-full max-w-lg">
-    <button id="authClose"
-            class="absolute -top-3 -right-3 inline-grid place-items-center w-9 h-9 rounded-full bg-white shadow ring-1 ring-black/5 text-gray-500 hover:text-gray-700"
-            aria-label="Закрыть">&times;</button>
+  {# Overlay #}
+  <div class="fixed inset-0 bg-black/55 backdrop-blur-sm backdrop-saturate-125"
+       data-modal-overlay="auth-modal"></div>
 
-    <div class="bg-white rounded-2xl shadow-xl ring-1 ring-black/5 overflow-hidden">
-      <div class="px-6 pt-6 pb-3">
-        <h2 class="text-xl font-semibold">Вход</h2>
+  {# Контейнер для центрирования #}
+  <div class="fixed inset-0 flex items-center justify-center p-6">
+
+    {# Модальное окно #}
+    <div class="relative w-full max-w-[560px] opacity-0 translate-y-4 scale-95 transition-all duration-300"
+         data-modal-content="auth-modal">
+
+      {# Header #}
+      <div class="flex items-center justify-between rounded-t-xl bg-neutral-800 px-6 py-5 border-b border-neutral-700">
+        <h2 id="auth-modal-title" class="text-xl font-bold text-gray-200 m-0">
+          Вход в систему
+        </h2>
+
+        {# Кнопка закрытия #}
+        <button type="button"
+                class="flex items-center justify-center w-8 h-8 rounded-md text-gray-400 hover:text-gray-200 hover:bg-neutral-900 transition-all duration-200"
+                data-modal-close="auth-modal"
+                aria-label="Закрыть">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
+          </svg>
+        </button>
       </div>
 
-      <div class="px-6 pb-6 space-y-5">
-        <form method="post" action="{% url 'account_login' %}" class="space-y-3">
+      {# Body #}
+      <div class="bg-neutral-800 px-6 py-6 border-l border-r border-neutral-700">
+
+        {# Сообщения об ошибках #}
+        <div id="auth-messages" class="hidden mb-4"></div>
+
+        {# Форма входа #}
+        <form id="auth-form" method="post" action="{% url 'account_login' %}" class="space-y-4">
           {% csrf_token %}
-          <div class="space-y-1">
-            <label class="block text-sm text-gray-700">E-mail или логин</label>
-            <input name="login" type="text" autocomplete="username"
-                   class="w-full rounded-xl border-gray-300 focus:border-gray-900 focus:ring-gray-900" required>
+          <input type="hidden" name="next" id="auth-next-field" value="">
+
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">
+              E-mail или логин
+            </label>
+            <input type="text"
+                   name="login"
+                   autocomplete="username"
+                   class="w-full px-3 py-2 bg-neutral-900 border border-neutral-700 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
+                   placeholder="Введите email или логин"
+                   required>
           </div>
-          <div class="space-y-1">
-            <label class="block text-sm text-gray-700">Пароль</label>
-            <input name="password" type="password" autocomplete="current-password"
-                   class="w-full rounded-xl border-gray-300 focus:border-gray-900 focus:ring-gray-900" required>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">
+              Пароль
+            </label>
+            <input type="password"
+                   name="password"
+                   autocomplete="current-password"
+                   class="w-full px-3 py-2 bg-neutral-900 border border-neutral-700 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
+                   placeholder="Введите пароль"
+                   required>
           </div>
+
+          <div class="flex items-center">
+            <input type="checkbox"
+                   name="remember"
+                   id="auth-remember"
+                   class="w-4 h-4 rounded border-neutral-700 bg-neutral-900 text-red-600 focus:ring-2 focus:ring-red-600 focus:ring-offset-0">
+            <label for="auth-remember" class="ml-2 text-sm text-gray-300">
+              Запомнить меня
+            </label>
+          </div>
+
           <button type="submit"
-                  class="w-full inline-flex items-center justify-center rounded-xl bg-gray-900 text-white px-4 py-2.5 font-medium hover:bg-gray-800">
+                  class="w-full px-4 py-2.5 rounded-lg bg-gradient-to-b from-red-700 to-red-600 text-white font-semibold border-none hover:from-red-600 hover:to-red-500 transition-all duration-200">
             Войти
           </button>
         </form>
 
-        <div class="flex items-center gap-3">
-          <div class="h-px bg-gray-200 w-full"></div>
-          <span class="text-xs text-gray-500">или</span>
-          <div class="h-px bg-gray-200 w-full"></div>
+        {# Разделитель #}
+        <div class="relative flex items-center justify-center my-6">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-neutral-700"></div>
+          </div>
+          <span class="relative px-3 text-sm text-gray-400 bg-neutral-800">или</span>
         </div>
 
+        {# OAuth кнопки #}
         <div>
-          <h3 class="text-sm font-medium text-gray-700 mb-2">Войти через соцсети</h3>
+          <h3 class="text-sm font-medium text-gray-300 mb-3">Войти через соцсети</h3>
           {% get_providers as providers %}
-          <div class="grid gap-2">
+          <div class="space-y-2">
             {% for p in providers %}
               <a href="{% provider_login_url p.id process='login' %}"
                  rel="nofollow noopener"
-                 class="inline-flex items-center gap-3 px-4 py-2.5 rounded-xl font-semibold
-                        {% if p.id == 'google' %} bg-white text-gray-900 ring-1 ring-gray-200 hover:bg-gray-50
-                        {% elif p.id == 'vk' %} text-white bg-[#0077FF] hover:bg-[#0066d6]
-                        {% elif p.id == 'yandex' %} text-white bg-[#FC3F1D] hover:bg-[#e33718]
-                        {% else %} text-white bg-gray-700 hover:bg-gray-600 {% endif %}">
-                <img src="{% static 'social/' %}{{ p.id }}.svg" alt="{{ p.name }}" class="h-5 w-5" width="20" height="20" loading="lazy">
-                <span>Войти через {{ p.name }}</span>
+                 class="w-full inline-flex items-center justify-center gap-3 px-4 py-2.5 rounded-lg font-semibold transition-all duration-200
+                        {% if p.id == 'google' %}
+                          bg-white text-gray-900 border border-gray-300 hover:bg-gray-50
+                        {% elif p.id == 'vk' %}
+                          bg-[#0077FF] text-white hover:bg-[#0066d6]
+                        {% elif p.id == 'yandex' %}
+                          bg-[#FC3F1D] text-white hover:bg-[#e33718]
+                        {% else %}
+                          bg-gray-700 text-white hover:bg-gray-600
+                        {% endif %}">
+                {% if p.id == 'google' %}
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                  </svg>
+                {% elif p.id == 'vk' %}
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M15.07 2H8.93C3.33 2 2 3.33 2 8.93v6.14C2 20.67 3.33 22 8.93 22h6.14c5.6 0 6.93-1.33 6.93-6.93V8.93C22 3.33 20.67 2 15.07 2zm3.835 14.875h-1.28c-.522 0-.682-.423-1.62-1.367-.817-.797-1.177-.902-1.387-.902-.285 0-.367.082-.367.478v1.243c0 .337-.105.54-1.002.54-1.487 0-3.137-.9-4.297-2.577-1.745-2.385-2.222-4.178-2.222-4.545 0-.21.082-.405.478-.405h1.278c.36 0 .495.165.632.548.675 1.95 1.8 3.66 2.265 3.66.172 0 .255-.083.255-.533v-2.093c-.06-.997-.585-1.08-.585-1.432 0-.165.135-.33.352-.33h2.01c.3 0 .405.158.405.51v2.805c0 .3.135.405.225.405.172 0 .315-.105.63-.42 1.012-1.14 1.732-2.895 1.732-2.895.09-.21.262-.405.623-.405h1.278c.382 0 .465.195.382.51-.157.945-1.74 3.517-1.74 3.517-.143.24-.195.345 0 .615.142.195.607.592 1.065 1.080.52.555 1.147 1.2 1.027 1.65-.1.345-.617.465-.752.465z"/>
+                  </svg>
+                {% elif p.id == 'yandex' %}
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.5 14.5h-2v-9h2v9zm0-11h-2v-2h2v2z"/>
+                  </svg>
+                {% else %}
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                  </svg>
+                {% endif %}
+                <span>{{ p.name }}</span>
               </a>
             {% empty %}
-              <p class="text-sm text-gray-500">Нет доступных провайдеров</p>
+              <p class="text-sm text-gray-400 text-center py-2">Нет доступных провайдеров</p>
             {% endfor %}
           </div>
         </div>
 
-        <div class="text-center text-sm text-gray-600">
-          <a class="hover:text-gray-900 font-medium" href="{% url 'account_signup' %}">Регистрация</a>
-          <span class="mx-2 text-gray-400">•</span>
-          <a class="hover:text-gray-900 font-medium" href="{% url 'account_reset_password' %}">Забыли пароль?</a>
+        {# Ссылки #}
+        <div class="mt-6 text-center text-sm text-gray-400">
+          <a href="{% url 'account_signup' %}"
+             class="text-red-500 hover:text-red-400 font-medium transition-colors">
+            Регистрация
+          </a>
+          <span class="mx-2">•</span>
+          <a href="{% url 'account_reset_password' %}"
+             class="text-red-500 hover:text-red-400 font-medium transition-colors">
+            Забыли пароль?
+          </a>
         </div>
+
       </div>
+
+      {# Footer убран, так как кнопка входа в форме #}
+      <div class="rounded-b-xl bg-neutral-800 border-b border-l border-r border-neutral-700 shadow-[0_24px_60px_rgba(0,0,0,0.35)] h-0"></div>
+
     </div>
   </div>
 </div>

@@ -1,0 +1,26 @@
+{# templates/includes/_modal_buttons.html #}
+{# Макросы для стандартных кнопок модальных окон #}
+
+{% macro ghost_button(text, modal_id, extra_classes='') %}
+<button type="button"
+        class="px-4 py-2 rounded-lg bg-transparent text-gray-400 border border-gray-700 hover:bg-gray-900 hover:text-gray-200 transition-all duration-200 {{ extra_classes }}"
+        data-modal-close="{{ modal_id }}">
+  {{ text }}
+</button>
+{% endmacro %}
+
+{% macro accent_button(text, button_type='button', extra_classes='', disabled=False) %}
+<button type="{{ button_type }}"
+        class="px-4 py-2 rounded-lg bg-gradient-to-b from-red-700 to-red-600 text-white font-semibold border-none hover:from-red-600 hover:to-red-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed {{ extra_classes }}"
+        {% if disabled %}disabled{% endif %}>
+  {{ text }}
+</button>
+{% endmacro %}
+
+{% macro primary_button(text, button_type='button', extra_classes='', disabled=False) %}
+<button type="{{ button_type }}"
+        class="px-4 py-2 rounded-lg bg-gray-700 text-gray-200 border border-gray-600 hover:bg-gray-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed {{ extra_classes }}"
+        {% if disabled %}disabled{% endif %}>
+  {{ text }}
+</button>
+{% endmacro %}

@@ -1,0 +1,78 @@
+{# templates/includes/_email_confirmed_modal.html #}
+<div id="email-confirmed-modal" 
+     class="fixed inset-0 z-[9999] hidden opacity-0 pointer-events-none transition-opacity duration-300"
+     aria-hidden="true"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="email-confirmed-title">
+  
+  {# Overlay #}
+  <div class="fixed inset-0 bg-black/55 backdrop-blur-sm backdrop-saturate-125" 
+       data-modal-overlay="email-confirmed-modal"></div>
+  
+  {# Контейнер для центрирования #}
+  <div class="fixed inset-0 flex items-center justify-center p-6">
+    
+    {# Модальное окно #}
+    <div class="relative w-full max-w-[560px] opacity-0 translate-y-4 scale-95 transition-all duration-300"
+         data-modal-content="email-confirmed-modal">
+      
+      {# Header #}
+      <div class="flex items-center justify-between rounded-t-xl bg-neutral-800 px-6 py-5 border-b border-gray-700">
+        <h2 id="email-confirmed-title" class="text-xl font-bold text-gray-200 m-0">
+          Email подтвержден
+        </h2>
+        
+        {# Кнопка закрытия #}
+        <button type="button"
+                class="flex items-center justify-center w-8 h-8 rounded-md text-gray-400 hover:text-gray-200 hover:bg-neutral-900 transition-all duration-200"
+                data-modal-close="email-confirmed-modal"
+                aria-label="Закрыть">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
+          </svg>
+        </button>
+      </div>
+      
+      {# Body #}
+      <div class="bg-neutral-800 px-6 py-6 border-l border-r border-gray-700">
+        
+        {# Иконка успеха #}
+        <div class="flex justify-center mb-6">
+          <div class="w-20 h-20 rounded-full bg-green-900/30 flex items-center justify-center">
+            <svg class="w-10 h-10 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+        </div>
+        
+        <div class="text-center space-y-4">
+          <h3 class="text-2xl font-bold text-gray-200">
+            Отлично!
+          </h3>
+          
+          <p class="text-gray-300 text-lg leading-relaxed">
+            Ваш email успешно подтвержден
+          </p>
+          
+          <div class="p-4 bg-green-900/20 rounded-lg border border-green-700">
+            <p class="text-sm text-gray-200">
+              Теперь вы можете войти в систему и пользоваться всеми возможностями сайта
+            </p>
+          </div>
+        </div>
+
+      </div>
+      
+      {# Footer #}
+      <div class="flex items-center justify-center gap-3 rounded-b-xl bg-neutral-800 px-6 py-5 border-t border-b border-l border-r border-gray-700 shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
+        <button type="button"
+                class="px-6 py-2.5 rounded-lg bg-gradient-to-b from-red-700 to-red-600 text-white font-semibold border-none hover:from-red-600 hover:to-red-500 transition-all duration-200"
+                onclick="window.location.href='/accounts/login/'">
+          Войти в систему
+        </button>
+      </div>
+      
+    </div>
+  </div>
+</div>
