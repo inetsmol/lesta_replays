@@ -23,10 +23,13 @@
 
     <link rel="icon" href="{% static 'favicon.ico' %}">
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{% static 'css/site.css' %}">
     <link rel="stylesheet" href="{% static 'css/sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'css/dev_banner.css' %}">
     <link rel="stylesheet" href="{% static 'css/alert_modal.css' %}">
+    <link rel="stylesheet" href="{% static 'css/wot_record_skin.css' %}">
+{#    <link rel="stylesheet" href="{% static 'css/tw.css' %}">#}
 
     {% block extra_head %}{% endblock %}
 </head>
@@ -41,8 +44,9 @@
 
 
         <div class="container">
+{#            {% include "includes/_messages.html" %}#}
             {% block content %}{% endblock %}
-            {% include "includes/_messages.html" %}
+
         </div>
 
 
@@ -53,6 +57,8 @@
 
 {% include "includes/_footer.html" %}
 {% include "includes/_upload_modal.html" %}
+{% include "includes/_auth_modal.html" %}
+<script src="{% static 'js/auth-modal.js' %}"></script>
 {% include "includes/_alert_modal.html" %}
 
 <!-- jQuery -->

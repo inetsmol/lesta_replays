@@ -1,0 +1,16 @@
+<html>
+<body onload="document.forms[0].submit();">
+  <form method="POST" action="https://yoomoney.ru/quickpay/confirm">
+    <input type="hidden" name="receiver" value="{{ receiver }}">
+    <input type="hidden" name="quickpay-form" value="button">
+    <input type="hidden" name="sum" value="{{ sum }}">
+    <input type="hidden" name="paymentType" value="{{ paymentType }}">
+    <input type="hidden" name="label" value="{{ label }}">
+    <input type="hidden" name="successURL" value="{{ successURL }}">
+    <noscript>
+      <button type="submit">Перейти к оплате</button>
+    </noscript>
+  </form>
+  <p>Перенаправление на YooMoney…</p>
+</body>
+</html>

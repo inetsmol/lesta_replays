@@ -1,0 +1,72 @@
+{% load static socialaccount %}
+
+<!-- Backdrop -->
+<div id="authBackdrop" class="hidden fixed inset-0 bg-black/50 backdrop-blur-[1px] z-40"></div>
+
+<!-- Modal -->
+<div id="authModal" class="hidden fixed inset-0 z-50 grid place-items-center p-4">
+  <div class="relative w-full max-w-lg">
+    <button id="authClose"
+            class="absolute -top-3 -right-3 inline-grid place-items-center w-9 h-9 rounded-full bg-white shadow ring-1 ring-black/5 text-gray-500 hover:text-gray-700"
+            aria-label="Закрыть">&times;</button>
+
+    <div class="bg-white rounded-2xl shadow-xl ring-1 ring-black/5 overflow-hidden">
+      <div class="px-6 pt-6 pb-3">
+        <h2 class="text-xl font-semibold">Вход</h2>
+      </div>
+
+      <div class="px-6 pb-6 space-y-5">
+        <form method="post" action="{% url 'account_login' %}" class="space-y-3">
+          {% csrf_token %}
+          <div class="space-y-1">
+            <label class="block text-sm text-gray-700">E-mail или логин</label>
+            <input name="login" type="text" autocomplete="username"
+                   class="w-full rounded-xl border-gray-300 focus:border-gray-900 focus:ring-gray-900" required>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-sm text-gray-700">Пароль</label>
+            <input name="password" type="password" autocomplete="current-password"
+                   class="w-full rounded-xl border-gray-300 focus:border-gray-900 focus:ring-gray-900" required>
+          </div>
+          <button type="submit"
+                  class="w-full inline-flex items-center justify-center rounded-xl bg-gray-900 text-white px-4 py-2.5 font-medium hover:bg-gray-800">
+            Войти
+          </button>
+        </form>
+
+        <div class="flex items-center gap-3">
+          <div class="h-px bg-gray-200 w-full"></div>
+          <span class="text-xs text-gray-500">или</span>
+          <div class="h-px bg-gray-200 w-full"></div>
+        </div>
+
+        <div>
+          <h3 class="text-sm font-medium text-gray-700 mb-2">Войти через соцсети</h3>
+          {% get_providers as providers %}
+          <div class="grid gap-2">
+            {% for p in providers %}
+              <a href="{% provider_login_url p.id process='login' %}"
+                 rel="nofollow noopener"
+                 class="inline-flex items-center gap-3 px-4 py-2.5 rounded-xl font-semibold
+                        {% if p.id == 'google' %} bg-white text-gray-900 ring-1 ring-gray-200 hover:bg-gray-50
+                        {% elif p.id == 'vk' %} text-white bg-[#0077FF] hover:bg-[#0066d6]
+                        {% elif p.id == 'yandex' %} text-white bg-[#FC3F1D] hover:bg-[#e33718]
+                        {% else %} text-white bg-gray-700 hover:bg-gray-600 {% endif %}">
+                <img src="{% static 'social/' %}{{ p.id }}.svg" alt="{{ p.name }}" class="h-5 w-5" width="20" height="20" loading="lazy">
+                <span>Войти через {{ p.name }}</span>
+              </a>
+            {% empty %}
+              <p class="text-sm text-gray-500">Нет доступных провайдеров</p>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="text-center text-sm text-gray-600">
+          <a class="hover:text-gray-900 font-medium" href="{% url 'account_signup' %}">Регистрация</a>
+          <span class="mx-2 text-gray-400">•</span>
+          <a class="hover:text-gray-900 font-medium" href="{% url 'account_reset_password' %}">Забыли пароль?</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

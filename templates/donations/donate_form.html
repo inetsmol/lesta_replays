@@ -1,0 +1,7 @@
+<form method="post" action="{% url 'donate' %}">
+  {% csrf_token %}
+  <label>Сумма: <input type="number" name="sum" step="0.01" required></label><br>
+  <label><input type="radio" name="paymentType" value="PC" checked> YooMoney</label>
+  <label><input type="radio" name="paymentType" value="AC"> Банковская карта</label><br>
+  <button type="submit">Донат</button>
+</form>

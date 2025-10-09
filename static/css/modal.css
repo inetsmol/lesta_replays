@@ -1,0 +1,107 @@
+/* Бэкдроп */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(15, 18, 28, 0.55);
+  backdrop-filter: saturate(120%) blur(2px);
+  opacity: 0; pointer-events: none; transition: opacity .15s ease;
+  z-index: 9998;
+}
+.modal-backdrop.is-open { opacity: 1; pointer-events: auto; }
+
+/* Окно */
+.modal {
+  position: fixed; inset: 0;
+  display: grid; place-items: center;
+  opacity: 0; pointer-events: none; transition: opacity .15s ease, transform .15s ease;
+  z-index: 9999;
+}
+.modal.is-open { opacity: 1; pointer-events: auto; }
+
+.modal > .modal__close {
+  position: absolute; top: 24px; right: 24px;
+  width: 40px; height: 40px; border-radius: 999px;
+  border: 1px solid rgba(0,0,0,.08);
+  background: #fff; font-size: 24px; line-height: 1; cursor: pointer;
+  display: grid; place-items: center;
+}
+
+.modal__header, .modal__body {
+  margin: 0;
+}
+
+.modal .auth-form,
+.modal .oauth-buttons,
+.modal .modal__links {
+  width: 100%;
+}
+
+/* Карточка */
+.modal .modal__body, .modal .modal__header {
+  background: #fff;
+}
+.modal .modal__container {
+  display: contents;
+}
+
+.modal.is-open .modal__header,
+.modal.is-open .modal__body {
+  animation: pop .18s ease both;
+}
+@keyframes pop { from { transform: translateY(6px); opacity: .98; } to { transform: translateY(0); opacity: 1; } }
+
+.modal {
+  padding: 24px;
+}
+.modal__header {
+  width: min(560px, calc(100% - 32px));
+  border-radius: 16px 16px 0 0;
+  padding: 20px 24px 12px;
+}
+.modal__body {
+  width: min(560px, calc(100% - 32px));
+  border-radius: 0 0 16px 16px;
+  padding: 16px 24px 24px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.18);
+  border: 1px solid rgba(0,0,0,.06);
+  border-top: none;
+}
+
+.modal__divider {
+  display: grid; place-items: center; margin: 16px 0;
+  position: relative; text-align: center;
+}
+.modal__divider::before {
+  content: ""; position: absolute; left: 0; right: 0; height: 1px; background: #eee;
+}
+.modal__divider > span {
+  position: relative; background: #fff; padding: 0 10px; color: #7b7b7b; font-size: 14px;
+}
+
+/* Кнопки соцлогина (можно держать в social-login.css; продублировал для целостности) */
+.oauth-buttons { display: grid; gap: 10px; }
+.btn-oauth {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 14px; border-radius: 12px; font-weight: 600;
+  text-decoration: none; border: 1px solid transparent;
+  transition: transform .08s ease, box-shadow .15s ease, background-color .15s ease;
+}
+.btn-oauth:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,.08); }
+.oauth-icon { display: inline-block; }
+
+/* Бренды */
+.btn-google { background: #fff; color: #1f1f1f; border-color: #dadce0; }
+.btn-google:hover { background: #fafafa; }
+.btn-vk { background: #0077FF; color: #fff; }
+.btn-vk:hover { background: #0066d6; }
+.btn-yandex { background: #FC3F1D; color: #fff; }
+.btn-yandex:hover { background: #e33718; }
+
+.auth-form .w-full { width: 100%; }
+.btn.primary {
+  background: #111827; color: #fff; border-radius: 10px; padding: 10px 14px; border: none; cursor: pointer;
+}
+.btn.primary:hover { background: #0b1220; }
+.modal__links { margin-top: 12px; display: flex; gap: 8px; align-items: center; justify-content: center; }
+.muted { color: #7b7b7b; font-size: 14px; }
+.modal__errors { color: #b91c1c; margin-bottom: 8px; }
+.modal__messages { margin: 8px 0; padding-left: 20px; }

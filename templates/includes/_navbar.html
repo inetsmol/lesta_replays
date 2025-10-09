@@ -14,6 +14,15 @@
         </svg>
         Загрузить
       </button>
+
+        {% if user.is_authenticated %}
+          &nbsp;&nbsp;&nbsp;&nbsp; {{ user.username }} &nbsp;&nbsp;&nbsp;&nbsp;  |
+{#          <a href="{% url 'account_email' %}">Мой e-mail</a> |#}
+          <a href="{% url 'account_logout' %}">Выйти</a>
+        {% else %}
+          <a href="{% url 'account_login' %}">Войти</a>
+        {% endif %}
+
       <a href="{% url 'about' %}">О проекте</a>
     </nav>
   </div>

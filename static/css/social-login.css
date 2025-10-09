@@ -1,0 +1,43 @@
+.oauth-buttons {
+  display: grid;
+  gap: 10px;
+}
+
+.btn-oauth {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: transform .08s ease, box-shadow .15s ease, background-color .15s ease;
+}
+
+.btn-oauth:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+}
+
+.oauth-icon { display: inline-block; }
+
+/* Брендовые варианты (можно подкрутить под ваш UI) */
+.btn-google {
+  background: #fff;
+  color: #1f1f1f;
+  border-color: #dadce0;
+}
+.btn-google:hover { background: #fafafa; }
+
+.btn-vk {
+  background: #0077FF;
+  color: #fff;
+}
+.btn-vk:hover { background: #0066d6; }
+
+.btn-yandex {
+  background: #FC3F1D;
+  color: #fff;
+}
+.btn-yandex:hover { background: #e33718; }

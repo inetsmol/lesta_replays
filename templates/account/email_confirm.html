@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Подтверждение e-mail{% endblock %}
+{% block content %}
+<h1>Подтверждение e-mail</h1>
+<p>Адрес: <strong>{{ email_address.email }}</strong></p>
+<form method="post" action="{% url 'account_confirm_email' key=confirmation.key %}">
+  {% csrf_token %}
+  <button type="submit">Подтвердить</button>
+</form>
+{% endblock %}

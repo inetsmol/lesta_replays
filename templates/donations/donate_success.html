@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Спасибо за донат</title>
+</head>
+<body>
+  <h1>Спасибо за донат!</h1>
+  {% if amount %}
+    <p>Сумма: {{ amount }}</p>
+  {% endif %}
+  {% if operation_id %}
+    <p>ID операции: {{ operation_id }}</p>
+  {% endif %}
+  {% if label %}
+    <p>Метка платежа: {{ label }}</p>
+  {% endif %}
+  {% if notification_type %}
+    <p>Тип уведомления: {{ notification_type }}</p>
+  {% endif %}
+  <p><a href="{% url 'replay_list' %}">Вернуться на главную</a></p>
+</body>
+</html>

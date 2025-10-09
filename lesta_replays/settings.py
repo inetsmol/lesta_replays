@@ -55,17 +55,69 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     "django.contrib.sitemaps",
-
     "django.contrib.sites",
+
     "django_comments_xtd",
     "django_comments",
 
+    # Allauth
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.vk",
+    "allauth.socialaccount.providers.yandex",
+
     'replays',
+    "accounts",
 ]
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+LOGIN_REDIRECT_URL = "replay_list"       # поменяйте на вашу главную/страницу реплеев
+LOGOUT_REDIRECT_URL = "replay_list"
+
+# Подтверждение e-mail
+ACCOUNT_LOGIN_METHODS = {'email', "username"}  # логин по нику или e-mail
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"          # без подтверждения вход запрещён
+# 2) Какие ВСТРОЕННЫЕ поля требуются на форме регистрации allauth
+# (звёздочка = поле обязательно). Ваши кастомные поля (lesta_nickname, clan)
+# остаются в SignupForm и на эту настройку не зависят.
+ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
+
+# 3) Лимиты
+ACCOUNT_RATE_LIMITS = {
+    # проваленные логины: не более 8 за 5 минут с IP/учётки
+    "login_failed": "8/5m",
+    # (по желанию) общие лимиты:
+    # "login": "20/1h",
+    # "signup": "5/1h",
+}
+
+# Пользовательские поля при регистрации (см. forms.py ниже)
+ACCOUNT_SIGNUP_FORM_CLASS = "accounts.forms.SignupForm"
+
+# E-mail backend
+# На dev:
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# На проде задайте SMTP:
+# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_HOST = "smtp.yandex.ru"
+# EMAIL_PORT = 465
+# EMAIL_USE_SSL = True
+# EMAIL_HOST_USER = "no-reply@ваш-домен"
+# EMAIL_HOST_PASSWORD = "пароль_приложения"
+DEFAULT_FROM_EMAIL = "no-reply@lesta-replays.ru"
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -194,7 +246,7 @@ SECURE_SSL_REDIRECT = not DEBUG
 # НАСТРОЙКИ DJANGO-COMMENTS-XTD
 # ===========================================================================
 
-SITE_ID = 1
+SITE_ID = 2
 
 # Основные настройки комментариев
 COMMENTS_APP = 'django_comments_xtd'

@@ -4,8 +4,10 @@
 db.sqlite3
 /media
 /replays/migrations
-replays/management/commands/output
-staticfiles/
+replays/management
+texts/
+
 
 _static/
+staticfiles/
 tools/
