@@ -91,8 +91,72 @@
         submitBtn.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></span>Регистрация...';
       }
 
-      // ВАЖНО: Обычная отправка формы, чтобы Django обработал всё правильно
-      form.submit();
+      // Отправка формы
+      const formData = new FormData(form);
+
+      fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      })
+      .then(response => response.text())
+      .then(html => {
+        // Парсинг ответа для поиска ошибок
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const errors = doc.querySelectorAll('.errorlist, .alert-danger, .error');
+
+        if (errors.length > 0) {
+          // Есть ошибки
+          const errorList = document.createElement('ul');
+          errorList.className = 'list-disc list-inside space-y-1';
+
+          errors.forEach(errorEl => {
+            const items = errorEl.querySelectorAll('li');
+            if (items.length > 0) {
+              items.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item.textContent.trim();
+                errorList.appendChild(li);
+              });
+            } else {
+              const li = document.createElement('li');
+              li.textContent = errorEl.textContent.trim();
+              errorList.appendChild(li);
+            }
+          });
+
+          showSignupMessage(errorList, 'error');
+
+          // Разблокировка кнопки
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Зарегистрироваться';
+          }
+        } else {
+          // Успешная регистрация
+          showSignupMessage('Регистрация успешна! Проверьте почту для подтверждения.', 'success');
+
+          // Через 2 секунды закрыть модалку и перезагрузить или перенаправить
+          setTimeout(() => {
+            window.modalManager.close('signup-modal');
+            const nextUrl = nextField?.value || '/';
+            window.location.href = nextUrl;
+          }, 2000);
+        }
+      })
+      .catch(error => {
+        console.error('Ошибка регистрации:', error);
+        showSignupMessage('Произошла ошибка. Попробуйте позже.', 'error');
+
+        // Разблокировка кнопки
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Зарегистрироваться';
+        }
+      });
     });
   }
 
