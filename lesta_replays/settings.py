@@ -33,10 +33,12 @@ SECRET_KEY = 'django-insecure--_($r!rg(efg8u4q4crkd*569bz$moq*f^==nu&zz1#4=^-hpy
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ("1", "true", "yes")
 
-ALLOWED_HOSTS = ["lesta-replays.ru", "localhost", "127.0.0.1", "192.168.67.5", "192.168.67.101"]
+ALLOWED_HOSTS = ["lesta-replays.ru", "localhost", "127.0.0.1", "192.168.67.5", "192.168.67.101", "testserver"]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://lesta-replays.ru",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
 
 # Сообщаем Django, что он за обратным прокси и реальная схема приходит в заголовке:
@@ -56,6 +58,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     "django.contrib.sitemaps",
     "django.contrib.sites",
+    'django_extensions',
 
     "django_comments_xtd",
     "django_comments",
@@ -86,8 +89,7 @@ AUTHENTICATION_BACKENDS = [
 # ===========================================================================
 
 ACCOUNT_LOGIN_METHODS = {'email', "username"}  # логин по нику или e-mail
-ACCOUNT_USERNAME_REQUIRED = True
-ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 ACCOUNT_UNIQUE_EMAIL = True
 
 # ВАЖНО: Подтверждение email для ОБЫЧНОЙ регистрации
@@ -105,6 +107,11 @@ ACCOUNT_SIGNUP_FORM_CLASS = 'accounts.forms.CustomSignupForm'
 LOGIN_REDIRECT_URL = 'replay_list'
 LOGOUT_REDIRECT_URL = 'replay_list'
 ACCOUNT_LOGOUT_ON_GET = True
+
+# Дополнительные настройки для CSRF
+ACCOUNT_CONFIRM_EMAIL_ON_GET = False
+ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = '/accounts/login/'
+ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = '/accounts/email/'
 
 # ===========================================================================
 # СОЦИАЛЬНЫЕ СЕТИ (OAuth) - АКТУАЛЬНЫЕ НАСТРОЙКИ
@@ -301,6 +308,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Прод. защита:
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = False  # Разрешаем JavaScript доступ к CSRF cookie
+CSRF_COOKIE_SAMESITE = 'Lax'  # Более мягкие настройки для разработки
+SESSION_COOKIE_SAMESITE = 'Lax'
 SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG

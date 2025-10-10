@@ -81,14 +81,14 @@
             {% for replay in items %}
                 <a class="tovabb"
                     href="{% url 'replay_detail' replay.id %}?back={{ request.get_full_path|urlencode }}"
-                    title="{{ replay.tank.name|default:'Неизвестный танк' }} - {{ replay.map.map_display_name|default:replay.map.map_name }}">
+                    title="{{ replay.tank.name|default:'Неизвестный танк' }} - {{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}">
                     <div class="wrapper">
 
                         <div class="img-container">
                             <!-- КАРТА -->
                             <img class="map"
-                                 src="{% static 'style/images/wot/map/stats/' %}{{ replay.map.map_name }}.png"
-                                 alt="{{ replay.map.map_display_name|default:replay.map.map_name }}"/>
+                                 src="{% static 'style/images/wot/map/stats/' %}{{ replay.map.map_name|default:replay.map_name|default:'placeholder' }}.png"
+                                 alt="{{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}"/>
 
                             <!-- ТАНК -->
                             {% if replay.tank %}
@@ -97,7 +97,7 @@
                                      alt="{{ replay.tank.name }}"/>
                             {% endif %}
 
-                            <span class="map-name">{{ replay.map.map_display_name|default:replay.map.map_name }}</span>
+                            <span class="map-name">{{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}</span>
                             <span class="name">{{ replay.tank.name|default:'Неизвестный танк' }}</span>
 
                             <!-- Убираю battleType пока нет этого поля в модели -->
@@ -105,7 +105,7 @@
 
                         <div class="details">
                             <div class="title">{{ replay.tank.name|default:'Неизвестный танк' }}
-                                - {{ replay.map.map_display_name|default:replay.map.map_name }}
+                                - {{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}
                             </div>
 
                             <div class="table">

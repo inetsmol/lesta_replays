@@ -9,7 +9,7 @@ User = get_user_model()
 
 class CustomSignupForm(forms.Form):
     """
-    Кастомная форма регистрации без наследования от allauth
+    Кастомная форма регистрации для allauth
     """
     email = forms.EmailField(
         label="Email",
@@ -20,7 +20,7 @@ class CustomSignupForm(forms.Form):
         })
     )
 
-    lesta_nickname = forms.CharField(
+    username = forms.CharField(
         label="Ник в игре",
         max_length=64,
         min_length=3,
@@ -66,24 +66,24 @@ class CustomSignupForm(forms.Form):
 
         return email
 
-    def clean_lesta_nickname(self):
+    def clean_username(self):
         """Валидация игрового ника"""
-        lesta_nickname = self.cleaned_data.get('lesta_nickname')
+        username = self.cleaned_data.get('username')
 
-        if not lesta_nickname:
+        if not username:
             raise forms.ValidationError("Введите игровой ник")
 
         # Проверка уникальности
-        if User.objects.filter(username__iexact=lesta_nickname).exists():
+        if User.objects.filter(username__iexact=username).exists():
             raise forms.ValidationError("Этот ник уже занят")
 
         # Валидация формата
-        if not re.match(r'^[\w.@+-]+$', lesta_nickname):
+        if not re.match(r'^[\w.@+-]+$', username):
             raise forms.ValidationError(
                 "Ник может содержать только буквы, цифры и символы: . @ + - _"
             )
 
-        return lesta_nickname
+        return username
 
     def clean(self):
         """Общая валидация формы"""
@@ -100,9 +100,13 @@ class CustomSignupForm(forms.Form):
         """
         Метод, который вызывает allauth после создания пользователя
         """
+        # Устанавливаем username из формы
+        user.username = self.cleaned_data['username']
+        user.save()
+        
         # Создаем профиль
         profile, created = Profile.objects.get_or_create(user=user)
-        profile.lesta_nickname = self.cleaned_data['lesta_nickname']
+        profile.lesta_nickname = self.cleaned_data['username']
         profile.clan = self.cleaned_data.get('clan', '')
         profile.save()
 

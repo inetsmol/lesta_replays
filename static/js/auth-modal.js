@@ -57,6 +57,65 @@
     openAuthModal(nextUrl);
   }
 
+  // Обработка отправки формы авторизации
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault(); // Предотвращаем стандартную отправку
+      
+      if (messagesDiv) messagesDiv.classList.add('hidden');
+
+      // Отправляем форму через AJAX
+      const formData = new FormData(form);
+      
+      fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.location) {
+          // Есть редирект - значит авторизация успешна
+          window.location.href = data.location;
+        } else if (data.form && data.form.errors && data.form.errors.length > 0) {
+          // Есть ошибки формы
+          let errorMessage = '';
+          data.form.errors.forEach(error => {
+            errorMessage += error + ' ';
+          });
+          showAuthMessage(errorMessage.trim(), 'error');
+        } else if (data.html) {
+          // Есть HTML с ошибками
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(data.html, 'text/html');
+          const errorElements = doc.querySelectorAll('.errorlist, .alert-danger');
+          
+          if (errorElements.length > 0) {
+            let errorMessage = '';
+            errorElements.forEach(el => {
+              errorMessage += el.textContent + ' ';
+            });
+            showAuthMessage(errorMessage.trim(), 'error');
+          } else {
+            showAuthMessage('Неверный логин или пароль', 'error');
+          }
+        } else {
+          // Неожиданный ответ
+          showAuthMessage('Произошла ошибка при авторизации', 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showAuthMessage('Произошла ошибка при авторизации', 'error');
+      });
+
+      return false;
+    });
+  }
+
   // Сброс формы при закрытии
   if (modal) {
     modal.addEventListener('modal:closed', () => {
