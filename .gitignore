@@ -3,7 +3,7 @@
 .env
 db.sqlite3
 /media
-/replays/migrations
+*/migrations
 replays/management
 texts/
 
@@ -11,3 +11,6 @@ texts/
 _static/
 staticfiles/
 tools/
+*__pycache__/
+lesta-replays.ru
+tailwindcss.exe
