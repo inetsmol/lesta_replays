@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load i18n socialaccount %}
+
+{% block title %}Регистрация{% endblock %}
+
+{% block content %}
+<h1>Регистрация</h1>
+
+<form method="post" action="{% url 'account_signup' %}">
+  {% csrf_token %}
+  {{ form.as_p }}  {# здесь будут ваши wot_nickname и clan из SignupForm #}
+  <button type="submit">Создать аккаунт</button>
+</form>
+
+<hr>
+<h3>Регистрация через соцсети</h3>
+{% include "socialaccount/snippets/provider_list.html" with process="signup" %}
+
+<p>Уже есть аккаунт? <a href="{% url 'account_login' %}">Войти</a></p>
+{% endblock %}

@@ -1,3 +1,17 @@
+/* Вернуть старое поведение картинок и др. медиа внутри контента */
+#content img,
+#content svg,
+#content video,
+#content canvas,
+#content audio,
+#content iframe,
+#content embed,
+#content object {
+  display: inline;                 /* или inline-block — как тебе нужнее */
+  vertical-align: middle;          /* оставим выравнивание как в preflight */
+}
+
+
 img {
     border: 0
 }

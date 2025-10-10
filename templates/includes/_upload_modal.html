@@ -1,44 +1,176 @@
 {# templates/includes/_upload_modal.html #}
-<div id="upload-modal" class="modal" aria-hidden="true">
-  <div class="modal-overlay" id="modal-overlay"></div>
-  <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="upload-modal-title">
-    <div class="modal-header">
-      <h2 id="upload-modal-title">Загрузить реплеи</h2>
-      <button class="modal-close" id="modal-close" type="button" aria-label="Закрыть">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
-        </svg>
-      </button>
-    </div>
+<div id="upload-modal"
+     class="fixed inset-0 z-[9999] hidden opacity-0 pointer-events-none transition-opacity duration-300"
+     aria-hidden="true"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="upload-modal-title">
 
-    <form id="upload-form" method="post" enctype="multipart/form-data" action="{% url 'replay_upload' %}">
-      {% csrf_token %}
-      <div class="modal-body">
-        <div class="upload-area" id="upload-area" tabindex="0" role="button" aria-label="Перетащите файлы или нажмите для выбора">
-          <div class="upload-icon" aria-hidden="true">
-            <svg width="48" height="48" viewBox="0 0 48 48" fill="currentColor" opacity="0.5">
-              <path d="M14 2H34L42 10V42C42 44.2 40.2 46 38 46H10C7.8 46 6 44.2 6 42V6C6 3.8 7.8 2 10 2H14ZM32 4H10C8.9 4 8 4.9 8 6V42C8 43.1 8.9 44 10 44H38C39.1 44 40 43.1 40 42V12L32 4ZM30 6V10H38L30 6Z"/>
-            </svg>
-          </div>
-          <p class="upload-text">
-            <strong>Перетащите файлы .mtreplay сюда</strong><br>
-            или нажмите для выбора файлов
-          </p>
-          <input type="file" id="file-input" name="files" accept=".mtreplay" class="file-input" multiple>
-        </div>
+  {# Overlay #}
+  <div class="fixed inset-0 bg-black/55 backdrop-blur-sm backdrop-saturate-125"
+       data-modal-overlay="upload-modal"></div>
 
-        <div class="selected-file" id="selected-file" style="display:none;">
-{#          <h3>Выбранные файлы:</h3>#}
-          <div class="file-info" id="file-info"></div>
-        </div>
-      </div>
+  {# Контейнер для центрирования #}
+  <div class="fixed inset-0 flex items-center justify-center p-6">
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn--ghost" id="cancel-upload">Отмена</button>
-        <button type="submit" class="btn btn--accent" id="submit-upload" disabled>
-          <span class="upload-status">Загрузить файлы</span>
+    {# Модальное окно #}
+    <div class="relative w-full max-w-[560px] opacity-0 translate-y-4 scale-95 transition-all duration-300"
+         data-modal-content="upload-modal">
+
+      {# Header #}
+      <div class="flex items-center justify-between rounded-t-xl bg-neutral-800 px-6 py-5 border-b border-neutral-700 ">
+        <h2 id="upload-modal-title" class="text-xl font-bold text-gray-200 m-0">
+          Загрузить реплеи
+        </h2>
+
+        {# Кнопка закрытия #}
+        <button type="button"
+                class="flex items-center justify-center w-8 h-8 rounded-md text-gray-400 hover:text-gray-200 hover:bg-neutral-900 transition-all duration-200"
+                data-modal-close="upload-modal"
+                id="modal-close"
+                aria-label="Закрыть">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
+          </svg>
         </button>
       </div>
-    </form>
+
+      {# Body #}
+      <div class="bg-neutral-800 px-6 py-6 max-h-[60vh] overflow-y-auto overflow-x-hidden border-l border-r border-neutral-700 ">
+
+        <form id="upload-form" method="post" enctype="multipart/form-data" action="{% url 'replay_upload' %}">
+          {% csrf_token %}
+
+          {# Область загрузки файлов #}
+          <div id="upload-area"
+               class="relative border-2 border-dashed border-neutral-700  rounded-xl p-12 text-center bg-neutral-900 transition-all duration-300 cursor-pointer overflow-hidden hover:border-red-700"
+               tabindex="0"
+               role="button"
+               aria-label="Перетащите файлы или нажмите для выбора">
+
+            {# Иконка #}
+            <div class="flex justify-center mb-4 text-gray-500 transition-transform duration-300" aria-hidden="true">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="currentColor" opacity="0.5">
+                <path d="M14 2H34L42 10V42C42 44.2 40.2 46 38 46H10C7.8 46 6 44.2 6 42V6C6 3.8 7.8 2 10 2H14ZM32 4H10C8.9 4 8 4.9 8 6V42C8 43.1 8.9 44 10 44H38C39.1 44 40 43.1 40 42V12L32 4ZM30 6V10H38L30 6Z"/>
+              </svg>
+            </div>
+
+            {# Текст #}
+            <div class="m-0 text-gray-200 leading-relaxed">
+              <strong class="block mb-1 text-red-600 font-semibold text-2xl">
+                Перетащите файлы .mtreplay сюда
+              </strong>
+              <span class="block text-xl">
+                или нажмите для выбора файлов.
+              </span>
+
+              <!-- Эти две строки оставляем в текущем размере (как было) -->
+              <p class="mt-2">За один раз можно добавить не более 5 файлов.</p>
+              <p>Для каждого файла можно указать своё описание.</p>
+            </div>
+
+            {# Скрытый input #}
+            <input type="file"
+                   id="file-input"
+                   name="files"
+                   accept=".mtreplay"
+                   class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                   multiple>
+          </div>
+
+          {# Список выбранных файлов #}
+          <div id="selected-file" class="hidden mt-5 p-4 bg-neutral-800 rounded-lg border border-neutral-700  max-h-96 overflow-y-auto">
+            <div id="file-info"></div>
+          </div>
+
+        </form>
+
+      </div>
+
+      {# Footer #}
+      <div class="flex items-center justify-end gap-3 rounded-b-xl bg-neutral-800 px-6 py-5 border-t border-b border-l border-r border-neutral-700  shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
+        <button type="button"
+                class="px-4 py-2 rounded-lg bg-transparent text-gray-400 border border-neutral-700  hover:bg-neutral-900 hover:text-gray-200 transition-all duration-200"
+                data-modal-close="upload-modal"
+                id="cancel-upload">
+          Отмена
+        </button>
+        <button type="submit"
+                form="upload-form"
+                class="px-4 py-2 rounded-lg bg-gradient-to-b from-red-700 to-red-600 text-white font-semibold border-none hover:from-red-600 hover:to-red-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                id="submit-upload"
+                disabled>
+          <span class="upload-status flex items-center gap-2">Загрузить файлы</span>
+        </button>
+      </div>
+
+    </div>
   </div>
 </div>
+
+{# Стили для dragover эффекта #}
+<style>
+  #upload-area.dragover {
+    border-color: rgb(185 28 28);
+    background: rgba(192, 57, 43, 0.1);
+    transform: scale(1.02);
+  }
+
+  #upload-area.dragover strong {
+    color: rgb(239 68 68);
+  }
+
+  #upload-area.dragover > div:first-child {
+    transform: scale(1.1);
+  }
+
+  #upload-area:hover strong {
+    color: rgb(239 68 68);
+  }
+</style>
+
+
+{# templates/includes/_upload_modal.html #}
+{#<div id="upload-modal" class="modal" aria-hidden="true">#}
+{#  <div class="modal-overlay" id="modal-overlay"></div>#}
+{#  <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="upload-modal-title">#}
+{#    <div class="modal-header">#}
+{#      <h2 id="upload-modal-title">Загрузить реплеи</h2>#}
+{#      <button class="modal-close" id="modal-close" type="button" aria-label="Закрыть">#}
+{#        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">#}
+{#          <path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>#}
+{#        </svg>#}
+{#      </button>#}
+{#    </div>#}
+{##}
+{#    <form id="upload-form" method="post" enctype="multipart/form-data" action="{% url 'replay_upload' %}">#}
+{#      {% csrf_token %}#}
+{#      <div class="modal-body">#}
+{#        <div class="upload-area" id="upload-area" tabindex="0" role="button" aria-label="Перетащите файлы или нажмите для выбора">#}
+{#          <div class="upload-icon" aria-hidden="true">#}
+{#            <svg width="48" height="48" viewBox="0 0 48 48" fill="currentColor" opacity="0.5">#}
+{#              <path d="M14 2H34L42 10V42C42 44.2 40.2 46 38 46H10C7.8 46 6 44.2 6 42V6C6 3.8 7.8 2 10 2H14ZM32 4H10C8.9 4 8 4.9 8 6V42C8 43.1 8.9 44 10 44H38C39.1 44 40 43.1 40 42V12L32 4ZM30 6V10H38L30 6Z"/>#}
+{#            </svg>#}
+{#          </div>#}
+{#          <p class="upload-text">#}
+{#            <strong>Перетащите файлы .mtreplay сюда</strong><br>#}
+{#            или нажмите для выбора файлов#}
+{#          </p>#}
+{#          <input type="file" id="file-input" name="files" accept=".mtreplay" class="file-input" multiple>#}
+{#        </div>#}
+{##}
+{#        <div class="selected-file" id="selected-file" style="display:none;">#}
+{#          <h3>Выбранные файлы:</h3>#}
+{#          <div class="file-info" id="file-info"></div>#}
+{#        </div>#}
+{#      </div>#}
+{##}
+{#      <div class="modal-footer">#}
+{#        <button type="button" class="btn btn--ghost" id="cancel-upload">Отмена</button>#}
+{#        <button type="submit" class="btn btn--accent" id="submit-upload" disabled>#}
+{#          <span class="upload-status">Загрузить файлы</span>#}
+{#        </button>#}
+{#      </div>#}
+{#    </form>#}
+{#  </div>#}
+{#</div>#}

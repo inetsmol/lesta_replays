@@ -33,10 +33,12 @@ SECRET_KEY = 'django-insecure--_($r!rg(efg8u4q4crkd*569bz$moq*f^==nu&zz1#4=^-hpy
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ("1", "true", "yes")
 
-ALLOWED_HOSTS = ["lesta-replays.ru", "localhost", "127.0.0.1", "192.168.67.5", "192.168.67.101"]
+ALLOWED_HOSTS = ["lesta-replays.ru", "localhost", "127.0.0.1", "192.168.67.5", "192.168.67.101", "testserver"]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://lesta-replays.ru",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
 
 # Сообщаем Django, что он за обратным прокси и реальная схема приходит в заголовке:
@@ -55,17 +57,139 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     "django.contrib.sitemaps",
-
     "django.contrib.sites",
+    'django_extensions',
+
     "django_comments_xtd",
     "django_comments",
 
+    # Allauth
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.vk",
+    "allauth.socialaccount.providers.yandex",
+
     'replays',
+    "accounts",
 ]
+
+# ===========================================================================
+# DJANGO-ALLAUTH - АКТУАЛЬНЫЕ НАСТРОЙКИ ДЛЯ ВЕРСИИ 65.x
+# ===========================================================================
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+# ===========================================================================
+# ОСНОВНЫЕ НАСТРОЙКИ АККАУНТОВ
+# ===========================================================================
+
+ACCOUNT_LOGIN_METHODS = {'email', "username"}  # логин по нику или e-mail
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+ACCOUNT_UNIQUE_EMAIL = True
+
+# ВАЖНО: Подтверждение email для ОБЫЧНОЙ регистрации
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+
+# Лимиты
+ACCOUNT_RATE_LIMITS = {
+    'login_failed': '8/5m',
+}
+
+# Кастомная форма регистрации
+ACCOUNT_SIGNUP_FORM_CLASS = 'accounts.forms.CustomSignupForm'
+
+# Перенаправления
+LOGIN_REDIRECT_URL = 'replay_list'
+LOGOUT_REDIRECT_URL = 'replay_list'
+ACCOUNT_LOGOUT_ON_GET = True
+
+# Дополнительные настройки для CSRF
+ACCOUNT_CONFIRM_EMAIL_ON_GET = False
+ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = '/accounts/login/'
+ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = '/accounts/email/'
+
+# ===========================================================================
+# СОЦИАЛЬНЫЕ СЕТИ (OAuth) - АКТУАЛЬНЫЕ НАСТРОЙКИ
+# ===========================================================================
+
+# Автоматическая регистрация через соцсети
+SOCIALACCOUNT_AUTO_SIGNUP = True
+
+# КРИТИЧНО: Email от соцсетей НЕ требует подтверждения
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'  # Переопределяет ACCOUNT_EMAIL_VERIFICATION
+
+# Email настройки
+SOCIALACCOUNT_EMAIL_REQUIRED = False
+SOCIALACCOUNT_QUERY_EMAIL = True
+
+# Убираем промежуточную страницу "Вы собираетесь войти..."
+SOCIALACCOUNT_LOGIN_ON_GET = True
+
+# Автосвязывание аккаунтов по email
+SOCIALACCOUNT_AUTO_CONNECT = True
+
+# Сохранять токены
+SOCIALACCOUNT_STORE_TOKENS = True
+
+SOCIALACCOUNT_ADAPTER = 'accounts.adapters.CustomSocialAccountAdapter'
+
+# ===========================================================================
+# НАСТРОЙКИ ПРОВАЙДЕРОВ (КЛЮЧЕВАЯ ЧАСТЬ!)
+# ===========================================================================
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        # КРИТИЧНО: Email от Google считаем уже подтвержденным
+        'VERIFIED_EMAIL': True,
+        # Можно также использовать EMAIL_AUTHENTICATION для автологина
+        # 'EMAIL_AUTHENTICATION': True,
+    },
+    'vk': {
+        'SCOPE': ['email'],
+        'METHOD': 'oauth2',
+        # КРИТИЧНО: Email от VK считаем уже подтвержденным
+        'VERIFIED_EMAIL': True,
+    },
+    'yandex': {
+        'SCOPE': ['login:email', 'login:info'],
+        # КРИТИЧНО: Email от Yandex считаем уже подтвержденным
+        'VERIFIED_EMAIL': True,
+    },
+}
+
+# ===========================================================================
+# EMAIL BACKEND
+# ===========================================================================
+
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.yandex.ru'
+    EMAIL_PORT = 465
+    EMAIL_USE_SSL = True
+    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+
+DEFAULT_FROM_EMAIL = 'no-reply@lesta-replays.ru'
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -184,6 +308,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Прод. защита:
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = False  # Разрешаем JavaScript доступ к CSRF cookie
+CSRF_COOKIE_SAMESITE = 'Lax'  # Более мягкие настройки для разработки
+SESSION_COOKIE_SAMESITE = 'Lax'
 SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG
@@ -194,7 +321,7 @@ SECURE_SSL_REDIRECT = not DEBUG
 # НАСТРОЙКИ DJANGO-COMMENTS-XTD
 # ===========================================================================
 
-SITE_ID = 1
+SITE_ID = 2
 
 # Основные настройки комментариев
 COMMENTS_APP = 'django_comments_xtd'

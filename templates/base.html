@@ -21,12 +21,18 @@
 
     <meta name="twitter:card" content="summary_large_image">
 
-    <link rel="icon" href="{% static 'favicon.ico' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    <link rel="apple-touch-icon" href="{% static 'favicon.ico' %}">
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
+
     <link rel="stylesheet" href="{% static 'css/site.css' %}">
     <link rel="stylesheet" href="{% static 'css/sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'css/dev_banner.css' %}">
     <link rel="stylesheet" href="{% static 'css/alert_modal.css' %}">
+    <link rel="stylesheet" href="{% static 'css/wot_record_skin.css' %}">
+{#    <link rel="stylesheet" href="{% static 'css/tw.css' %}">#}
+    <script src="https://cdn.tailwindcss.com"></script>
 
     {% block extra_head %}{% endblock %}
 </head>
@@ -41,8 +47,9 @@
 
 
         <div class="container">
+{#            {% include "includes/_messages.html" %}#}
             {% block content %}{% endblock %}
-            {% include "includes/_messages.html" %}
+
         </div>
 
 
@@ -53,7 +60,15 @@
 
 {% include "includes/_footer.html" %}
 {% include "includes/_upload_modal.html" %}
+{% include "includes/_auth_modal.html" %}
+{% include "includes/_signup_modal.html" %}
 {% include "includes/_alert_modal.html" %}
+{% include "includes/_email_verification_modal.html" %}
+{% include "includes/_email_confirmed_modal.html" %}
+{% include "includes/_email_confirm_error_modal.html" %}
+
+<!-- Менеджер модальных окон -->
+<script src="{% static 'js/modal-manager.js' %}"></script>
 
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -61,6 +76,9 @@
 <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
 
 <script src="{% static 'js/upload-modal.js' %}"></script>
+<script src="{% static 'js/auth-modal.js' %}"></script>
+<script src="{% static 'js/signup-modal.js' %}"></script>
+<script src="{% static 'js/password-reset-modal.js' %}"></script>
 
 {% block extra_js %}{% endblock %}
 
@@ -81,6 +99,41 @@
 
     ym(104234140, 'init', {ssr: true, clickmap: true, accurateTrackBounce: true, trackLinks: true});
 </script>
+
+<script>
+(function () {
+  const MENUS = () => Array.from(document.querySelectorAll('details[data-user-menu]'));
+
+  function closeAll(except = null) {
+    MENUS().forEach(d => { if (d !== except) d.removeAttribute('open'); });
+  }
+
+  // Закрыть по клику вне
+  document.addEventListener('click', (e) => {
+    const inMenu = e.target.closest('details[data-user-menu]');
+    if (!inMenu) return closeAll();
+    // если клик внутри — дадим браузеру сначала переключить <details>,
+    // а потом закроем остальные
+    setTimeout(() => closeAll(inMenu), 0);
+  });
+
+  // Закрыть по Esc
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeAll();
+      const sum = document.querySelector('details[data-user-menu] > summary');
+      if (sum) sum.focus();
+    }
+  });
+
+  // Закрывать при переходе фокуса табом вне меню (улучшение доступности)
+  document.addEventListener('focusin', (e) => {
+    const inMenu = e.target.closest('details[data-user-menu]');
+    if (!inMenu) closeAll();
+  });
+})();
+</script>
+
 <noscript>
     <div><img src="https://mc.yandex.ru/watch/104234140" style="position:absolute; left:-9999px;" alt=""/></div>
 </noscript>

@@ -54,6 +54,7 @@ urlpatterns = [
     path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="sitemap"),
     path("comments/", include("django_comments_xtd.urls")),
     path('adminn/', admin.site.urls),
+    path("accounts/", include("allauth.urls")),
     path("", include("replays.urls")),
     # path("donate/", donate, name="donate"),
     # path("donate/success/", donate_success, name="donate_success"),

@@ -489,7 +489,7 @@ class ReplayDetailView(DetailView):
 
             # === ДОСТИЖЕНИЯ ===
             achievements_ids = ExtractorV2.get_achievements(replay_data)
-            print(f"achievements_ids: {achievements_ids}")
+            # print(f"achievements_ids: {achievements_ids}")
             if achievements_ids:
                 ach_nonbattle, ach_battle = ExtractorV2.split_achievements_by_section(achievements_ids)
 

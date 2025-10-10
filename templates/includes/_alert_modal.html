@@ -1,20 +1,77 @@
 {# templates/includes/_alert_modal.html #}
-<div id="alert-modal" class="modal" aria-hidden="true">
-  <div class="modal-overlay" data-close="alert"></div>
-  <div class="modal-content alert-modal-content" role="dialog" aria-modal="true" aria-labelledby="alert-title">
-    <div class="modal-header">
-      <h2 id="alert-title">Результат загрузки</h2>
-      <button class="modal-close" type="button" data-close="alert" aria-label="Закрыть">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
-        </svg>
-      </button>
-    </div>
-    <div class="modal-body">
-      <div id="alert-message" class="alert-message-content"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn--accent" type="button" data-close="alert">ОК</button>
+<div id="alert-modal"
+     class="fixed inset-0 z-[9999] hidden opacity-0 pointer-events-none transition-opacity duration-300"
+     aria-hidden="true"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="alert-title">
+
+  {# Overlay #}
+  <div class="fixed inset-0 bg-black/55 backdrop-blur-sm backdrop-saturate-125"
+       data-modal-overlay="alert-modal"
+       data-close="alert"></div>
+
+  {# Контейнер для центрирования #}
+  <div class="fixed inset-0 flex items-center justify-center p-6">
+
+    {# Модальное окно #}
+    <div class="relative w-full max-w-[560px] opacity-0 translate-y-4 scale-95 transition-all duration-300"
+         data-modal-content="alert-modal">
+
+      {# Header #}
+      <div class="flex items-center justify-between rounded-t-xl bg-gray-800 px-6 py-5 border-b border-gray-700">
+        <h2 id="alert-title" class="text-xl font-bold text-gray-200 m-0">
+          Сообщение
+        </h2>
+
+        {# Кнопка закрытия #}
+        <button type="button"
+                class="flex items-center justify-center w-8 h-8 rounded-md text-gray-400 hover:text-gray-200 hover:bg-gray-900 transition-all duration-200"
+                data-modal-close="alert-modal"
+                data-close="alert"
+                aria-label="Закрыть">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
+          </svg>
+        </button>
+      </div>
+
+      {# Body #}
+      <div class="bg-gray-800 px-6 py-6 max-h-[60vh] overflow-y-auto overflow-x-hidden border-l border-r border-gray-700 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+        <div id="alert-message" class="text-gray-200 leading-relaxed"></div>
+      </div>
+
+      {# Footer #}
+      <div class="flex items-center justify-end gap-3 rounded-b-xl bg-gray-800 px-6 py-5 border-t border-b border-l border-r border-gray-700 shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
+        <button type="button"
+                class="px-4 py-2 rounded-lg bg-gradient-to-b from-red-700 to-red-600 text-white font-semibold border-none hover:from-red-600 hover:to-red-500 transition-all duration-200"
+                data-modal-close="alert-modal"
+                data-close="alert">
+          ОК
+        </button>
+      </div>
+
     </div>
   </div>
 </div>
+
+{# Стили для кастомного скроллбара #}
+<style>
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .scrollbar-track-gray-800::-webkit-scrollbar-track {
+    background: rgba(31, 41, 55, 0.5);
+    border-radius: 4px;
+  }
+
+  .scrollbar-thumb-gray-600::-webkit-scrollbar-thumb {
+    background: rgba(75, 85, 99, 0.8);
+    border-radius: 4px;
+  }
+
+  .scrollbar-thumb-gray-600::-webkit-scrollbar-thumb:hover {
+    background: rgba(107, 114, 128, 1);
+  }
+</style>

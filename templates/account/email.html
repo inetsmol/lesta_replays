@@ -1,0 +1,30 @@
+{# templates/account/email.html #}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Подтверждение email{% endblock %}
+
+{% block content %}
+{# Пустой контент - все в модалке #}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Проверяем статус подтверждения
+  const url = window.location.href;
+
+  if (window.modalManager) {
+    // Если есть параметр success или confirmation прошла успешно
+    {% if confirmation %}
+      window.modalManager.open('email-confirmed-modal');
+    {% else %}
+      // Если есть ошибки
+      {% if form.errors or messages %}
+        window.modalManager.open('email-confirm-error-modal');
+      {% endif %}
+    {% endif %}
+  }
+});
+</script>
+{% endblock %}
