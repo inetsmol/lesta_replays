@@ -1,30 +1,117 @@
 {# templates/includes/_navbar.html #}
 {% load static %}
-<header class="site-header">
-  <div class="header-row">
-    <a class="brand" href="/">
-      <img src="{% static 'style/images/wot/logo.png' %}" alt="Логотип" class="brand-logo">
-      <span class="brand-text">РЕПЛЕИ</span>
+
+<header class="sticky top-0 z-50 backdrop-blur-md bg-[rgba(20,20,20,0.85)] border-b border-[var(--border)]">
+  <div class="max-w-[1200px] mx-auto flex items-center justify-between py-3">
+
+    <!-- Бренд -->
+    <a class="flex items-center gap-2 font-extrabold tracking-[0.2px] no-underline" href="/">
+      <img src="{% static 'style/images/wot/logo.png' %}" alt="Логотип" class="h-8 w-auto object-contain shrink-0">
+      <span class="text-[18px] font-extrabold tracking-[0.2px]">РЕПЛЕИ</span>
     </a>
-    <nav class="nav">
-      <button id="upload-replay-btn" class="big-red-button" type="button">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+
+    <!-- Навигация -->
+    <nav class="flex items-center space-x-[18px]">
+      <button id="upload-replay-btn"
+              type="button"
+              class="big-red-button inline-flex items-center justify-center gap-2 select-none">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
           <path d="M7.646 1.146a.5.5 0 0 1 .708 0L10.5 3.293V10a.5.5 0 0 1-1 0V4.414L8.354 5.56a.5.5 0 0 1-.708-.708L8.5 4.207V10a.5.5 0 0 1-1 0V3.707L6.354 4.854a.5.5 0 1 1-.708-.708l2-2z"/>
           <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/>
         </svg>
-        Загрузить
+        <span>Загрузить</span>
       </button>
-      <a href="{% url 'about' %}">О проекте</a>
+
+    {% if user.is_authenticated %}
+        <details class="relative ml-[18px]" data-user-menu>
+          <summary class="list-none cursor-pointer inline-flex items-center gap-2 opacity-[0.85] hover:opacity-100 hover:text-[var(--accent-2)]">
+            {{ user.username }}
+            <!-- стрелка -->
+            <svg class="h-4 w-4 opacity-60" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/>
+            </svg>
+          </summary>
+
+        <!-- Выпадающее меню -->
+        <div class="absolute right-0 mt-2 w-44 rounded-xl bg-white dark:bg-[#1a1a1a]
+            text-gray-900 dark:text-gray-100 shadow-lg ring-1 ring-black/10 dark:ring-white/10 p-1 z-50">
+          <a
+{#              href="{% url 'profile' %}" #}
+              class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+            Профиль
+          </a>
+          <a
+{#              href="{% url 'replays:my_list' %}" #}
+              class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+            Мои реплеи
+          </a>
+          <div class="my-1 h-px bg-gray-200 dark:bg-white/10"></div>
+          <form method="post" action="{% url 'account_logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+              Выход
+            </button>
+          </form>
+        </div>
+      </details>
+    {% else %}
+      <a href="{% url 'account_login' %}" class="ml-[18px] opacity-[0.85] hover:opacity-100 hover:text-[var(--accent-2)]">
+        Войти
+      </a>
+    {% endif %}
+
+
+      <a href="{% url 'about' %}" class="ml-[18px] opacity-[0.85] hover:opacity-100 hover:text-[var(--accent-2)]">О проекте</a>
     </nav>
   </div>
 
-    {# DEV banner — перед контентом #}
-<div id="dev-banner" class="site-banner site-banner--dev" role="alert" aria-live="polite">
-  <div class="site-banner__inner">
-    <strong>Портал в стадии активной разработки.</strong>
-    Возможны временные сбои. Если вы видите ошибку — напишите в
-    <a href="https://t.me/inetsmol" target="_blank" rel="noopener">Telegram @inetsmol</a>
-    или на почту <a href="mailto:inetsmol@gmail.com">inetsmol@gmail.com</a>.
+  <!-- DEV banner -->
+  <div id="dev-banner"
+       class="flex items-center justify-center gap-3 py-2.5 px-3.5 border-b border-black/10 text-[13px] bg-[#fff6d6] text-[#4a3b00] dark:bg-[#3b3420] dark:text-[#ffe9a6] dark:border-b-white/10"
+       role="alert" aria-live="polite">
+    <div class="pr-2">
+      <strong>Портал в стадии активной разработки.</strong>
+      Возможны временные сбои. Если вы видите ошибку — напишите в
+      <a href="https://t.me/inetsmol" target="_blank" rel="noopener" class="underline text-inherit">Telegram @inetsmol</a>
+      или на почту <a href="mailto:inetsmol@gmail.com" class="underline text-inherit">inetsmol@gmail.com</a>.
+    </div>
+    <!-- Если нужна кнопка закрытия баннера, раскомментируй:
+    <button class="appearance-none border-0 bg-transparent text-[22px] leading-none cursor-pointer text-inherit opacity-60 hover:opacity-100" aria-label="Закрыть">×</button>
+    -->
   </div>
-</div>
 </header>
+
+<script>
+  (function () {
+    const MENUS = () => Array.from(document.querySelectorAll('details[data-user-menu]'));
+  
+    function closeAll(except = null) {
+      MENUS().forEach(d => { if (d !== except) d.removeAttribute('open'); });
+    }
+  
+    // Закрыть по клику вне
+    document.addEventListener('click', (e) => {
+      const inMenu = e.target.closest('details[data-user-menu]');
+      if (!inMenu) return closeAll();
+      // если клик внутри — дадим браузеру сначала переключить <details>,
+      // а потом закроем остальные
+      setTimeout(() => closeAll(inMenu), 0);
+    });
+  
+    // Закрыть по Esc
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeAll();
+        const sum = document.querySelector('details[data-user-menu] > summary');
+        if (sum) sum.focus();
+      }
+    });
+  
+    // Закрывать при переходе фокуса табом вне меню (улучшение доступности)
+    document.addEventListener('focusin', (e) => {
+      const inMenu = e.target.closest('details[data-user-menu]');
+      if (!inMenu) closeAll();
+    });
+  })();
+  </script>
+  

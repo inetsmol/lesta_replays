@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load account %}
+
+{% block title %}Подтверждение — Реплеи{% endblock %}
+
+{% block content %}
+
+<section class="card">
+  <h1 class="mb-8">Подтверждение email</h1>
+  {% if confirmation %}
+    <form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
+      {% csrf_token %}
+      <p>Почта <strong>{{ confirmation.email_address.email }}</strong>. Подтвердить?</p>
+      <button type="submit" class="btn btn--accent">Подтвердить</button>
+    </form>
+  {% else %}
+    <p>Ссылка подтверждения недействительна.</p>
+  {% endif %}
+</section>
+{% endblock %}
+
+

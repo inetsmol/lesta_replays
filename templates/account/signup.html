@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Регистрация — Реплеи{% endblock %}
+
+{% block content %}
+<div class="flex justify-center items-start min-h-screen">
+  <section class="card w-full max-w-md">
+    <h1 class="mb-8">Регистрация</h1>
+    <form method="post" action="{% url 'account_signup' %}" class="space-y-6">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <div class="space-y-2">
+        <label class="block text-sm">Email</label>
+        {{ form.email }}
+      </div>
+
+      {% if form.username %}
+      <div class="space-y-2">
+        <label class="block text-sm">Имя пользователя (необязательно)</label>
+        {{ form.username }}
+      </div>
+      {% endif %}
+
+      <div class="space-y-2">
+        <label class="block text-sm">Пароль</label>
+        {{ form.password1 }}
+      </div>
+
+      <div class="space-y-2">
+        <label class="block text-sm">Повторите пароль</label>
+        {{ form.password2 }}
+      </div>
+
+      <button type="submit" class="btn btn--accent w-full">Создать аккаунт</button>
+
+      <p class="text-sm text-muted-sm">Уже есть аккаунт? <a class="link text-blue-400 hover:text-blue-300 underline font-medium" href="{% url 'account_login' %}">Войти</a></p>
+    </form>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function(){
+    const inputs = document.querySelectorAll('input[type=email], input[type=text], input[type=password]');
+    inputs.forEach(i=>{
+      i.classList.add('w-full','px-3','py-2','rounded','bg-neutral-900','border','border-neutral-700','text-neutral-100');
+    });
+  })();
+</script>
+{% endblock %}

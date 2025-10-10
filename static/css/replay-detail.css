@@ -1,3 +1,17 @@
+/* Вернуть старое поведение картинок и др. медиа внутри контента */
+#content img,
+#content svg,
+#content video,
+#content canvas,
+#content audio,
+#content iframe,
+#content embed,
+#content object {
+  display: inline;                 /* или inline-block — как тебе нужнее */
+  vertical-align: middle;          /* оставим выравнивание как в preflight */
+}
+
+
 img {
     border: 0
 }
@@ -3321,4 +3335,3 @@ body.screenshot .replay-tab-wrapper, body.screenshot header .wrapper > a:first-c
 /*.titles-line .base, .titles-line .premium { padding:2px 6px; border-radius:4px; }*/
 /*.titles-line .base.active, .titles-line .premium.active { background:#1c2a10; }*/
 /*.titles-line .base.inactive, .titles-line .premium.inactive { opacity:.55; }*/
-

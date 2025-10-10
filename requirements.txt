@@ -9,5 +9,6 @@ whitenoise
 
 django-contrib-comments~=2.2.0
 django-comments-xtd~=2.10.9
+django-allauth~=65.3.0
 
 sentry-sdk[django]

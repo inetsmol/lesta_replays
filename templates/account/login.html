@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}Вход — Реплеи{% endblock %}
+
+{% block content %}
+<div class="flex justify-center items-start min-h-screen">
+  <section class="card w-full max-w-md">
+    <h1 class="mb-8">Вход</h1>
+    <form method="post" action="{% url 'account_login' %}" class="space-y-6">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <div class="space-y-2">
+        <label class="block text-sm">Email</label>
+        {{ form.login }}
+      </div>
+
+      <div class="space-y-2">
+        <label class="block text-sm">Пароль</label>
+        {{ form.password }}
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          {{ form.remember }}
+          <label for="id_remember" class="text-sm">Запомнить меня</label>
+        </div>
+        <a class="text-sm link" href="{% url 'account_reset_password' %}">Забыли пароль?</a>
+      </div>
+
+      <button type="submit" class="btn btn--accent">Войти</button>
+
+      <p class="text-sm text-muted-sm">Нет аккаунта? <a class="link text-blue-400 hover:text-blue-300 underline font-medium" href="{% url 'account_signup' %}">Зарегистрироваться</a></p>
+    </form>
+  </section>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+  // Добавим базовые классы Tailwind полям формы
+  (function(){
+    const inputs = document.querySelectorAll('input[type=email], input[type=text], input[type=password]');
+    inputs.forEach(i=>{
+      i.classList.add('w-full','px-3','py-2','rounded','bg-neutral-900','border','border-neutral-700','text-neutral-100');
+    });
+  })();
+</script>
+{% endblock %}
+
+

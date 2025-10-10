@@ -57,6 +57,10 @@ INSTALLED_APPS = [
     "django.contrib.sitemaps",
 
     "django.contrib.sites",
+    # allauth
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
     "django_comments_xtd",
     "django_comments",
 
@@ -72,6 +76,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'lesta_replays.urls'
@@ -95,6 +100,47 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'lesta_replays.wsgi.application'
 
+
+# ---------------------------------------------------------------------------
+# АУТЕНТИФИКАЦИЯ / django-allauth
+# ---------------------------------------------------------------------------
+AUTHENTICATION_BACKENDS = [
+    # По умолчанию
+    "django.contrib.auth.backends.ModelBackend",
+    # allauth
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+# Базовые настройки аккаунта
+LOGIN_REDIRECT_URL = "/"
+ACCOUNT_LOGOUT_REDIRECT_URL = "/"
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"  # обязательное подтверждение email
+# None => показывать чекбокс "Запомнить меня" на форме логина
+ACCOUNT_SESSION_REMEMBER = None
+
+# Новые настройки allauth (взамен устаревших предупреждений)
+ACCOUNT_LOGIN_METHODS = {"email", "username"}  # вход по email
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*", "username"]
+ACCOUNT_RATE_LIMITS = {
+    "login_failed": "5/5m",  # 5 попыток за 5 минут
+}
+# Подтверждение email: подтверждать по GET и перенаправлять на страницу логина
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = "/accounts/login/"
+ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = "/accounts/login/"
+
+# Email
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@lesta-replays.ru")
+if DEBUG:
+    EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+else:
+    EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+    EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.yandex.ru")
+    EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+    EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "true").lower() in ("1", "true", "yes")
+    EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "false").lower() in ("1", "true", "yes")
 
 # ---------------------------------------------------------------------------
 # БАЗА ДАННЫХ
@@ -194,7 +240,7 @@ SECURE_SSL_REDIRECT = not DEBUG
 # НАСТРОЙКИ DJANGO-COMMENTS-XTD
 # ===========================================================================
 
-SITE_ID = 1
+SITE_ID = int(os.getenv("SITE_ID", 1))
 
 # Основные настройки комментариев
 COMMENTS_APP = 'django_comments_xtd'

@@ -9,3 +9,9 @@ staticfiles/
 
 _static/
 tools/
+replays/management/
+*__pycache__*
+
+texts/
+tailwindcss.exe
+lesta-replays.ru

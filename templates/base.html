@@ -21,12 +21,18 @@
 
     <meta name="twitter:card" content="summary_large_image">
 
-    <link rel="icon" href="{% static 'favicon.ico' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    <link rel="apple-touch-icon" href="{% static 'favicon.ico' %}">
+
+    <!-- Tailwind CSS CDN for auth pages styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
     <link rel="stylesheet" href="{% static 'css/site.css' %}">
     <link rel="stylesheet" href="{% static 'css/sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'css/dev_banner.css' %}">
     <link rel="stylesheet" href="{% static 'css/alert_modal.css' %}">
+
 
     {% block extra_head %}{% endblock %}
 </head>

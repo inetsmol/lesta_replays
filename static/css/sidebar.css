@@ -1,7 +1,7 @@
 /* Общая обёртка сайдбара и отступы между виджетами */
 .sidebar {
     display: grid;
-    margin-top: 52px;
+    /* margin-top: 52px; */
     /*width:15%;*/
     gap: 12px;
 }

@@ -130,11 +130,6 @@ a {
     padding: 12px 0
 }
 
-.brand {
-    font-weight: 800;
-    letter-spacing: .2px
-}
-
 .nav a {
     margin-left: 18px;
     opacity: .85
@@ -893,11 +888,11 @@ svg.icon {
     color: white
 }
 
-input[type="text"], input[type="number"], input[type="email"], input[type="search"], input[type="date"], select, textarea {
-    background: var(--input-bg);
-    color: var(--text);
-    border-color: var(--border)
-}
+/*input[type="text"], input[type="number"], input[type="email"], input[type="search"], input[type="date"], select, textarea {*/
+/*    background: var(--input-bg);*/
+/*    color: var(--text);*/
+/*    border-color: var(--border)*/
+/*}*/
 
 .content.content--with-aside .container .page-with-aside {
     display: grid;
