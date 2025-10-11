@@ -250,6 +250,7 @@ class ReplayProcessingService:
 
             # Шаг 6: Создание реплея
             replay = self._create_replay(
+                user=user,
                 replay_fields=replay_fields,
                 payload=payload,
                 tank=tank,
