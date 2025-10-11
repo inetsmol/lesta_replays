@@ -3,15 +3,18 @@
 .env
 db.sqlite3
 /media
-/replays/migrations
-replays/management/commands/output
-staticfiles/
+*/migrations
+replays/management
+texts/
+
 
 _static/
+staticfiles/
 tools/
-replays/management/
-*__pycache__*
-
-texts/
-tailwindcss.exe
+*__pycache__/
 lesta-replays.ru
+tailwindcss.exe
+*.DS_Store
+cert.crt
+cert.key
+.cursor/rules/

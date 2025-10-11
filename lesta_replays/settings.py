@@ -61,6 +61,8 @@ INSTALLED_APPS = [
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.yandex",
     "django_comments_xtd",
     "django_comments",
 
@@ -267,6 +269,46 @@ COMMENTS_XTD_APP_MODEL_OPTIONS = {
 }
 
 YOOMONEY_RECEIVER = "4100118749299139"  # кошелек YooMoney
+
+# ===========================================================================
+# НАСТРОЙКИ СОЦИАЛЬНЫХ ПРОВАЙДЕРОВ
+# ===========================================================================
+
+# Настройки для Google OAuth
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'VERIFIED_EMAIL': True,
+        'OAUTH_PKCE_ENABLED': True,
+    },
+    'yandex': {
+        'SCOPE': [
+            'login:email',
+            'login:info',
+        ],
+        'VERIFIED_EMAIL': True,
+    }
+}
+
+# Настройки для социальных аккаунтов
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"  # не требуем подтверждение email для соц. сетей
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_LOGIN_ON_GET = True
+# Автоматическая регистрация через соцсети
+SOCIALACCOUNT_AUTO_SIGNUP = True
+
+# Переменные окружения для OAuth ключей
+GOOGLE_OAUTH2_CLIENT_ID = os.getenv("GOOGLE_OAUTH2_CLIENT_ID", "")
+GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET", "")
+YANDEX_OAUTH2_CLIENT_ID = os.getenv("YANDEX_OAUTH2_CLIENT_ID", "")
+YANDEX_OAUTH2_CLIENT_SECRET = os.getenv("YANDEX_OAUTH2_CLIENT_SECRET", "")
 
 
 SENTRY_DSN = os.getenv("SENTRY_DSN")

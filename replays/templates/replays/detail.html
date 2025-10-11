@@ -98,7 +98,7 @@
       <div class="titles-line">
         <div class="half">
           <div class="battle-type">
-            <span class="map-name">{{ replay.map.map_display_name }}</span>&nbsp;&nbsp;-&nbsp;&nbsp;{{ battle_type_label }}
+            <span class="map-name">{{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}</span>&nbsp;&nbsp;-&nbsp;&nbsp;{{ battle_type_label }}
           </div>
         </div>
         <div class="half">
@@ -153,9 +153,15 @@
       <div style="background:#14120e; display:flex;">
         <div class="half">
           <div class="map-stat">
-            <img class="map"
-                 src="{% static 'style/images/wot/map/stats/' %}{{ replay.map.map_name }}.png"
-                 alt="{{ replay.map.map_display_name|default:replay.map.map_name }}">
+            {% if replay.map %}
+                <img class="map"
+                     src="{% static 'style/images/wot/map/stats/' %}{{ replay.map.map_name }}.png"
+                     alt="{{ replay.map.map_display_name|default:replay.map.map_name }}">
+            {% else %}
+                <img class="map"
+                     src="{% static 'maps/map_placeholder.jpg' %}"
+                     alt="Неизвестная карта">
+            {% endif %}
             <div class="stat">
                 <div style="display: flex">
                   <div class="stat-tank" >
