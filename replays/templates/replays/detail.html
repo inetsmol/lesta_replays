@@ -750,6 +750,9 @@
           <span class="gray">Режим боя:</span>Случайный бой
           <span class="gray">Текущая версия:</span>{{ details.clientVersion }}
           <span class="gray">Отправитель:</span>{{ details.playerName }}
+            {% if replay.user %}
+                <span class="gray">Загрузил:</span>{{ replay.user.username }}
+            {% endif %}
         </div>
   </div> <!-- /replay-wrapper -->
 

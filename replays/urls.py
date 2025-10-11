@@ -3,10 +3,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from .views import ReplayListView, ReplayDetailView, ReplayDownloadView, AboutView, ReplayFiltersView, \
-    health, ReplayBatchUploadView
+    health, ReplayBatchUploadView, MyReplaysView
 
 urlpatterns = [
     path('', ReplayListView.as_view(), name='replay_list'),
+    path('replays/my/', MyReplaysView.as_view(), name='my_replay_list'),
     path('replays/<int:pk>/', ReplayDetailView.as_view(), name='replay_detail'),
     path("replays/filters/", ReplayFiltersView.as_view(), name="replay_filters"),
     path('replays/upload/', ReplayBatchUploadView.as_view(), name='replay_upload'),

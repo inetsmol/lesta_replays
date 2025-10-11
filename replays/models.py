@@ -1,12 +1,25 @@
 # replays/models.py
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
+
+User = get_user_model()
 
 
 class Replay(models.Model):
     """
     Модель для хранения реплеев МИР ТАНКОВ с подробной статистикой боя.
     """
+    # Ссылка на пользователя, который загрузил реплей
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='replays',
+        help_text="Пользователь, загрузивший реплей"
+    )
+
     # НОВОЕ ПОЛЕ — короткое описание
     short_description = models.CharField(
         max_length=60,

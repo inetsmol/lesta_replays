@@ -1,12 +1,13 @@
-{# replays/templates/replays/list.html #}
+{# replays/templates/replays/my_replays.html #}
 {% extends "base.html" %}
 {% load tz %}
 {% block body_class %}replays index{% endblock %}
-{#{% block content_mod %}content--solo{% endblock %}#}
+
 {% block content %}
     {% load static humanize %}
     <link rel="stylesheet" href="{% static 'css/wot_record_skin.css' %}">
-    {#    <div id="content" class="content content--solo">#}
+
+    <h1>{{ page_title }}</h1>
 
     <div class="filters-actions"
          style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px;">
@@ -190,7 +191,7 @@
                 </a>
             {% endfor %}
         {% else %}
-            <p class="empty">Пока нет загруженных реплеев.</p>
+            <p class="empty">Вы еще не загрузили ни одного реплея.</p>
         {% endif %}
     </main>
 

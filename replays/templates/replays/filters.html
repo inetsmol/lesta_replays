@@ -57,6 +57,13 @@
     <div class="text-muted-sm mt-4">Ищет среди всех участников, возможны совпадения по подстроке</div>
   </div>
 
+  <div class="field">
+    <label for="user_nick">Ник загрузившего</label>
+    <input type="search" id="user_nick" name="user_nick"
+           value="{{ current_filters.user_nick.0|default_if_none:'' }}"
+           placeholder="Ник на сайте">
+  </div>
+
 {#  <div class="field">#}
 {#    <label for="clan">Клан</label>#}
 {#    <input type="search" id="clan" name="clan"#}

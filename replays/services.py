@@ -209,7 +209,7 @@ class ReplayProcessingService:
         self.map_service = MapService()
 
     @transaction.atomic
-    def process_replay(self, uploaded_file, description: str = '') -> Replay:
+    def process_replay(self, uploaded_file, description: str = '', user=None) -> Replay:
         """
         Обрабатывает файл реплея и создаёт объект Replay.
 
@@ -335,10 +335,12 @@ class ReplayProcessingService:
             owner: Player,
             map_obj: Map,
             game_version: str,
-            description: str
+            description: str,
+            user=None
     ) -> Replay:
         """Создает объект Replay."""
         return Replay.objects.create(
+            user=user,
             file_name=replay_fields.get('file_name'),
             payload=payload,
             tank=tank,

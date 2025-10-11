@@ -9,6 +9,7 @@ from typing import List, Dict, Any
 
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import JsonResponse, Http404, HttpResponse, StreamingHttpResponse, HttpRequest
 from django.shortcuts import redirect, render
@@ -49,18 +50,19 @@ class ReplayBatchUploadView(View):
         """Обрабатывает POST запрос с файлами реплеев."""
         files = request.FILES.getlist('files') or []
         descriptions = request.POST.getlist('descriptions')
+        user = request.user if request.user.is_authenticated else None
 
         # Валидация пакета файлов
         if batch_error := BatchUploadValidator.validate_batch(files):
             return self._error_response(request, batch_error)
 
         # Обработка файлов
-        results = self._process_files(files, descriptions)
+        results = self._process_files(files, descriptions, user)
 
         # Формирование ответа
         return self._build_response(request, results, len(files))
 
-    def _process_files(self, files: list, descriptions: list) -> List[Dict[str, Any]]:
+    def _process_files(self, files: list, descriptions: list, user) -> List[Dict[str, Any]]:
         """
         Обрабатывает список файлов.
 
@@ -75,12 +77,12 @@ class ReplayBatchUploadView(View):
 
         for idx, file in enumerate(files):
             description = self._get_description(descriptions, idx)
-            result = self._process_single_file(file, description)
+            result = self._process_single_file(file, description, user)
             results.append(result)
 
         return results
 
-    def _process_single_file(self, file, description: str) -> Dict[str, Any]:
+    def _process_single_file(self, file, description: str, user) -> Dict[str, Any]:
         """
         Обрабатывает один файл реплея.
 
@@ -102,7 +104,7 @@ class ReplayBatchUploadView(View):
 
         # Обработка файла
         try:
-            replay = self.replay_service.process_replay(file, description)
+            replay = self.replay_service.process_replay(file, description, user=user)
 
             file_result["ok"] = True
             file_result["replay_id"] = replay.id
@@ -168,7 +170,9 @@ class ReplayBatchUploadView(View):
             created: int,
             errors: int
     ) -> JsonResponse:
-        """Формирует JSON ответ."""
+        """
+        Формирует JSON ответ.
+        """
         # Определяем URL для редиректа
         redirect_url = reverse('replay_list')
         if total == 1 and results and results[0].get("ok"):
@@ -187,7 +191,9 @@ class ReplayBatchUploadView(View):
         }, status=200)
 
     def _error_response(self, request: HttpRequest, message: str):
-        """Формирует ответ с ошибкой."""
+        """
+        Формирует ответ с ошибкой.
+        """
         if self._is_ajax_request(request):
             return JsonResponse({
                 "success": False,
@@ -225,7 +231,7 @@ class ReplayListView(ListView):
         """
         try:
             qs = (Replay.objects
-                  .select_related('tank', 'owner')
+                  .select_related('tank', 'owner', 'user')
                   .prefetch_related('participants')
                   )
 
@@ -341,6 +347,10 @@ class ReplayListView(ListView):
             if owner_nick:
                 queryset = queryset.filter(owner__real_name__icontains=owner_nick)
 
+            user_nick = (self.request.GET.get("user_nick") or "").strip()
+            if user_nick:
+                queryset = queryset.filter(user__username__icontains=user_nick)
+
             # поиск по нику участника
             participant_nick = (self.request.GET.get("participant_nick") or "").strip()
             if participant_nick:
@@ -421,6 +431,19 @@ class ReplayListView(ListView):
         except Exception as e:
             logger.exception(f"Ошибка в get_context_data: {e}")
             raise
+
+
+class MyReplaysView(LoginRequiredMixin, ReplayListView):
+    template_name = 'replays/my_replays.html'
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.filter(user=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = "Мои реплеи"
+        return context
 
 
 class ReplayFiltersView(TemplateView):
@@ -625,7 +648,7 @@ class ReplayDetailView(DetailView):
     # def _calculate_performance_rating(self, data: dict) -> dict:
     #     """Вычисляет общую оценку эффективности с готовыми процентами"""
     #     damage_rating = min(data.get('damage_dealt', 0) / 1000, 5.0)
-    #     survival_rating = 1.0 if data.get('survival_status') == -1 else 0.0
+    #     survival_rating = 1.0 if data.get('survival_status') == -1 else 0.0)
     #     assist_rating = min(data.get('total_assist', 0) / 500, 2.0)
     #     armor_rating = min(data.get('total_blocked_damage', 0) / 1000, 2.0)
     #
