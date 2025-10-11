@@ -1,4 +1,5 @@
 // static/js/upload-modal.js
+window.app = window.app || {};
 document.addEventListener('DOMContentLoaded', function () {
   if (window.__uploadModalInitialized__) return;
   window.__uploadModalInitialized__ = true;
@@ -22,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const alertModal   = document.getElementById('alert-modal');
   const alertMsgEl   = document.getElementById('alert-message');
   const alertTitle   = document.getElementById('alert-title');
+  const alertHeader  = alertModal ? alertModal.querySelector('.modal-header') : null;
 
   if (!modal || !uploadForm) return;
 
@@ -54,8 +56,14 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    if (alertTitle) {
-      alertTitle.textContent = title;
+    if (alertTitle && alertHeader) {
+        if (title) {
+            alertTitle.textContent = title;
+            alertHeader.style.display = '';
+        } else {
+            alertTitle.textContent = '';
+            alertHeader.style.display = 'none';
+        }
     }
 
     alertMsgEl.innerHTML = '';
@@ -77,6 +85,8 @@ document.addEventListener('DOMContentLoaded', function () {
     alertModal.addEventListener('click', handler);
     openAlert();
   }
+
+  window.app.showAlert = showAlert;
 
   function createUploadResultsHTML(summary, results) {
     const container = document.createElement('div');
