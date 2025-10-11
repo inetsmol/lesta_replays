@@ -81,6 +81,7 @@
     <main class="replay-grid replay-grid--rows">
         {% if items %}
             {% for replay in items %}
+            <div style="position: relative;">
                 <a class="tovabb"
                     href="{% url 'replay_detail' replay.id %}?back={{ request.get_full_path|urlencode }}"
                     title="{{ replay.tank.name|default:'Неизвестный танк' }} - {{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}">
@@ -189,6 +190,15 @@
 
                     </div>
                 </a>
+                <div style="position: absolute; top: 15px; right: 15px; z-index: 1;">
+                    <form action="{% url 'replay_delete' replay.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Вы уверены, что хотите удалить этот реплей?');">
+                            Удалить
+                        </button>
+                    </form>
+                </div>
+            </div>
             {% endfor %}
         {% else %}
             <p class="empty">Вы еще не загрузили ни одного реплея.</p>

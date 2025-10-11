@@ -12,7 +12,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import JsonResponse, Http404, HttpResponse, StreamingHttpResponse, HttpRequest
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
 from django.utils.dateparse import parse_date
 from django.utils.encoding import escape_uri_path
@@ -444,6 +444,27 @@ class MyReplaysView(LoginRequiredMixin, ReplayListView):
         context = super().get_context_data(**kwargs)
         context['page_title'] = "Мои реплеи"
         return context
+
+
+class ReplayDeleteView(LoginRequiredMixin, View):
+    """
+    Удаление реплея.
+    Только владелец может удалить свой реплей.
+    """
+    def post(self, request, pk):
+        replay = get_object_or_404(Replay, pk=pk)
+
+        if replay.user != request.user:
+            messages.error(request, "Вы не можете удалить этот реплей.")
+            return redirect('my_replay_list')
+
+        try:
+            replay.delete()
+            messages.success(request, f"Реплей '{replay.title}' был успешно удален.")
+        except Exception as e:
+            messages.error(request, f"Ошибка при удалении реплея: {e}")
+
+        return redirect('my_replay_list')
 
 
 class ReplayFiltersView(TemplateView):
