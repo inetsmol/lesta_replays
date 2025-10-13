@@ -18,3 +18,4 @@ tailwindcss.exe
 cert.crt
 cert.key
 .cursor/rules/
+.gemini/settings.json

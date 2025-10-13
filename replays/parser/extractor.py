@@ -1078,6 +1078,7 @@ class ExtractorV2:
         # основные режимы WoT
         gp_map = {
             "ctf": "Стандартный бой",
+            "comp7": "Натиск",
             "domination": "Встречный бой",
             "assault": "Штурм",
             "assault2": "Штурм",
