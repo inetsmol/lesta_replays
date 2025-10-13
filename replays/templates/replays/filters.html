@@ -57,12 +57,12 @@
     <div class="text-muted-sm mt-4">Ищет среди всех участников, возможны совпадения по подстроке</div>
   </div>
 
-  <div class="field">
-    <label for="user_nick">Ник загрузившего</label>
-    <input type="search" id="user_nick" name="user_nick"
-           value="{{ current_filters.user_nick.0|default_if_none:'' }}"
-           placeholder="Ник на сайте">
-  </div>
+{#  <div class="field">#}
+{#    <label for="user_nick">Ник загрузившего</label>#}
+{#    <input type="search" id="user_nick" name="user_nick"#}
+{#           value="{{ current_filters.user_nick.0|default_if_none:'' }}"#}
+{#           placeholder="Ник на сайте">#}
+{#  </div>#}
 
   <div class="field">
     <label for="short_description">Описание</label>
@@ -71,12 +71,29 @@
            placeholder="Текст из описания">
   </div>
 
-  <div class="field">
-  <label for="owner_clan">Клан владельца</label>
-  <input type="search" id="owner_clan" name="owner_clan"
-         value="{{ current_filters.owner_clan.0|default_if_none:'' }}"
-         placeholder="Напр.: RED">
-</div>
+    <div class="field">
+      <label for="owner_clan">Клан игрока</label>
+      <input type="search" id="owner_clan" name="owner_clan"
+             value="{{ current_filters.owner_clan.0|default_if_none:'' }}"
+             placeholder="Напр.: RED">
+    </div>
+               <div class="field">
+                    <label>Степени мастерства</label>
+                    {% with selected=current_filters.mastery|default:"" %}
+                        <div class="chips">
+                            {% for val,label in filter_data.mastery_choices %}
+                                {% with sval=val|stringformat:"s" %}
+                                    <label class="chip">
+                                        <input type="checkbox" name="mastery" value="{{ sval }}"
+                                               {% if sval in selected %}checked{% endif %}>
+                                        {% if val == 4 %}Мастер{% elif val == 3 %}1 степень{% elif val == 2 %}2
+                                            степень{% elif val == 1 %}3 степень{% else %}Без знака{% endif %}
+                                    </label>
+                                {% endwith %}
+                            {% endfor %}
+                        </div>
+                    {% endwith %}
+                </div>
 
 </div>
 
@@ -175,25 +192,25 @@
                 </div>
             </div>
 
-            <div class="form-row">
-                <div class="field">
-                    <label>Степени мастерства</label>
-                    {% with selected=current_filters.mastery|default:"" %}
-                        <div class="chips">
-                            {% for val,label in filter_data.mastery_choices %}
-                                {% with sval=val|stringformat:"s" %}
-                                    <label class="chip">
-                                        <input type="checkbox" name="mastery" value="{{ sval }}"
-                                               {% if sval in selected %}checked{% endif %}>
-                                        {% if val == 4 %}Мастер{% elif val == 3 %}1 степень{% elif val == 2 %}2
-                                            степень{% elif val == 1 %}3 степень{% else %}Без знака{% endif %}
-                                    </label>
-                                {% endwith %}
-                            {% endfor %}
-                        </div>
-                    {% endwith %}
-                </div>
-            </div>
+{#            <div class="form-row">#}
+{#                <div class="field">#}
+{#                    <label>Степени мастерства</label>#}
+{#                    {% with selected=current_filters.mastery|default:"" %}#}
+{#                        <div class="chips">#}
+{#                            {% for val,label in filter_data.mastery_choices %}#}
+{#                                {% with sval=val|stringformat:"s" %}#}
+{#                                    <label class="chip">#}
+{#                                        <input type="checkbox" name="mastery" value="{{ sval }}"#}
+{#                                               {% if sval in selected %}checked{% endif %}>#}
+{#                                        {% if val == 4 %}Мастер{% elif val == 3 %}1 степень{% elif val == 2 %}2#}
+{#                                            степень{% elif val == 1 %}3 степень{% else %}Без знака{% endif %}#}
+{#                                    </label>#}
+{#                                {% endwith %}#}
+{#                            {% endfor %}#}
+{#                        </div>#}
+{#                    {% endwith %}#}
+{#                </div>#}
+{#            </div>#}
 
             <hr class="mt-8 mb-8" style="border:none;border-top:1px solid var(--border);"/>
 
