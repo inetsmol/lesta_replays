@@ -117,6 +117,7 @@ AUTHENTICATION_BACKENDS = [
 LOGIN_REDIRECT_URL = "/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"  # обязательное подтверждение email
+ACCOUNT_EMAIL_REQUIRED = True
 # None => показывать чекбокс "Запомнить меня" на форме логина
 ACCOUNT_SESSION_REMEMBER = None
 
