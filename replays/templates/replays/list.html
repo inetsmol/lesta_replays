@@ -119,9 +119,6 @@
 
                                 <div class="upload-info">
                                     {{ replay.battle_date|default_if_none:replay.created_at|localtime|date:"d.m.Y H:i" }}
-                                    {% if replay.user %}
-                                        | by {{ replay.user.username }}
-                                    {% endif %}
                                 </div>
 
                                 <div class="description">{{ replay.short_description }}</div>
