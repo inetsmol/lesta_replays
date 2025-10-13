@@ -222,12 +222,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return true;
   }
 
-  function fmtBytes(bytes) {
-    if (bytes === 0) return '0 B';
-    const k = 1024, sizes = ['B','KB','MB','GB','TB'];
-    const i = Math.floor(Math.log(bytes)/Math.log(k));
-    return `${(bytes/Math.pow(k,i)).toFixed(2)} ${sizes[i]}`;
-  }
+
 
   function renderSelected() {
     if (!fileInfo || !selectedBox) return;
@@ -239,17 +234,15 @@ document.addEventListener('DOMContentLoaded', function () {
     selectedBox.style.display = 'block';
     if (submitBtn) submitBtn.disabled = false;
 
-    const total = selectedFiles.reduce((s, item)=> s + item.file.size, 0);
     const left = Math.max(0, MAX_FILES - selectedFiles.length);
     fileInfo.innerHTML = `
       <div class="file-total">
-        Выбрано: ${selectedFiles.length}/${MAX_FILES}${left ? ` (можно добавить ещё ${left})` : ''} • ${fmtBytes(total)}
+        Выбрано: ${selectedFiles.length}/${MAX_FILES}${left ? ` (можно добавить ещё ${left})` : ''}
       </div>
       <div class="file-list">
         ${selectedFiles.map((item,i)=>`
           <div class="file-row" data-idx="${i}">
             <span class="file-name" title="${escapeHtml(item.file.name)}">${escapeHtml(item.file.name)}</span>
-            <span class="file-size">${fmtBytes(item.file.size)}</span>
             <button type="button" class="file-remove" aria-label="Удалить" data-remove="${i}">✕</button>
           </div>
           <div class="file-desc">
