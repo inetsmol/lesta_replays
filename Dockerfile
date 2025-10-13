@@ -55,10 +55,10 @@ RUN chmod +x /entrypoint.sh && \
 COPY . .
 
 # Компиляция переводов
-RUN /opt/venv/bin/python manage.py compilemessages
+# RUN /opt/venv/bin/python manage.py compilemessages
 
 # Смена владельца и прав на файлы
-RUN chown -R django:django /app
+# RUN chown -R django:django /app
 
 # Создание директорий для статики и медиа
 RUN mkdir -p /app/staticfiles /app/media && \

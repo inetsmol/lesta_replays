@@ -1,6 +1,9 @@
 {# replays/templates/replays/list.html #}
 {% extends "base.html" %}
+{% load static %}
+{% load custom_comments_tags %}
 {% load tz %}
+{% load comments %}
 {% block body_class %}replays index{% endblock %}
 {#{% block content_mod %}content--solo{% endblock %}#}
 {% block content %}
@@ -149,6 +152,12 @@
                                              alt="Level {{ replay.tank.level }}"/>
                                     </div>
                                 {% endif %}
+
+                                {% get_comment_count for replay as comment_count %}
+                                <div class="cell">
+                                    <i class="far fa-comments" style="color: #8c8c8c; font-size: 16px; vertical-align: -3px;"></i>
+                                    <span style="color: #ddd; font-size: 14px; vertical-align: middle; margin-left: 4px;">{{ comment_count|default:"0" }}</span>
+                                </div>
                             </div>
 
                             <div class="table">
