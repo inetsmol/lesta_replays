@@ -73,6 +73,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -258,11 +259,12 @@ COMMENTS_XTD_MAX_THREAD_LEVEL = 3
 COMMENTS_XTD_LIST_ORDER = ('-thread_id', 'order')
 
 # Кастомная форма (только имя и текст) - используем стандартный параметр
-COMMENT_FORM_CLASS = 'replays.forms.SimpleCommentForm'
+COMMENTS_XTD_FORM_CLASS = 'replays.forms.SimpleCommentForm'
 
 # Модерация комментариев
 COMMENTS_XTD_APP_MODEL_OPTIONS = {
     'replays.replay': {
+        'who_can_post': 'users',  # Разрешить комментировать только залогиненным
         'allow_flagging': True,      # Разрешить жалобы на комментарии
         'allow_feedback': True,       # Разрешить лайки/дизлайки
         'show_feedback': True,        # Показывать счетчик лайков

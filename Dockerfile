@@ -33,6 +33,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     curl \
+    gettext \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get purge -y --auto-remove
 
@@ -51,7 +52,13 @@ RUN chmod +x /entrypoint.sh && \
     chown django:django /entrypoint.sh
 
 # Копирование кода приложения
-COPY --chown=django:django . .
+COPY . .
+
+# Компиляция переводов
+RUN /opt/venv/bin/python manage.py compilemessages
+
+# Смена владельца и прав на файлы
+RUN chown -R django:django /app
 
 # Создание директорий для статики и медиа
 RUN mkdir -p /app/staticfiles /app/media && \

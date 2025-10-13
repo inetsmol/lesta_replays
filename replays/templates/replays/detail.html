@@ -1,7 +1,7 @@
 {# replays/templates/replays/detail.html #}
 {% extends "base.html" %}
 {% load static humanize %}
-{% load comments_xtd comments %}
+{% load comments_xtd comments custom_comments_tags %}
 
 {% block title %}Реплей #{{ replay.id }} - {{ replay_data.player_name }}{% endblock %}
 {% block meta_description %}
@@ -755,6 +755,31 @@
             {% endif %}
         </div>
   </div> <!-- /replay-wrapper -->
+
+  <div class="card" style="margin-top: 2rem; background: #14120e; padding: 20px; border-radius: 5px;">
+    <div class="card-body">
+      <h4 class="card-title" style="color: #c3c3c3; margin-bottom: 1rem;">Комментарии</h4>
+      <hr style="border-color: #333;"/>
+      {% get_comment_count for replay as comment_count %}
+      <p style="color: #999;">Всего комментариев: {{ comment_count }}</p>
+
+      <div class="comment-form-wrapper" style="margin-top: 1.5rem;">
+        {% if user.is_authenticated %}
+          {% custom_render_comment_form replay %}
+        {% else %}
+          <p style="color: #ccc;">
+            Пожалуйста, <a href="{% url 'account_login' %}?next={{ request.path|urlencode }}">войдите в аккаунт</a>
+            или <a href="{% url 'account_signup' %}?next={{ request.path|urlencode }}">зарегистрируйтесь</a>,
+            чтобы оставлять комментарии.
+          </p>
+        {% endif %}
+      </div>
+
+      <div class="comment-list-wrapper" style="margin-top: 2rem;">
+        {% render_comment_list for replay %}
+      </div>
+    </div>
+  </div>
 
 {% endif %}
 

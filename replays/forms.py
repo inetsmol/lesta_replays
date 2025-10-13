@@ -4,12 +4,6 @@ from django_comments.forms import CommentForm
 
 
 class SimpleCommentForm(CommentForm):
-    """
-    Упрощенная форма комментариев для анонимных пользователей.
-    Содержит только поля: имя (необязательное) и текст комментария.
-    """
-
-    # Переопределяем поле name, делаем его необязательным
     name = forms.CharField(
         label="Имя",
         max_length=50,
@@ -19,21 +13,16 @@ class SimpleCommentForm(CommentForm):
             'class': 'form-control'
         })
     )
-
-    # Убираем email и url полностью
     email = forms.EmailField(
         label='',
         required=False,
         widget=forms.HiddenInput()
     )
-
     url = forms.URLField(
         label='',
         required=False,
         widget=forms.HiddenInput()
     )
-
-    # Переопределяем поле comment
     comment = forms.CharField(
         label='Комментарий',
         widget=forms.Textarea(attrs={
@@ -42,6 +31,15 @@ class SimpleCommentForm(CommentForm):
             'class': 'form-control'
         })
     )
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super(SimpleCommentForm, self).__init__(*args, **kwargs)
+
+        if self.user and self.user.is_authenticated:
+            name = self.user.first_name or self.user.username
+            self.fields['name'].initial = name
+            self.fields['name'].widget = forms.HiddenInput()
 
     def clean_email(self):
         """Возвращаем пустую строку для email"""
@@ -54,6 +52,6 @@ class SimpleCommentForm(CommentForm):
     def clean_name(self):
         """Если имя пустое, возвращаем 'Гость'"""
         name = self.cleaned_data.get('name', '').strip()
-        if not name:
+        if not name and (not self.user or not self.user.is_authenticated):
             return 'Гость'
         return name
