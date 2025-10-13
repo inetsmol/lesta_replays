@@ -30,9 +30,6 @@ class ReplayFileValidator:
         if error := cls._validate_size(uploaded_file.size):
             return error
 
-        if error := cls._validate_uniqueness(uploaded_file.name):
-            return error
-
         return None
 
     @classmethod

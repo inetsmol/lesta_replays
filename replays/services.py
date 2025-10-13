@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import json
 import logging
+import datetime
 from pathlib import Path
 from typing import Any, List, Iterable
 from typing import Optional, Tuple
@@ -28,23 +29,27 @@ class FileStorageService:
     def save_file(uploaded_file) -> Path:
         """
         Сохраняет загруженный файл в MEDIA_ROOT.
+        Если файл с таким именем уже существует, то к имени файла добавляется временная метка.
 
         Args:
             uploaded_file: Загруженный файл
 
         Returns:
             Path: Путь к сохранённому файлу
-
-        Raises:
-            ValidationError: Если файл уже существует
         """
         files_dir = Path(settings.MEDIA_ROOT)
         files_dir.mkdir(parents=True, exist_ok=True)
 
-        file_path = files_dir / uploaded_file.name
+        original_name = uploaded_file.name
+        file_path = files_dir / original_name
 
         if file_path.exists():
-            raise ValidationError("Файл с таким именем уже существует")
+            stem = Path(original_name).stem
+            suffix = Path(original_name).suffix
+            timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+            new_name = f"{stem}_{timestamp}{suffix}"
+            file_path = files_dir / new_name
+            uploaded_file.name = new_name  # Важно обновить имя файла
 
         with open(file_path, 'wb') as f:
             for chunk in uploaded_file.chunks():
