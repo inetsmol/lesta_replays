@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 import mimetypes
+import os
 import urllib.parse
 from pathlib import Path
 from typing import List, Dict, Any
@@ -459,9 +460,21 @@ class ReplayDeleteView(LoginRequiredMixin, View):
             return redirect('my_replay_list')
 
         try:
+            # Store file name for success message
+            replay_name = replay.file_name
+
+            # Delete the replay file
+            if replay.file_name:
+                file_path = os.path.join(settings.MEDIA_ROOT, replay.file_name)
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    logger.info(f"Файл реплея {file_path} был удален.")
+
             replay.delete()
-            messages.success(request, f"Реплей '{replay.title}' был успешно удален.")
+            messages.success(request, f"Реплей '{replay_name}' был успешно удален.")
+
         except Exception as e:
+            logger.exception(f"Ошибка при удалении реплея: {e}")
             messages.error(request, f"Ошибка при удалении реплея: {e}")
 
         return redirect('my_replay_list')
