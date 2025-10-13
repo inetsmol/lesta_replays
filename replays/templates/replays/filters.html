@@ -64,13 +64,13 @@
            placeholder="Ник на сайте">
   </div>
 
-{#  <div class="field">#}
-{#    <label for="clan">Клан</label>#}
-{#    <input type="search" id="clan" name="clan"#}
-{#           value="{{ current_filters.clan.0|default_if_none:'' }}"#}
-{#           placeholder="Тег клана, напр.: RED">#}
-{#    <div class="text-muted-sm mt-4">Ищет и владельца, и участников. Хранится без скобок.</div>#}
-{#  </div>#}
+  <div class="field">
+    <label for="short_description">Описание</label>
+    <input type="search" id="short_description" name="short_description"
+           value="{{ current_filters.short_description.0|default_if_none:'' }}"
+           placeholder="Текст из описания">
+  </div>
+
   <div class="field">
   <label for="owner_clan">Клан владельца</label>
   <input type="search" id="owner_clan" name="owner_clan"

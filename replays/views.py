@@ -352,6 +352,10 @@ class ReplayListView(ListView):
             if user_nick:
                 queryset = queryset.filter(user__username__icontains=user_nick)
 
+            short_description = (self.request.GET.get("short_description") or "").strip()
+            if short_description:
+                queryset = queryset.filter(short_description__icontains=short_description)
+
             # поиск по нику участника
             participant_nick = (self.request.GET.get("participant_nick") or "").strip()
             if participant_nick:
