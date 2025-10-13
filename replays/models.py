@@ -31,7 +31,6 @@ class Replay(models.Model):
     # Базовые поля файла
     file_name = models.CharField(
         max_length=255,
-        unique=True,
         db_index=True,
         help_text="Имя файла в папке ./files"
     )
@@ -166,6 +165,9 @@ class Replay(models.Model):
             models.Index(fields=["battle_date", "damage"]),
             models.Index(fields=["tank", "battle_date"]),
             models.Index(fields=["map", "battle_date"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(fields=['owner', 'battle_date', 'tank'], name='unique_replay_owner_battle_tank')
         ]
 
 

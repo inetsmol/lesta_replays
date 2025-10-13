@@ -253,6 +253,11 @@ class ReplayProcessingService:
                 map_display_name=replay_fields.get('map_display_name')
             )
 
+            # Шаг 5.1: Проверка на дубликат
+            battle_date = replay_fields.get('battle_date')
+            if Replay.objects.filter(owner=owner, battle_date=battle_date, tank=tank).exists():
+                raise ValidationError("Такой реплей уже существует в базе данных.")
+
             # Шаг 6: Создание реплея
             replay = self._create_replay(
                 user=user,
