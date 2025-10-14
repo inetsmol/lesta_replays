@@ -11,7 +11,9 @@ from typing import List, Dict, Any
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Q
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q, F, Count, OuterRef, Subquery, IntegerField, CharField, Value
+from django.db.models.functions import Coalesce, Cast
 from django.http import JsonResponse, Http404, HttpResponse, StreamingHttpResponse, HttpRequest
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
@@ -19,6 +21,8 @@ from django.utils.dateparse import parse_date
 from django.utils.encoding import escape_uri_path
 from django.views import View
 from django.views.generic import ListView, DetailView, TemplateView
+
+from django_comments.models import Comment
 
 from .error_handlers import ReplayErrorHandler
 from .models import Replay, Tank, Nation, Achievement
@@ -215,7 +219,18 @@ class ReplayListView(ListView):
     context_object_name = 'items'
     paginate_by = 10
 
-    SORTABLE_FIELDS = {'credits', 'xp', 'kills', 'damage', 'assist', 'block'}
+    SORTABLE_FIELDS = {
+        'credits',
+        'xp',
+        'kills',
+        'damage',
+        'assist',
+        'block',
+        'created_at',
+        'comment_count',
+        'view_count',
+        'download_count',
+    }
 
     def dispatch(self, request, *args, **kwargs):
         """Логируем каждый запрос"""
@@ -238,6 +253,28 @@ class ReplayListView(ListView):
 
             # СНАЧАЛА фильтры
             qs = self._apply_filters(qs)
+
+            comment_ct = ContentType.objects.get_for_model(Replay)
+            comment_counts = (
+                Comment.objects.filter(
+                    content_type=comment_ct,
+                    object_pk=Cast(OuterRef('pk'), output_field=CharField()),
+                    site_id=settings.SITE_ID,
+                    is_public=True,
+                    is_removed=False,
+                )
+                .values('object_pk')
+                .annotate(total=Count('pk'))
+                .values('total')
+            )
+
+            qs = qs.annotate(
+                comment_count=Coalesce(
+                    Subquery(comment_counts, output_field=IntegerField()),
+                    Value(0),
+                    output_field=IntegerField(),
+                )
+            )
 
             # ПОТОМ сортировка
             sort = (self.request.GET.get('sort') or '').strip()
@@ -523,6 +560,13 @@ class ReplayDetailView(DetailView):
     template_name = 'replays/detail.html'
     context_object_name = 'replay'
 
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        Replay.objects.filter(pk=self.object.pk).update(view_count=F('view_count') + 1)
+        self.object.view_count = (self.object.view_count or 0) + 1
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
@@ -754,6 +798,8 @@ class ReplayDownloadView(View):
             # Валидация безопасности и существования
             self._validate_file_security(file_path)
             self._validate_file_exists(file_path)
+
+            Replay.objects.filter(pk=replay.pk).update(download_count=F('download_count') + 1)
 
             # Возвращаем файл для скачивания
             return self._create_optimized_file_response(file_path, replay.file_name)

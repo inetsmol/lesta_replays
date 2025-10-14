@@ -15,7 +15,16 @@
          style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px;">
 
       <!-- СОРТИРОВКИ (слева) -->
-      <div class="sorters" style="display:flex; gap:8px; flex-wrap:wrap;">
+      <div class="sorters" style="display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:8px;">
+        {# Дата загрузки #}
+        <a class="btn btn--ghost {% if current_sort == 'created_at' %}active{% endif %}"
+           href="?{{ page_qs_prefix }}sort=created_at&dir={{ next_dir.created_at }}"
+           title="Сортировать по дате загрузки">
+          <i class="far fa-clock" style="font-size:16px;vertical-align:-2px;"></i>
+          Дата
+          {% if current_sort == 'created_at' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
+        </a>
+
         {# Урон #}
         <a class="btn btn--ghost {% if current_sort == 'damage' %}active{% endif %}"
            href="?{{ page_qs_prefix }}sort=damage&dir={{ next_dir.damage }}"
@@ -68,6 +77,33 @@
           <img src="{% static 'style/images/wot/buttons/blocked.png' %}" alt="Blocked" style="height:16px;vertical-align:-3px;">
           Блок
           {% if current_sort == 'block' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
+        </a>
+
+        {# Комментарии #}
+        <a class="btn btn--ghost {% if current_sort == 'comment_count' %}active{% endif %}"
+           href="?{{ page_qs_prefix }}sort=comment_count&dir={{ next_dir.comment_count }}"
+           title="Сортировать по количеству комментариев">
+          <i class="far fa-comments" style="font-size:16px;vertical-align:-2px;"></i>
+          Комментарии
+          {% if current_sort == 'comment_count' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
+        </a>
+
+        {# Просмотры #}
+        <a class="btn btn--ghost {% if current_sort == 'view_count' %}active{% endif %}"
+           href="?{{ page_qs_prefix }}sort=view_count&dir={{ next_dir.view_count }}"
+           title="Сортировать по просмотрам">
+          <i class="far fa-eye" style="font-size:16px;vertical-align:-2px;"></i>
+          Просмотры
+          {% if current_sort == 'view_count' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
+        </a>
+
+        {# Скачивания #}
+        <a class="btn btn--ghost {% if current_sort == 'download_count' %}active{% endif %}"
+           href="?{{ page_qs_prefix }}sort=download_count&dir={{ next_dir.download_count }}"
+           title="Сортировать по скачиваниям">
+          <i class="fas fa-download" style="font-size:16px;vertical-align:-2px;"></i>
+          Скачивания
+          {% if current_sort == 'download_count' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
         </a>
       </div>
 
@@ -157,6 +193,14 @@
                                 <div class="cell">
                                     <i class="far fa-comments" style="color: #8c8c8c; font-size: 16px; vertical-align: -3px;"></i>
                                     <span style="color: #ddd; font-size: 14px; vertical-align: middle; margin-left: 4px;">{{ comment_count|default:"0" }}</span>
+                                </div>
+                                <div class="cell">
+                                    <i class="far fa-eye" style="color: #8c8c8c; font-size: 16px; vertical-align: -3px;"></i>
+                                    <span style="color: #ddd; font-size: 14px; vertical-align: middle; margin-left: 4px;">{{ replay.view_count|intcomma }}</span>
+                                </div>
+                                <div class="cell">
+                                    <i class="fas fa-download" style="color: #8c8c8c; font-size: 16px; vertical-align: -3px;"></i>
+                                    <span style="color: #ddd; font-size: 14px; vertical-align: middle; margin-left: 4px;">{{ replay.download_count|intcomma }}</span>
                                 </div>
                             </div>
 

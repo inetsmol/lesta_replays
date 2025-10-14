@@ -36,6 +36,14 @@ class Replay(models.Model):
     )
     payload = models.JSONField(help_text="Извлечённый JSON из реплея")
     created_at = models.DateTimeField(auto_now_add=True)
+    view_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Количество просмотров реплея"
+    )
+    download_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Количество скачиваний реплея"
+    )
 
     # Связь с танком
     tank = models.ForeignKey(
