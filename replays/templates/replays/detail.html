@@ -364,20 +364,20 @@
             <table class="tank-list score dataTable no-footer">
               <thead>
               <tr>
-                <th class="player-platoon"><div>&nbsp;</div></th>
-                <th class="player-names"><div>&nbsp;</div></th>
-                <th class="tanks-name"><div>&nbsp;</div></th>
-                <th class="damage sorting_desc"><div>&nbsp;</div></th>
-                <th class="kills"><div>&nbsp;</div></th>
-                <th class="xp"><div> </div></th>
+                <th class="player-platoon" data-sort-key="platoon" data-sort-type="number"><div>&nbsp;</div></th>
+                <th class="player-names" data-sort-key="player" data-sort-type="string"><div>&nbsp;</div></th>
+                <th class="tanks-name" data-sort-key="vehicle" data-sort-type="string"><div>&nbsp;</div></th>
+                <th class="damage sorting_desc" data-sort-key="damage" data-sort-type="number" data-sort-default="desc"><div>&nbsp;</div></th>
+                <th class="kills" data-sort-key="kills" data-sort-type="number"><div>&nbsp;</div></th>
+                <th class="xp" data-sort-key="xp" data-sort-type="number"><div>&nbsp;</div></th>
               </tr>
               </thead>
               <tbody>
               {% for player in team_results.allies_players %}
-              <tr {% if player.is_current_player %}class="current-player"{% endif %} {% if not player.is_alive %}class="dead"{% endif %} data-player="{{ player.avatar_id }}">
-                <td class="player-platoon">{% if player.platoon_id %}<div class="number">{{ player.platoon_id }}</div>{% endif %}</td>
-                <td class="player-names">{{ player.display_name }}</td>
-                <td class="tanks-name">
+              <tr{% if player.is_current_player or not player.is_alive %} class="{% if player.is_current_player %}current-player{% endif %}{% if player.is_current_player and not player.is_alive %} {% endif %}{% if not player.is_alive %}dead{% endif %}"{% endif %} data-player="{{ player.avatar_id }}">
+                <td class="player-platoon" data-sort-value="{{ player.platoon_id|default_if_none:'' }}">{% if player.platoon_id %}<div class="number">{{ player.platoon_id }}</div>{% endif %}</td>
+                <td class="player-names" data-sort-value="{{ player.display_name|default_if_none:'' }}">{{ player.display_name }}</td>
+                <td class="tanks-name" data-sort-value="{{ player.vehicle_display_name|default_if_none:'' }}">
                   <img class="tank new" src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ player.vehicle_tag }}.png" alt="">
                   <span>{{ player.vehicle_display_name }}</span>
                   {% if player.medals.has_medals %}
@@ -386,9 +386,9 @@
                   </div>
                   {% endif %}
                 </td>
-                <td class="damage sorting_1">{{ player.damage_dealt|floatformat:0 }}</td>
-                <td class="kills">{{ player.kills }}</td>
-                <td class="xp">{{ player.xp }} <img class="xp" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP"></td>
+                <td class="damage sorting_1" data-sort-value="{{ player.damage_dealt|default_if_none:0 }}">{{ player.damage_dealt|floatformat:0 }}</td>
+                <td class="kills" data-sort-value="{{ player.kills|default_if_none:0 }}">{{ player.kills }}</td>
+                <td class="xp" data-sort-value="{{ player.xp|default_if_none:0 }}">{{ player.xp }} <img class="xp" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP"></td>
               </tr>
               {% endfor %}
               </tbody>
@@ -452,27 +452,27 @@
             <table class="tank-list score dataTable no-footer">
               <thead>
               <tr>
-                <th class="player-platoon"><div>&nbsp;</div></th>
-                <th class="player-names"><div>&nbsp;</div></th>
-                <th class="tanks-name"><div>&nbsp;</div></th>
-                <th class="damage sorting_desc"><div>&nbsp;</div></th>
-                <th class="kills"><div>&nbsp;</div></th>
-                <th class="xp"><div>&nbsp;</div></th>
+                <th class="player-platoon" data-sort-key="platoon" data-sort-type="number"><div>&nbsp;</div></th>
+                <th class="player-names" data-sort-key="player" data-sort-type="string"><div>&nbsp;</div></th>
+                <th class="tanks-name" data-sort-key="vehicle" data-sort-type="string"><div>&nbsp;</div></th>
+                <th class="damage sorting_desc" data-sort-key="damage" data-sort-type="number" data-sort-default="desc"><div>&nbsp;</div></th>
+                <th class="kills" data-sort-key="kills" data-sort-type="number"><div>&nbsp;</div></th>
+                <th class="xp" data-sort-key="xp" data-sort-type="number"><div>&nbsp;</div></th>
               </tr>
               </thead>
               <tbody>
               {% for player in team_results.enemies_players %}
-              <tr {% if not player.is_alive %}class="dead"{% endif %} data-player="{{ player.avatar_id }}">
-                <td class="player-platoon">{% if player.platoon_id %}<div class="number">{{ player.platoon_id }}</div>{% endif %}</td>
-                <td class="player-names">{{ player.display_name }}</td>
-                <td class="tanks-name">
+              <tr{% if not player.is_alive %} class="dead"{% endif %} data-player="{{ player.avatar_id }}">
+                <td class="player-platoon" data-sort-value="{{ player.platoon_id|default_if_none:'' }}">{% if player.platoon_id %}<div class="number">{{ player.platoon_id }}</div>{% endif %}</td>
+                <td class="player-names" data-sort-value="{{ player.display_name|default_if_none:'' }}">{{ player.display_name }}</td>
+                <td class="tanks-name" data-sort-value="{{ player.vehicle_display_name|default_if_none:'' }}">
                   <img class="tank new" src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ player.vehicle_tag }}.png" alt="">
                   <span>{{ player.vehicle_display_name }}</span>
                   {% if player.achievements %}<div class="medal" title="Медали"></div>{% endif %}
                 </td>
-                <td class="damage sorting_1">{{ player.damage_dealt|floatformat:0 }}</td>
-                <td class="kills">{{ player.kills }}</td>
-                <td class="xp">{{ player.xp }} <img class="xp" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP"></td>
+                <td class="damage sorting_1" data-sort-value="{{ player.damage_dealt|default_if_none:0 }}">{{ player.damage_dealt|floatformat:0 }}</td>
+                <td class="kills" data-sort-value="{{ player.kills|default_if_none:0 }}">{{ player.kills }}</td>
+                <td class="xp" data-sort-value="{{ player.xp|default_if_none:0 }}">{{ player.xp }} <img class="xp" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP"></td>
               </tr>
               {% endfor %}
               </tbody>
@@ -806,7 +806,112 @@ document.addEventListener('DOMContentLoaded', function () {
       switchTab(targetTab);
     });
   });
+
+  initTeamScoreSorting();
 });
+
+function initTeamScoreSorting() {
+  const tables = document.querySelectorAll('#tab-team table.tank-list');
+
+  tables.forEach(table => {
+    const allHeaders = Array.from(table.querySelectorAll('th'));
+    const sortableHeaders = allHeaders.filter(header => header.dataset.sortType);
+    const tbody = table.querySelector('tbody');
+    if (!tbody || !sortableHeaders.length) {
+      return;
+    }
+
+    const initialRows = Array.from(tbody.querySelectorAll('tr'));
+    applyStripe(initialRows);
+
+    const defaultHeader = sortableHeaders.find(header => header.classList.contains('sorting_desc') || header.classList.contains('sorting_asc'));
+    if (defaultHeader) {
+      const defaultIndex = allHeaders.indexOf(defaultHeader);
+      if (defaultIndex >= 0) {
+        const defaultDirection = defaultHeader.classList.contains('sorting_desc') ? 'desc' : 'asc';
+        defaultHeader.dataset.sortDirection = defaultDirection;
+        defaultHeader.classList.add('sorting_1');
+        updateColumnHighlight(table, defaultIndex);
+      }
+    } else if (sortableHeaders[0]) {
+      const fallbackIndex = allHeaders.indexOf(sortableHeaders[0]);
+      sortableHeaders[0].classList.add('sorting_1');
+      if (fallbackIndex >= 0) {
+        updateColumnHighlight(table, fallbackIndex);
+      }
+    }
+
+    sortableHeaders.forEach(header => {
+      header.addEventListener('click', () => {
+        const columnIndex = allHeaders.indexOf(header);
+        if (columnIndex < 0) {
+          return;
+        }
+
+        const sortType = header.dataset.sortType || 'string';
+        const nextDirection = header.dataset.sortDirection === 'asc' ? 'desc' : 'asc';
+
+        sortableHeaders.forEach(otherHeader => {
+          otherHeader.classList.remove('sorting_asc', 'sorting_desc', 'sorting_1');
+          delete otherHeader.dataset.sortDirection;
+        });
+
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        rows.sort((rowA, rowB) => {
+          const valueA = getCellValue(rowA.children[columnIndex], sortType);
+          const valueB = getCellValue(rowB.children[columnIndex], sortType);
+          if (valueA < valueB) {
+            return nextDirection === 'asc' ? -1 : 1;
+          }
+          if (valueA > valueB) {
+            return nextDirection === 'asc' ? 1 : -1;
+          }
+          return 0;
+        });
+
+        rows.forEach(row => tbody.appendChild(row));
+        applyStripe(rows);
+        updateColumnHighlight(table, columnIndex);
+
+        header.classList.add(nextDirection === 'asc' ? 'sorting_asc' : 'sorting_desc', 'sorting_1');
+        header.dataset.sortDirection = nextDirection;
+      });
+    });
+  });
+
+  function getCellValue(cell, sortType) {
+    if (!cell) {
+      return sortType === 'number' ? 0 : '';
+    }
+    const raw = (cell.getAttribute('data-sort-value') ?? cell.textContent ?? '').toString().trim();
+    if (sortType === 'number') {
+      const normalized = raw.replace(/\s+/g, '').replace(',', '.');
+      const num = parseFloat(normalized);
+      return Number.isNaN(num) ? 0 : num;
+    }
+    return raw.toLowerCase();
+  }
+
+  function applyStripe(rows) {
+    rows.forEach((row, index) => {
+      row.classList.remove('odd', 'even');
+      row.classList.add(index % 2 === 0 ? 'odd' : 'even');
+    });
+  }
+
+  function updateColumnHighlight(tableElement, columnIndex) {
+    const bodyRows = tableElement.querySelectorAll('tbody tr');
+    bodyRows.forEach(row => {
+      Array.from(row.children).forEach((cell, idx) => {
+        if (idx === columnIndex) {
+          cell.classList.add('sorting_1');
+        } else {
+          cell.classList.remove('sorting_1');
+        }
+      });
+    });
+  }
+}
 </script>
 
 <!-- jQuery UI tooltips init (использует title с HTML-сущностями) -->
