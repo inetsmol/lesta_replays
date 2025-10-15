@@ -11,16 +11,15 @@
     <link rel="stylesheet" href="{% static 'css/wot_record_skin.css' %}">
     {#    <div id="content" class="content content--solo">#}
 
-    <div class="filters-actions"
-         style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px;">
+    <div class="filters-actions flex items-center justify-between gap-3 mb-3">
 
       <!-- СОРТИРОВКИ (слева) -->
-      <div class="sorters" style="display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:8px;">
+      <div class="sorters grid grid-cols-5 gap-2">
         {# Дата загрузки #}
         <a class="btn btn--ghost {% if current_sort == 'created_at' %}active{% endif %}"
            href="?{{ page_qs_prefix }}sort=created_at&dir={{ next_dir.created_at }}"
            title="Сортировать по дате загрузки">
-          <i class="far fa-clock" style="font-size:16px;vertical-align:-2px;"></i>
+          <i class="far fa-clock inline-block text-base align-middle -translate-y-[2px]"></i>
           Дата
           {% if current_sort == 'created_at' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
         </a>
@@ -29,7 +28,7 @@
         <a class="btn btn--ghost {% if current_sort == 'damage' %}active{% endif %}"
            href="?{{ page_qs_prefix }}sort=damage&dir={{ next_dir.damage }}"
            title="Сортировать по урону">
-          <img src="{% static 'style/images/wot/library/BattleResultIcon-1.png' %}" alt="Damage" style="height:16px;vertical-align:-3px;">
+          <img src="{% static 'style/images/wot/library/BattleResultIcon-1.png' %}" alt="Damage" class="inline-block h-4 -translate-y-[3px]">
           Урон
           {% if current_sort == 'damage' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
         </a>
@@ -38,7 +37,7 @@
         <a class="btn btn--ghost {% if current_sort == 'credits' %}active{% endif %}"
            href="?{{ page_qs_prefix }}sort=credits&dir={{ next_dir.credits }}"
            title="Сортировать по кредитам">
-          <img src="{% static 'style/images/wot/library/CreditsIconBig.png' %}" alt="Credits" style="height:16px;vertical-align:-3px;">
+          <img src="{% static 'style/images/wot/library/CreditsIconBig.png' %}" alt="Credits" class="inline-block h-4 -translate-y-[3px]">
           Кредиты
           {% if current_sort == 'credits' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
         </a>
@@ -47,7 +46,7 @@
         <a class="btn btn--ghost {% if current_sort == 'xp' %}active{% endif %}"
            href="?{{ page_qs_prefix }}sort=xp&dir={{ next_dir.xp }}"
            title="Сортировать по опыту">
-          <img src="{% static 'style/images/wot/library/XpIconBig.png' %}" alt="XP" style="height:16px;vertical-align:-3px;">
+          <img src="{% static 'style/images/wot/library/XpIconBig.png' %}" alt="XP" class="inline-block h-4 -translate-y-[3px]">
           Опыт
           {% if current_sort == 'xp' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
         </a>
@@ -56,7 +55,7 @@
         <a class="btn btn--ghost {% if current_sort == 'kills' %}active{% endif %}"
            href="?{{ page_qs_prefix }}sort=kills&dir={{ next_dir.kills }}"
            title="Сортировать по фрагам">
-          <img src="{% static 'style/images/wot/buttons/Tank-ico.png' %}" alt="Kills" style="height:16px;vertical-align:-3px;">
+          <img src="{% static 'style/images/wot/buttons/Tank-ico.png' %}" alt="Kills" class="inline-block h-4 -translate-y-[3px]">
           Фраги
           {% if current_sort == 'kills' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
         </a>
@@ -65,7 +64,7 @@
         <a class="btn btn--ghost {% if current_sort == 'assist' %}active{% endif %}"
            href="?{{ page_qs_prefix }}sort=assist&dir={{ next_dir.assist }}"
            title="Сортировать по ассисту">
-          <img src="{% static 'style/images/wot/buttons/assist.png' %}" alt="Assist" style="height:16px;vertical-align:-3px;">
+          <img src="{% static 'style/images/wot/buttons/assist.png' %}" alt="Assist" class="inline-block h-4 -translate-y-[3px]">
           Ассист
           {% if current_sort == 'assist' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
         </a>
@@ -74,7 +73,7 @@
         <a class="btn btn--ghost {% if current_sort == 'block' %}active{% endif %}"
            href="?{{ page_qs_prefix }}sort=block&dir={{ next_dir.block }}"
            title="Сортировать по заблокированному урону">
-          <img src="{% static 'style/images/wot/buttons/blocked.png' %}" alt="Blocked" style="height:16px;vertical-align:-3px;">
+          <img src="{% static 'style/images/wot/buttons/blocked.png' %}" alt="Blocked" class="inline-block h-4 -translate-y-[3px]">
           Блок
           {% if current_sort == 'block' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
         </a>
@@ -83,7 +82,7 @@
         <a class="btn btn--ghost {% if current_sort == 'comment_count' %}active{% endif %}"
            href="?{{ page_qs_prefix }}sort=comment_count&dir={{ next_dir.comment_count }}"
            title="Сортировать по количеству комментариев">
-          <i class="far fa-comments" style="font-size:16px;vertical-align:-2px;"></i>
+          <i class="far fa-comments inline-block text-base align-middle -translate-y-[2px]"></i>
           Комментарии
           {% if current_sort == 'comment_count' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
         </a>
@@ -92,7 +91,7 @@
         <a class="btn btn--ghost {% if current_sort == 'view_count' %}active{% endif %}"
            href="?{{ page_qs_prefix }}sort=view_count&dir={{ next_dir.view_count }}"
            title="Сортировать по просмотрам">
-          <i class="far fa-eye" style="font-size:16px;vertical-align:-2px;"></i>
+          <i class="far fa-eye inline-block text-base align-middle -translate-y-[2px]"></i>
           Просмотры
           {% if current_sort == 'view_count' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
         </a>
@@ -101,14 +100,14 @@
         <a class="btn btn--ghost {% if current_sort == 'download_count' %}active{% endif %}"
            href="?{{ page_qs_prefix }}sort=download_count&dir={{ next_dir.download_count }}"
            title="Сортировать по скачиваниям">
-          <i class="fas fa-download" style="font-size:16px;vertical-align:-2px;"></i>
+          <i class="fas fa-download inline-block text-base align-middle -translate-y-[2px]"></i>
           Скачивания
           {% if current_sort == 'download_count' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
         </a>
       </div>
 
       <!-- КНОПКИ ФИЛЬТРОВ (справа) -->
-      <div style="display:flex; gap:10px;">
+      <div class="flex gap-2.5">
         <a class="btn btn--accent" href="{{ filters_url }}">Фильтры</a>
         {% if has_filters_applied %}
           <a class="btn btn--ghost" href="{{ reset_url }}">Сбросить</a>
@@ -119,10 +118,10 @@
     <main class="replay-grid replay-grid--rows">
         {% if items %}
             {% for replay in items %}
-                <a class="tovabb"
+                <a class="tovabb group"
                     href="{% url 'replay_detail' replay.id %}?back={{ request.get_full_path|urlencode }}"
                     title="{{ replay.tank.name|default:'Неизвестный танк' }} - {{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}">
-                    <div class="wrapper">
+                    <div class="wrapper transform transition duration-200 ease-out group-hover:-translate-y-1 group-hover:scale-[1.02] group-hover:shadow-[0_18px_30px_-18px_rgba(0,0,0,0.75)]">
 
                         <div class="img-container">
                             <!-- КАРТА -->
@@ -144,93 +143,138 @@
                             {% endif %}
 
                             <span class="map-name">{{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}</span>
-                            <span class="name">{{ replay.tank.name|default:'Неизвестный танк' }}</span>
+                            <span class="name absolute !right-[4px] !bottom-[4px] inline-flex max-w-[160px] items-center justify-end rounded bg-black/40 px-2 py-1 text-sm font-medium text-white text-right backdrop-blur-sm shadow-[0_0_8px_rgba(0,0,0,0.8)] !left-auto !top-auto !z-[5] whitespace-nowrap">
+                                {{ replay.tank.name|default:'Неизвестный танк' }}
+                            </span>
+
+                            {% if replay.tank.type or replay.tank.level %}
+                                <div class="absolute right-2 top-2 flex items-center justify-end gap-1.5 z-[6]">
+                                    {% if replay.tank.type %}
+                                        <span class="relative inline-flex h-[30px] w-[30px]">
+                                            <img
+                                                class="pointer-events-none absolute inset-0 h-full w-full select-none brightness-125 contrast-125 drop-shadow-[0_0_45px_rgba(0,0,0,1),0_0_28px_rgba(0,0,0,0.98),0_6px_22px_rgba(0,0,0,0.95)]"
+                                                src="{% static 'style/images/wot/vehicleTypes/' %}{{ replay.tank.type }}.png"
+                                                alt=""
+                                                aria-hidden="true"
+                                            />
+                                            <img
+                                                class="pointer-events-none absolute inset-0 h-full w-full select-none brightness-[150%] contrast-[145%] drop-shadow-[0_0_45px_rgba(0,0,0,1),0_0_28px_rgba(0,0,0,0.98),0_6px_22px_rgba(0,0,0,0.95)]"
+                                                src="{% static 'style/images/wot/vehicleTypes/' %}{{ replay.tank.type }}.png"
+                                                alt=""
+                                                aria-hidden="true"
+                                            />
+                                            <img
+                                                class="pointer-events-none absolute inset-0 h-full w-full select-none brightness-[135%] contrast-[140%] drop-shadow-[0_0_45px_rgba(0,0,0,1),0_0_28px_rgba(0,0,0,0.98),0_6px_22px_rgba(0,0,0,0.95)]"
+                                                src="{% static 'style/images/wot/vehicleTypes/' %}{{ replay.tank.type }}.png"
+                                                alt=""
+                                                aria-hidden="true"
+                                            />
+                                            <img
+                                                class="relative h-full w-full brightness-125 contrast-125 drop-shadow-[0_0_45px_rgba(0,0,0,1),0_0_28px_rgba(0,0,0,0.98),0_6px_22px_rgba(0,0,0,0.95)]"
+                                                src="{% static 'style/images/wot/vehicleTypes/' %}{{ replay.tank.type }}.png"
+                                                alt="Vehicle type"
+                                            />
+                                        </span>
+                                    {% endif %}
+                                    {% if replay.tank.level %}
+                                        <span class="relative inline-flex h-[30px] w-[30px]">
+                                            <img
+                                                class="pointer-events-none absolute inset-0 h-full w-full select-none brightness-125 contrast-125 drop-shadow-[0_0_45px_rgba(0,0,0,1),0_0_28px_rgba(0,0,0,0.98),0_6px_22px_rgba(0,0,0,0.95)]"
+                                                src="{% static 'style/images/wot/levels/tank_level_' %}{{ replay.tank.level }}.png"
+                                                alt=""
+                                                aria-hidden="true"
+                                            />
+                                            <img
+                                                class="pointer-events-none absolute inset-0 h-full w-full select-none brightness-[150%] contrast-[145%] drop-shadow-[0_0_45px_rgba(0,0,0,1),0_0_28px_rgba(0,0,0,0.98),0_6px_22px_rgba(0,0,0,0.95)]"
+                                                src="{% static 'style/images/wot/levels/tank_level_' %}{{ replay.tank.level }}.png"
+                                                alt=""
+                                                aria-hidden="true"
+                                            />
+                                            <img
+                                                class="pointer-events-none absolute inset-0 h-full w-full select-none brightness-[135%] contrast-[140%] drop-shadow-[0_0_45px_rgba(0,0,0,1),0_0_28px_rgba(0,0,0,0.98),0_6px_22px_rgba(0,0,0,0.95)]"
+                                                src="{% static 'style/images/wot/levels/tank_level_' %}{{ replay.tank.level }}.png"
+                                                alt=""
+                                                aria-hidden="true"
+                                            />
+                                            <img
+                                                class="relative h-full w-full brightness-125 contrast-125 drop-shadow-[0_0_45px_rgba(0,0,0,1),0_0_28px_rgba(0,0,0,0.98),0_6px_22px_rgba(0,0,0,0.95)]"
+                                                src="{% static 'style/images/wot/levels/tank_level_' %}{{ replay.tank.level }}.png"
+                                                alt="Level {{ replay.tank.level }}"
+                                            />
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+
+                            {% if replay.mastery %}
+                                <img
+                                    class="absolute left-1.5 bottom-1.5 h-12 w-12 md:h-14 md:w-14 drop-shadow-[0_4px_10px_rgba(0,0,0,0.85)] z-[6]"
+                                    src="{% static 'style/images/wot/library/proficiency/class_icons_' %}{{ replay.mastery }}.png"
+                                    alt="Mastery {{ replay.mastery }}"
+                                />
+                            {% endif %}
 
                             <!-- Убираю battleType пока нет этого поля в модели -->
                         </div>
 
                         <div class="details">
-                            <div class="title">{{ replay.tank.name|default:'Неизвестный танк' }}
-                                - {{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}
-                            </div>
-
-                            <div class="table">
-
-                                <div class="upload-info">
-                                    {{ replay.battle_date|default_if_none:replay.created_at|localtime|date:"d.m.Y H:i" }}
+                            <div class="flex flex-wrap items-start justify-between gap-4">
+                                <div class="flex flex-col gap-1 leading-snug">
+                                    {% if replay.short_description %}
+                                        <div class="title text-lg font-semibold text-white">{{ replay.short_description }}</div>
+                                    {% else %}
+                                        <div class="title text-lg font-semibold text-white">
+                                            {{ replay.tank.name|default:'Неизвестный танк' }} • {{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="upload-info text-sm font-semibold text-[#ddd]">
+                                        {{ replay.battle_date|default_if_none:replay.created_at|localtime|date:"d.m.Y H:i" }}
+                                    </div>
                                 </div>
-
-                                <div class="description">{{ replay.short_description }}</div>
-
-                            </div>
-
-                            <div class="table">
-                                {% if replay.mastery %}
-                                    <div class="cell">
-                                        <img class="mastery"
-                                             src="{% static 'style/images/wot/library/proficiency/class_icons_' %}{{ replay.mastery }}.png"
-                                             alt="Mastery {{ replay.mastery }}"/>
-                                    </div>
-                                {% endif %}
-
-                                {% if replay.tank.type %}
-                                    <div class="cell">
-                                        <img class="type"
-                                             src="{% static 'style/images/wot/vehicleTypes/' %}{{ replay.tank.type }}.png"
-                                             alt="Vehicle type"/>
-                                    </div>
-                                {% endif %}
-
-                                {% if replay.tank.level %}
-                                    <div class="cell">
-                                        <img class="level"
-                                             src="{% static 'style/images/wot/levels/tank_level_' %}{{ replay.tank.level }}.png"
-                                             alt="Level {{ replay.tank.level }}"/>
-                                    </div>
-                                {% endif %}
-
                                 {% get_comment_count for replay as comment_count %}
-                                <div class="cell">
-                                    <i class="far fa-comments" style="color: #8c8c8c; font-size: 16px; vertical-align: -3px;"></i>
-                                    <span style="color: #ddd; font-size: 14px; vertical-align: middle; margin-left: 4px;">{{ comment_count|default:"0" }}</span>
-                                </div>
-                                <div class="cell">
-                                    <i class="far fa-eye" style="color: #8c8c8c; font-size: 16px; vertical-align: -3px;"></i>
-                                    <span style="color: #ddd; font-size: 14px; vertical-align: middle; margin-left: 4px;">{{ replay.view_count|intcomma }}</span>
-                                </div>
-                                <div class="cell">
-                                    <i class="fas fa-download" style="color: #8c8c8c; font-size: 16px; vertical-align: -3px;"></i>
-                                    <span style="color: #ddd; font-size: 14px; vertical-align: middle; margin-left: 4px;">{{ replay.download_count|intcomma }}</span>
+                                <div class="flex flex-wrap items-center gap-4 text-sm text-[#ddd] md:-translate-x-3 lg:-translate-x-7">
+                                    <span class="inline-flex items-center">
+                                        <i class="far fa-comments inline-block text-base text-[#8c8c8c] -translate-y-[3px]"></i>
+                                        <span class="ml-1 align-middle text-sm text-[#ddd]">{{ comment_count|default:"0" }}</span>
+                                    </span>
+                                    <span class="inline-flex items-center">
+                                        <i class="far fa-eye inline-block text-base text-[#8c8c8c] -translate-y-[3px]"></i>
+                                        <span class="ml-1 align-middle text-sm text-[#ddd]">{{ replay.view_count|intcomma }}</span>
+                                    </span>
+                                    <span class="inline-flex items-center">
+                                        <i class="fas fa-download inline-block text-base text-[#8c8c8c] -translate-y-[3px]"></i>
+                                        <span class="ml-1 align-middle text-sm text-[#ddd]">{{ replay.download_count|intcomma }}</span>
+                                    </span>
                                 </div>
                             </div>
 
                             <div class="table">
                                 <!-- Статистика из модели -->
-                                <div class="cell">
+                                <div class="cell flex items-center gap-1.5">
                                     <img src="{% static 'style/images/wot/library/CreditsIconBig.png' %}"
                                          alt="Credits"/>
-                                    <span>{{ replay.credits|intcomma }}</span>
+                                    <span class="ml-1 inline-block w-[5.5rem] text-left tabular-nums">{{ replay.credits|intcomma }}</span>
                                 </div>
-                                <div class="cell">
+                                <div class="cell flex items-center gap-1.5">
                                     <img src="{% static 'style/images/wot/library/XpIconBig.png' %}" alt="XP"/>
-                                    <span>{{ replay.xp|intcomma }}</span>
+                                    <span class="ml-1 inline-block w-20 text-left tabular-nums">{{ replay.xp|intcomma }}</span>
                                 </div>
-                                <div class="cell">
+                                <div class="cell flex items-center gap-1.5">
                                     <img src="{% static 'style/images/wot/buttons/Tank-ico.png' %}" alt="Kills"/>
-                                    <span>{{ replay.kills }}</span>
+                                    <span class="ml-1 inline-block w-8 text-left tabular-nums">{{ replay.kills }}</span>
                                 </div>
-                                <div class="cell">
+                                <div class="cell flex items-center gap-1.5">
                                     <img src="{% static 'style/images/wot/library/BattleResultIcon-1.png' %}"
                                          alt="Damage"/>
-                                    <span>{{ replay.damage|intcomma }}</span>
+                                    <span class="ml-1 inline-block w-20 text-left tabular-nums">{{ replay.damage|intcomma }}</span>
                                 </div>
-                                <div class="cell">
+                                <div class="cell flex items-center gap-1.5">
                                     <img src="{% static 'style/images/wot/buttons/assist.png' %}" alt="Assist"/>
-                                    <span>{{ replay.assist|intcomma }}</span>
+                                    <span class="ml-1 inline-block w-20 text-left tabular-nums">{{ replay.assist|intcomma }}</span>
                                 </div>
-                                <div class="cell">
+                                <div class="cell flex items-center gap-1.5">
                                     <img src="{% static 'style/images/wot/buttons/blocked.png' %}" alt="Blocked"/>
-                                    <span>{{ replay.block|intcomma }}</span>
+                                    <span class="ml-1 inline-block w-20 text-left tabular-nums">{{ replay.block|intcomma }}</span>
                                 </div>
                             </div>
 

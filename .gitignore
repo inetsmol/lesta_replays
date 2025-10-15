@@ -19,3 +19,4 @@ cert.crt
 cert.key
 .cursor/rules/
 .gemini/settings.json
+node_modules/
