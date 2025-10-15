@@ -17,7 +17,7 @@ from django.db import transaction
 
 from replays.models import Replay, Tank, Player, Map
 from replays.parser.extractor import ExtractorV2
-from replays.parser.parser import Parser
+from replays.parser.parser import Parser, ParseError
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +62,32 @@ class FileStorageService:
         """Удаляет файл из файловой системы."""
         if file_path and file_path.exists():
             file_path.unlink(missing_ok=True)
+
+    @staticmethod
+    def move_to_directory(file_path: Path, subdir: str) -> Path:
+        """
+        Переносит файл в поддиректорию внутри MEDIA_ROOT.
+
+        Args:
+            file_path: исходный путь к файлу
+            subdir: имя поддиректории внутри MEDIA_ROOT
+
+        Returns:
+            Path: новый путь к файлу
+        """
+        if not file_path:
+            return file_path
+
+        target_dir = Path(settings.MEDIA_ROOT) / subdir
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+        target_path = target_dir / file_path.name
+        if target_path.exists():
+            timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+            target_path = target_dir / f"{file_path.stem}_{timestamp}{file_path.suffix}"
+
+        file_path.rename(target_path)
+        return target_path
 
 
 class GameVersionExtractor:
@@ -205,6 +231,7 @@ class ReplayProcessingService:
     """Основной сервис обработки реплеев."""
 
     MAX_DESCRIPTION_LEN = 60
+    UNSUPPORTED_VERSION_DIR = "unsupported_version_replays"
 
     def __init__(self):
         self.file_storage = FileStorageService()
@@ -275,6 +302,21 @@ class ReplayProcessingService:
 
             logger.info(f"Реплей создан: {replay.id} - {uploaded_file.name}")
             return replay
+
+        except ParseError as e:
+            if file_path:
+                error_message = str(e)
+                if "Неподдерживаемая версия" in error_message:
+                    archived_path = self.file_storage.move_to_directory(
+                        file_path,
+                        self.UNSUPPORTED_VERSION_DIR
+                    )
+                    logger.warning(
+                        f"Реплей {uploaded_file.name} сохранён для анализа по пути: {archived_path}"
+                    )
+                else:
+                    self.file_storage.delete_file(file_path)
+            raise
 
         except (json.JSONDecodeError, ValueError) as e:
             self.file_storage.delete_file(file_path)
@@ -412,7 +454,6 @@ def _extract_triplet(item: Any) -> Tuple[str, str, str]:
     # последний случай — строка
     login = _norm_str(str(item) if item is not None else "")
     return login, login, ""
-
 
 
 

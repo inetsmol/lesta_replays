@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.body.style.overflow = '';
   }
 
-  function showAlert(content, onOk, title = 'Сообщение') {
+  function showAlert(content, onOk, title = 'Сообщение', variant = 'error') {
     if (!alertModal || !alertMsgEl) {
       ensureMessagesContainer();
       const text = typeof content === 'string' ? content : 'Произошла ошибка';
@@ -68,11 +68,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     alertMsgEl.innerHTML = '';
     if (typeof content === 'string') {
-      alertMsgEl.innerHTML = `<div class="alert-simple-message">${escapeHtml(content)}</div>`;
+      const variants = {
+        success: 'alert-simple-message--success',
+        info: 'alert-simple-message--info',
+        error: 'alert-simple-message--error'
+      };
+      const suffix = variants[variant] || variants.error;
+      alertMsgEl.innerHTML = `<div class="alert-simple-message ${suffix}">${escapeHtml(content)}</div>`;
     } else if (content instanceof HTMLElement) {
       alertMsgEl.appendChild(content);
     } else {
-      alertMsgEl.innerHTML = '<div class="alert-simple-message">Произошла ошибка</div>';
+      alertMsgEl.innerHTML = '<div class="alert-simple-message alert-simple-message--error">Произошла ошибка</div>';
     }
 
     const handler = (e) => {
@@ -270,6 +276,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }[ch]));
   }
 
+  function formatFilesLabel(count) {
+    const n = Math.abs(count);
+    const mod10 = n % 10;
+    const mod100 = n % 100;
+    if (mod10 === 1 && mod100 !== 11) return `${count} файл`;
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return `${count} файла`;
+    return `${count} файлов`;
+  }
+
   function addFiles(list) {
     if (selectedFiles.length >= MAX_FILES) {
       showMessage(`Лимит ${MAX_FILES} файлов за один раз. Удалите лишний файл, чтобы добавить новый.`, 'error');
@@ -433,6 +448,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
       const sum = data.summary || {};
       const results = Array.isArray(data.results) ? data.results : [];
+      const initialSelectedCount = selectedFiles.length;
 
       if (sum.errors > 0) {
         const resultsHTML = createUploadResultsHTML(sum, results);
@@ -442,8 +458,22 @@ document.addEventListener('DOMContentLoaded', function () {
           }
         }, 'Результат загрузки');
       } else {
+        const createdRaw = Number(sum.created);
+        const processedRaw = Number(sum.processed);
+        const successCount = Number.isFinite(createdRaw) ? Math.max(0, Math.round(createdRaw)) : initialSelectedCount;
+        const processedCount = Number.isFinite(processedRaw) ? Math.max(0, Math.round(processedRaw)) : successCount;
+        const effectiveCount = processedCount || successCount || initialSelectedCount;
+        const shouldShowSuccessAlert = effectiveCount > 1;
         closeModal();
-        if (data.redirect_url) {
+        if (shouldShowSuccessAlert) {
+          const onOk = () => {
+            if (data.redirect_url) {
+              window.location.href = data.redirect_url;
+            }
+          };
+          const message = `Все ${formatFilesLabel(effectiveCount)} успешно загружены.`;
+          showAlert(message, onOk, 'Загрузка завершена', 'success');
+        } else if (data.redirect_url) {
           window.location.href = data.redirect_url;
         }
       }
