@@ -615,13 +615,23 @@ img {
     display: flex;
     justify-content: space-between;
     height: 85px;
-    background: url(../style/images/wot/battleresults/battleResults-43.png) no-repeat center;
-    background-size: 150% 100%
+    background-size: 150% 100%;
+    margin-top: 30px
+}
+
+.tanks-image.win .battle-records {
+    background: url(../style/images/wot/battleresults/linewin.png) no-repeat center;
+    background-size: 105% 100%
 }
 
 .tanks-image.defeat .battle-records {
-    background: url(../style/images/wot/battleresults/battleResults-41.png) no-repeat center;
-    background-size: 130% 100%
+    background: url(../style/images/wot/battleresults/linelose.png) no-repeat center;
+    background-size: 105% 100%
+}
+
+.tanks-image.draw .battle-records {
+    background: url(../style/images/wot/battleresults/linedraw.png) no-repeat center;
+    background-size: 105% 100%
 }
 
 .battle-records .dossier, .battle-records .achievements {
@@ -776,15 +786,15 @@ img {
 }
 
 .tanks-image.win {
-    background: url(../style/images/wot/battleresults/win.jpg)
+    background: url(../style/images/wot/battleresults/win.png)
 }
 
 .tanks-image.defeat {
-    background: url(../style/images/wot/battleresults/defeat.jpg)
+    background: url(../style/images/wot/battleresults/defeat.png)
 }
 
 .tanks-image.draw {
-    background: url(../style/images/wot/battleresults/draw.jpg)
+    background: url(../style/images/wot/battleresults/draw.png)
 }
 
 .tanks-image.girls, .tanks-image.halloween, .tanks-image.halloween2, .tanks-image.soccer {
