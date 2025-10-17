@@ -122,6 +122,10 @@ ACCOUNT_EMAIL_REQUIRED = True
 # None => показывать чекбокс "Запомнить меня" на форме логина
 ACCOUNT_SESSION_REMEMBER = None
 
+# Метод аутентификации: username_email позволяет войти как по username, так и по email
+ACCOUNT_AUTHENTICATION_METHOD = "username_email"
+ACCOUNT_USERNAME_REQUIRED = True
+
 # Новые настройки allauth (взамен устаревших предупреждений)
 ACCOUNT_LOGIN_METHODS = {"email", "username"}  # вход по email
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*", "username"]

@@ -14,7 +14,7 @@
       {{ form.non_field_errors }}
 
       <div class="space-y-2">
-        <label class="block text-sm">Email</label>
+        <label class="block text-sm">Имя пользователя или Email</label>
         {{ form.login }}
       </div>
 
@@ -74,6 +74,12 @@
     inputs.forEach(i=>{
       i.classList.add('w-full','px-3','py-2','rounded','bg-neutral-900','border','border-neutral-700','text-neutral-100');
     });
+
+    // Добавим placeholder для поля логина
+    const loginInput = document.querySelector('input[name="login"]');
+    if (loginInput) {
+      loginInput.setAttribute('placeholder', 'Введите имя пользователя или email');
+    }
   })();
 </script>
 {% endblock %}
