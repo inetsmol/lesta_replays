@@ -137,6 +137,11 @@ ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = "/accounts/login/"
 ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = "/accounts/login/"
 
+# Кастомная форма регистрации
+ACCOUNT_FORMS = {
+    'signup': 'replays.forms.CustomSignupForm',
+}
+
 # Email
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@lesta-replays.ru")
 if DEBUG:
