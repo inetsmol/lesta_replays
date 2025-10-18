@@ -1,0 +1,1 @@
+Подтвердите ваш email адрес — {{ current_site.name }}
