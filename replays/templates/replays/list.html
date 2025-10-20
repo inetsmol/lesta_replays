@@ -11,7 +11,11 @@
     <link rel="stylesheet" href="{% static 'css/wot_record_skin.css' %}">
     {#    <div id="content" class="content content--solo">#}
 
-    <div class="filters-actions flex items-center justify-between gap-3 mb-3">
+    {% if page_title %}
+    <h1 class="text-3xl font-bold mb-4">{{ page_title }}</h1>
+    {% endif %}
+
+    <div class="filters-actions flex items-center justify-between gap-1 mb-3">
 
       <!-- СОРТИРОВКИ (слева) -->
       <div class="sorters grid grid-cols-5 gap-2">
@@ -118,10 +122,27 @@
     <main class="replay-grid replay-grid--rows">
         {% if items %}
             {% for replay in items %}
-                <a class="tovabb group"
-                    href="{% url 'replay_detail' replay.id %}?back={{ request.get_full_path|urlencode }}"
-                    title="{{ replay.tank.name|default:'Неизвестный танк' }} - {{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}">
-                    <div class="wrapper transform transition duration-200 ease-out group-hover:-translate-y-1 group-hover:scale-[1.02] group-hover:shadow-[0_18px_30px_-18px_rgba(0,0,0,0.75)]">
+                {% if show_delete_button %}
+                <div class="relative">
+                {% endif %}
+                    <a class="tovabb group"
+                        href="{% url 'replay_detail' replay.id %}?back={{ request.get_full_path|urlencode }}"
+                        title="{{ replay.tank.name|default:'Неизвестный танк' }} - {{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}">
+                        <div class="wrapper transform transition duration-200 ease-out group-hover:-translate-y-1 group-hover:scale-[1.02] group-hover:shadow-[0_18px_30px_-18px_rgba(0,0,0,0.75)] relative">
+
+                            <!-- КНОПКА УДАЛЕНИЯ -->
+                            {% if show_delete_button %}
+                                <form action="{% url 'replay_delete' replay.id %}" method="post"
+                                      onsubmit="return confirm('Вы уверены, что хотите удалить этот реплей?');"
+                                      class="absolute top-2 right-2 z-[20]"
+                                      onclick="event.stopPropagation();">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                            class="flex items-center justify-center w-8 h-8 bg-red-600/90 hover:bg-red-700 text-white rounded-md transition-all duration-200 hover:scale-110 shadow-lg backdrop-blur-sm">
+                                        <i class="fas fa-trash-alt text-sm"></i>
+                                    </button>
+                                </form>
+                            {% endif %}
 
                         <div class="img-container">
                             <!-- КАРТА -->
@@ -218,63 +239,63 @@
                         </div>
 
                         <div class="details">
-                            <div class="flex flex-wrap items-start justify-between gap-4">
-                                <div class="flex flex-col gap-1 leading-snug">
-                                    {% if replay.short_description %}
-                                        <div class="title text-lg font-semibold text-white">{{ replay.short_description }}</div>
-                                    {% else %}
-                                        <div class="title text-lg font-semibold text-white">
-                                            {{ replay.tank.name|default:'Неизвестный танк' }} • {{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}
-                                        </div>
-                                    {% endif %}
+                            <div class="flex flex-col gap-1 leading-snug">
+                                {% if replay.short_description %}
+                                    <div class="title text-lg font-semibold text-white">{{ replay.short_description }}</div>
+                                {% else %}
+                                    <div class="title text-lg font-semibold text-white">
+                                        {{ replay.tank.name|default:'Неизвестный танк' }} • {{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}
+                                    </div>
+                                {% endif %}
+                                {% get_comment_count for replay as comment_count %}
+                                <div class="flex flex-wrap items-center justify-between gap-2">
                                     <div class="upload-info text-sm font-semibold text-[#ddd]">
                                         {{ replay.battle_date|default_if_none:replay.created_at|localtime|date:"d.m.Y H:i" }}
                                     </div>
-                                </div>
-                                {% get_comment_count for replay as comment_count %}
-                                <div class="flex flex-wrap items-center gap-4 text-sm text-[#ddd] md:-translate-x-3 lg:-translate-x-7">
-                                    <span class="inline-flex items-center">
-                                        <i class="far fa-comments inline-block text-base text-[#8c8c8c] -translate-y-[3px]"></i>
-                                        <span class="ml-1 align-middle text-sm text-[#ddd]">{{ comment_count|default:"0" }}</span>
-                                    </span>
-                                    <span class="inline-flex items-center">
-                                        <i class="far fa-eye inline-block text-base text-[#8c8c8c] -translate-y-[3px]"></i>
-                                        <span class="ml-1 align-middle text-sm text-[#ddd]">{{ replay.view_count|intcomma }}</span>
-                                    </span>
-                                    <span class="inline-flex items-center">
-                                        <i class="fas fa-download inline-block text-base text-[#8c8c8c] -translate-y-[3px]"></i>
-                                        <span class="ml-1 align-middle text-sm text-[#ddd]">{{ replay.download_count|intcomma }}</span>
-                                    </span>
+                                    <div class="flex flex-wrap items-center gap-3 text-sm text-[#ddd]">
+                                        <span class="inline-flex items-center gap-1">
+                                            <i class="far fa-comments inline-block text-base text-[#8c8c8c]"></i>
+                                            <span class="align-middle text-sm text-[#ddd]">{{ comment_count|default:"0" }}</span>
+                                        </span>
+                                        <span class="inline-flex items-center gap-1">
+                                            <i class="far fa-eye inline-block text-base text-[#8c8c8c]"></i>
+                                            <span class="align-middle text-sm text-[#ddd]">{{ replay.view_count|intcomma }}</span>
+                                        </span>
+                                        <span class="inline-flex items-center gap-1">
+                                            <i class="fas fa-download inline-block text-base text-[#8c8c8c]"></i>
+                                            <span class="align-middle text-sm text-[#ddd]">{{ replay.download_count|intcomma }}</span>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 
                             <div class="table">
                                 <!-- Статистика из модели -->
-                                <div class="cell flex items-center gap-1.5">
+                                <div class="cell flex items-center gap-1">
                                     <img src="{% static 'style/images/wot/library/CreditsIconBig.png' %}"
                                          alt="Credits"/>
-                                    <span class="ml-1 inline-block w-[5.5rem] text-left tabular-nums">{{ replay.credits|intcomma }}</span>
+                                    <span class="ml-0.5 inline-block w-16 text-left tabular-nums text-sm">{{ replay.credits|intcomma }}</span>
                                 </div>
-                                <div class="cell flex items-center gap-1.5">
+                                <div class="cell flex items-center gap-1">
                                     <img src="{% static 'style/images/wot/library/XpIconBig.png' %}" alt="XP"/>
-                                    <span class="ml-1 inline-block w-20 text-left tabular-nums">{{ replay.xp|intcomma }}</span>
+                                    <span class="ml-0.5 inline-block w-14 text-left tabular-nums text-sm">{{ replay.xp|intcomma }}</span>
                                 </div>
-                                <div class="cell flex items-center gap-1.5">
+                                <div class="cell flex items-center gap-1">
                                     <img src="{% static 'style/images/wot/buttons/Tank-ico.png' %}" alt="Kills"/>
-                                    <span class="ml-1 inline-block w-8 text-left tabular-nums">{{ replay.kills }}</span>
+                                    <span class="ml-0.5 inline-block w-6 text-left tabular-nums text-sm">{{ replay.kills }}</span>
                                 </div>
-                                <div class="cell flex items-center gap-1.5">
+                                <div class="cell flex items-center gap-1">
                                     <img src="{% static 'style/images/wot/library/BattleResultIcon-1.png' %}"
                                          alt="Damage"/>
-                                    <span class="ml-1 inline-block w-20 text-left tabular-nums">{{ replay.damage|intcomma }}</span>
+                                    <span class="ml-0.5 inline-block w-14 text-left tabular-nums text-sm">{{ replay.damage|intcomma }}</span>
                                 </div>
-                                <div class="cell flex items-center gap-1.5">
+                                <div class="cell flex items-center gap-1">
                                     <img src="{% static 'style/images/wot/buttons/assist.png' %}" alt="Assist"/>
-                                    <span class="ml-1 inline-block w-20 text-left tabular-nums">{{ replay.assist|intcomma }}</span>
+                                    <span class="ml-0.5 inline-block w-14 text-left tabular-nums text-sm">{{ replay.assist|intcomma }}</span>
                                 </div>
-                                <div class="cell flex items-center gap-1.5">
+                                <div class="cell flex items-center gap-1">
                                     <img src="{% static 'style/images/wot/buttons/blocked.png' %}" alt="Blocked"/>
-                                    <span class="ml-1 inline-block w-20 text-left tabular-nums">{{ replay.block|intcomma }}</span>
+                                    <span class="ml-0.5 inline-block w-14 text-left tabular-nums text-sm">{{ replay.block|intcomma }}</span>
                                 </div>
                             </div>
 
@@ -282,6 +303,9 @@
 
                     </div>
                 </a>
+                {% if show_delete_button %}
+                </div>
+                {% endif %}
             {% endfor %}
         {% else %}
             <p class="empty">Пока нет загруженных реплеев.</p>

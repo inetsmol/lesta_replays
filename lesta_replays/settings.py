@@ -92,9 +92,11 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.csrf',
                 "replays.context_processors.sidebar_widgets",
             ],
         },
@@ -247,6 +249,17 @@ SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG
 SECURE_SSL_REDIRECT = not DEBUG
+
+# CSRF настройки для совместимости с Safari и другими браузерами
+CSRF_COOKIE_HTTPONLY = False  # Позволяет JavaScript читать cookie (если нужно)
+CSRF_COOKIE_SAMESITE = 'Lax'  # 'Lax' вместо 'Strict' для лучшей совместимости
+CSRF_USE_SESSIONS = False  # Используем cookie вместо сессий
+CSRF_COOKIE_NAME = 'csrftoken'  # Явно указываем имя cookie
+
+# Session настройки для Safari
+SESSION_COOKIE_SAMESITE = 'Lax'  # Для совместимости с Safari
+SESSION_COOKIE_HTTPONLY = True  # Безопасность
+SESSION_COOKIE_NAME = 'sessionid'  # Явное имя
 
 
 # ===========================================================================

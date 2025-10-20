@@ -476,7 +476,7 @@ class ReplayListView(ListView):
 
 
 class MyReplaysView(LoginRequiredMixin, ReplayListView):
-    template_name = 'replays/my_replays.html'
+    template_name = 'replays/list.html'
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -485,6 +485,7 @@ class MyReplaysView(LoginRequiredMixin, ReplayListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['page_title'] = "Мои реплеи"
+        context['show_delete_button'] = True
         return context
 
 

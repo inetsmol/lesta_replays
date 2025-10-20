@@ -21,3 +21,4 @@ cert.key
 .gemini/settings.json
 node_modules/
 CLAUDE.MD
+.claude/

@@ -1,44 +1,487 @@
 {# templates/includes/_upload_modal.html #}
-<div id="upload-modal" class="modal" aria-hidden="true">
-  <div class="modal-overlay" id="modal-overlay"></div>
-  <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="upload-modal-title">
-    <div class="modal-header">
-      <h2 id="upload-modal-title">Загрузить реплеи</h2>
-      <button class="modal-close" id="modal-close" type="button" aria-label="Закрыть">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
-        </svg>
-      </button>
-    </div>
+{% csrf_token %}
+<div x-data="uploadModal()" x-init="init()" @keydown.escape.window="closeModal()">
+  <!-- Modal -->
+  <div x-show="isOpen"
+       x-transition:enter="transition ease-out duration-300"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100"
+       x-transition:leave="transition ease-in duration-200"
+       x-transition:leave-start="opacity-100"
+       x-transition:leave-end="opacity-0"
+       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+       style="display: none;"
+       @click.self="closeModal()">
 
-    <form id="upload-form" method="post" enctype="multipart/form-data" action="{% url 'replay_upload' %}">
-      {% csrf_token %}
-      <div class="modal-body">
-        <div class="upload-area" id="upload-area" tabindex="0" role="button" aria-label="Перетащите файлы или нажмите для выбора">
-          <div class="upload-icon" aria-hidden="true">
-            <svg width="48" height="48" viewBox="0 0 48 48" fill="currentColor" opacity="0.5">
-              <path d="M14 2H34L42 10V42C42 44.2 40.2 46 38 46H10C7.8 46 6 44.2 6 42V6C6 3.8 7.8 2 10 2H14ZM32 4H10C8.9 4 8 4.9 8 6V42C8 43.1 8.9 44 10 44H38C39.1 44 40 43.1 40 42V12L32 4ZM30 6V10H38L30 6Z"/>
-            </svg>
+    <div class="relative w-full max-w-2xl bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl border border-red-500/30 shadow-2xl shadow-red-500/20 overflow-hidden">
+
+      <!-- Header -->
+      <div class="relative p-6 border-b border-red-500/20">
+        <div class="absolute inset-0 bg-gradient-to-r from-red-500/5 to-orange-500/5"></div>
+        <div class="relative flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-red-600 to-orange-600 rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-white" x-text="uploadCompleted ? 'Результаты загрузки' : 'Загрузка реплеев'"></h2>
+              <p class="text-sm text-gray-400" x-show="!uploadCompleted">Поддерживаются файлы .mtreplay</p>
+            </div>
           </div>
-          <p class="upload-text">
-            <strong>Перетащите файлы .mtreplay сюда</strong><br>
-            или нажмите для выбора файлов
-          </p>
-          <input type="file" id="file-input" name="files" accept=".mtreplay" class="file-input" multiple>
-        </div>
-
-        <div class="selected-file" id="selected-file" style="display:none;">
-{#          <h3>Выбранные файлы:</h3>#}
-          <div class="file-info" id="file-info"></div>
+          <button @click="closeModal()"
+                  class="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
       </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn--ghost" id="cancel-upload">Отмена</button>
-        <button type="submit" class="btn btn--accent" id="submit-upload" disabled>
-          <span class="upload-status">Загрузить файлы</span>
-        </button>
+      <!-- Content -->
+      <div class="p-6 space-y-4">
+        <!-- Drop Zone -->
+        <div x-show="!uploadCompleted"
+             @dragover.prevent="isDragging = true"
+             @dragleave.prevent="isDragging = false"
+             @drop.prevent="handleDrop($event)"
+             @click="$refs.fileInput.click()"
+             :class="isDragging ? 'border-red-500 bg-red-500/10' : 'border-gray-700 hover:border-red-500/50 hover:bg-red-500/5'"
+             class="relative border-2 border-dashed rounded-xl p-8 transition-all cursor-pointer">
+
+          <input x-ref="fileInput"
+                 type="file"
+                 multiple
+                 accept=".mtreplay"
+                 @change="handleFileSelect($event)"
+                 class="hidden">
+
+          <div class="flex flex-col items-center gap-3">
+            <div :class="isDragging ? 'bg-gradient-to-br from-red-600 to-orange-600 scale-110' : 'bg-gray-800'"
+                 class="w-16 h-16 rounded-full flex items-center justify-center transition-all">
+              <svg :class="isDragging ? 'text-white' : 'text-gray-400'"
+                   class="w-8 h-8 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+            </div>
+
+            <div class="text-center">
+              <p class="text-white font-medium mb-1" x-text="isDragging ? 'Отпустите файлы здесь' : 'Перетащите файлы сюда'"></p>
+              <p class="text-sm text-gray-400">
+                или <span class="text-red-400 hover:text-red-300">выберите файлы</span>
+              </p>
+            </div>
+
+            <div class="flex items-center gap-2 text-xs text-gray-500">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              <span>Только файлы .mtreplay</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- File List -->
+        <div x-show="files.length > 0" class="space-y-2 max-h-64 overflow-y-auto">
+          <template x-for="(fileItem, index) in files" :key="fileItem.id">
+            <div class="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg border border-gray-700/50 hover:border-red-500/30 transition-all">
+
+              <!-- Status Icon -->
+              <div class="flex-shrink-0">
+                <template x-if="fileItem.status === 'pending'">
+                  <div class="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                </template>
+                <template x-if="fileItem.status === 'uploading'">
+                  <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-blue-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </div>
+                </template>
+                <template x-if="fileItem.status === 'success'">
+                  <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </template>
+                <template x-if="fileItem.status === 'error'">
+                  <div class="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </template>
+              </div>
+
+              <!-- File Info -->
+              <div class="flex-1 min-w-0">
+                <p class="text-sm text-white font-medium truncate" x-text="fileItem.file.name"></p>
+
+                <!-- Result Messages (shown after upload) -->
+                <div x-show="uploadCompleted" class="mt-1">
+                  <p x-show="fileItem.status === 'success'" class="text-xs text-green-400">Загружен успешно</p>
+                  <p x-show="fileItem.status === 'error' && fileItem.error" class="text-xs text-red-400" x-text="fileItem.error"></p>
+                </div>
+
+                <!-- Description Input (shown before upload) -->
+                <input x-show="!uploadCompleted"
+                       type="text"
+                       x-model="fileItem.desc"
+                       maxlength="60"
+                       placeholder="Короткое описание (60 символов)"
+                       class="mt-2 w-full px-2 py-1 text-xs bg-gray-900/50 border border-gray-700 rounded text-gray-300 placeholder-gray-500 focus:border-red-500/50 focus:outline-none">
+              </div>
+
+              <!-- Remove Button (only before upload) -->
+              <button x-show="!uploadCompleted"
+                      @click="removeFile(fileItem.id)"
+                      class="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </template>
+        </div>
+
+        <!-- Upload Progress -->
+        <div x-show="isUploading" class="space-y-2">
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-400">Загрузка...</span>
+            <span class="text-white font-medium" x-text="uploadProgress + '%'"></span>
+          </div>
+          <div class="h-2 bg-gray-800 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-red-600 to-orange-600 transition-all duration-300"
+                 :style="`width: ${uploadProgress}%`"></div>
+          </div>
+        </div>
+
+        <!-- Info -->
+        <div x-show="!uploadCompleted" class="flex items-start gap-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+          <svg class="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div class="text-xs text-blue-300">
+            <p class="font-medium mb-1">Как это работает?</p>
+            <p class="text-blue-300/80">
+              Загрузите файлы реплеев (.mtreplay) из папки replays игры. Система автоматически обработает их и добавит в базу.
+            </p>
+          </div>
+        </div>
+
+        <!-- Summary Results -->
+        <div x-show="uploadCompleted" class="space-y-3">
+          <div x-show="uploadSummary && uploadSummary.created > 0" class="flex items-start gap-2 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+            <svg class="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div class="text-xs text-green-300">
+              <p class="font-medium" x-text="uploadSummary ? `Успешно загружено: ${uploadSummary.created} файл(ов)` : ''"></p>
+            </div>
+          </div>
+          <div x-show="uploadSummary && uploadSummary.errors > 0" class="flex items-start gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <svg class="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div class="text-xs text-red-300">
+              <p class="font-medium" x-text="uploadSummary ? `Ошибок: ${uploadSummary.errors} файл(ов)` : ''"></p>
+            </div>
+          </div>
+        </div>
       </div>
-    </form>
+
+      <!-- Footer -->
+      <div class="p-6 border-t border-red-500/20 bg-gray-900/50">
+        <div class="flex items-center justify-between gap-3">
+          <div class="text-sm text-gray-400">
+            <span x-show="files.length > 0 && !uploadCompleted" x-text="'Выбрано файлов: ' + files.length"></span>
+          </div>
+          <div class="flex gap-3">
+            <template x-if="!uploadCompleted">
+              <button @click="closeModal()"
+                      type="button"
+                      class="px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all">
+                Отмена
+              </button>
+            </template>
+            <template x-if="!uploadCompleted">
+              <button @click="handleUpload()"
+                      type="button"
+                      :disabled="files.length === 0 || isUploading"
+                      class="px-6 py-2 bg-gradient-to-r from-red-600 to-orange-600 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-red-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                      x-text="isUploading ? 'Загрузка...' : 'Загрузить'">
+              </button>
+            </template>
+            <template x-if="uploadCompleted">
+              <button @click="closeModal()"
+                      type="button"
+                      class="px-6 py-2 bg-gradient-to-r from-red-600 to-orange-600 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-red-500/50 transition-all">
+                ОК
+              </button>
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+
+<script>
+function uploadModal() {
+  return {
+    isOpen: false,
+    files: [],
+    isDragging: false,
+    isUploading: false,
+    uploadProgress: 0,
+    uploadCompleted: false,
+    uploadSummary: null,
+    redirectUrl: null,
+    MAX_FILES: 5,
+
+    init() {
+      // Listen for custom event to open modal
+      window.addEventListener('open-upload-modal', () => {
+        this.openModal();
+      });
+
+      // Add click handler to upload button if exists
+      const uploadBtn = document.getElementById('upload-replay-btn');
+      if (uploadBtn) {
+        uploadBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.openModal();
+        });
+      }
+    },
+
+    openModal() {
+      this.isOpen = true;
+      document.body.style.overflow = 'hidden';
+    },
+
+    closeModal() {
+      // Если загрузка завершена и есть URL для редиректа, переходим на него
+      if (this.uploadCompleted && this.redirectUrl) {
+        window.location.href = this.redirectUrl;
+        return;
+      }
+
+      this.isOpen = false;
+      document.body.style.overflow = '';
+      this.resetForm();
+    },
+
+    resetForm() {
+      this.files = [];
+      this.isDragging = false;
+      this.isUploading = false;
+      this.uploadProgress = 0;
+      this.uploadCompleted = false;
+      this.uploadSummary = null;
+      this.redirectUrl = null;
+    },
+
+    handleDragOver(e) {
+      e.preventDefault();
+      this.isDragging = true;
+    },
+
+    handleDragLeave() {
+      this.isDragging = false;
+    },
+
+    handleDrop(e) {
+      e.preventDefault();
+      this.isDragging = false;
+
+      const droppedFiles = Array.from(e.dataTransfer.files);
+      this.addFiles(droppedFiles);
+    },
+
+    handleFileSelect(e) {
+      const selectedFiles = Array.from(e.target.files);
+      this.addFiles(selectedFiles);
+      // Reset input
+      e.target.value = '';
+    },
+
+    addFiles(fileList) {
+      if (this.files.length >= this.MAX_FILES) {
+        this.showMessage(`Лимит ${this.MAX_FILES} файлов за один раз. Удалите лишний файл, чтобы добавить новый.`, 'error');
+        return;
+      }
+
+      const remaining = this.MAX_FILES - this.files.length;
+      let added = 0;
+
+      for (const file of fileList) {
+        if (added >= remaining) break;
+
+        if (!this.validateFile(file)) continue;
+
+        // Check for duplicates
+        const isDuplicate = this.files.some(item =>
+          item.file.name === file.name && item.file.size === file.size
+        );
+
+        if (!isDuplicate) {
+          this.files.push({
+            id: Date.now() + added,
+            file: file,
+            desc: '',
+            status: 'pending',
+            error: null
+          });
+          added++;
+        }
+      }
+
+      if (fileList.length > added && added < remaining) {
+        this.showMessage(`Можно добавить не более ${this.MAX_FILES} файлов. Добавлены только первые ${added} из ${fileList.length}.`, 'error');
+      }
+    },
+
+    validateFile(file) {
+      if (!file.name.toLowerCase().endsWith('.mtreplay')) {
+        this.showMessage(`«${file.name}» — не .mtreplay`, 'error');
+        return false;
+      }
+      if (file.size > 50 * 1024 * 1024) {
+        this.showMessage(`«${file.name}» — больше 50MB`, 'error');
+        return false;
+      }
+      return true;
+    },
+
+    removeFile(id) {
+      this.files = this.files.filter(f => f.id !== id);
+    },
+
+    async handleUpload() {
+      if (this.files.length === 0) {
+        this.showMessage('Выберите файлы для загрузки', 'error');
+        return;
+      }
+
+      this.isUploading = true;
+      this.uploadProgress = 0;
+
+      const formData = new FormData();
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+      if (csrfToken) {
+        formData.append('csrfmiddlewaretoken', csrfToken);
+      }
+
+      this.files.forEach(item => {
+        formData.append('files', item.file);
+        formData.append('descriptions', (item.desc || '').trim());
+      });
+
+      try {
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            this.uploadProgress = Math.min(100, Math.round((e.loaded / e.total) * 100));
+          }
+        };
+
+        xhr.onload = () => {
+          this.isUploading = false;
+          this.uploadCompleted = true;
+
+          try {
+            const data = JSON.parse(xhr.responseText || '{}');
+
+            if (xhr.status >= 200 && xhr.status < 300 && data.success !== false) {
+              const summary = data.summary || {};
+
+              // Сохраняем сводку результатов
+              this.uploadSummary = summary;
+
+              // Обновляем статусы файлов
+              this.showUploadResults(summary, data.results || []);
+
+              // Сохраняем URL для редиректа
+              if (data.redirect_url) {
+                this.redirectUrl = data.redirect_url;
+              }
+            } else {
+              const error = data.error || `Ошибка сервера (${xhr.status})`;
+              this.showMessage(error, 'error');
+            }
+          } catch (err) {
+            this.showMessage('Ошибка обработки ответа сервера', 'error');
+          }
+        };
+
+        xhr.onerror = () => {
+          this.isUploading = false;
+          this.showMessage('Сетевая ошибка при загрузке. Проверьте подключение к интернету и попробуйте снова.', 'error');
+        };
+
+        xhr.open('POST', '{% url "replay_upload" %}', true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.send(formData);
+
+      } catch (err) {
+        this.isUploading = false;
+        this.showMessage('Ошибка при загрузке файлов', 'error');
+      }
+    },
+
+    showUploadResults(summary, results) {
+      // Update file statuses
+      console.log('Updating file statuses:', results);
+
+      // Создаем новый массив с обновленными статусами для реактивности Alpine.js
+      this.files = this.files.map(fileItem => {
+        const result = results.find(r => r.file === fileItem.file.name);
+        if (result) {
+          return {
+            ...fileItem,
+            status: result.ok ? 'success' : 'error',
+            error: result.error || null
+          };
+        }
+        return fileItem;
+      });
+
+      console.log('Final files state:', this.files);
+    },
+
+    formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    },
+
+    showMessage(text, type = 'info') {
+      // Reuse existing message system or create new one
+      let container = document.querySelector('.messages');
+      if (!container) {
+        container = document.createElement('div');
+        container.className = 'messages';
+        const contentDiv = document.querySelector('#content .container') || document.body;
+        contentDiv.insertBefore(container, contentDiv.firstChild);
+      }
+
+      const el = document.createElement('div');
+      el.className = `message message--${type}`;
+      el.textContent = text;
+      container.appendChild(el);
+
+      setTimeout(() => el.remove(), 5000);
+    }
+  };
+}
+</script>

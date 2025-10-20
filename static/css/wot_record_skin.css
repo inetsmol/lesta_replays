@@ -6,28 +6,65 @@
 
 .tovabb {
     display: block;
-    background: var(--panel-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+    position: relative;
+    max-width: 1024px;
+    background: linear-gradient(135deg, rgba(51, 65, 85, 0.4) 0%, rgba(30, 41, 59, 0.6) 100%);
+    border: 1px solid rgba(100, 116, 139, 0.3);
+    border-radius: 12px;
     overflow: hidden;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     text-decoration: none;
-    animation: fadeIn 0.3s ease-in-out
+    animation: fadeIn 0.3s ease-in-out;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+.tovabb::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.tovabb:hover {
+    border-color: rgba(139, 92, 246, 0.4);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(139, 92, 246, 0.1);
+}
+
+.tovabb:hover::before {
+    opacity: 1;
 }
 
 .tovabb .wrapper {
     display: flex;
-    align-items: stretch
+    align-items: stretch;
+    position: relative;
+    z-index: 2;
 }
 
 .img-container {
     position: relative;
     width: 240px;
-    height: 120px;
-    background: #000;
+    height: 132px;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     overflow: hidden;
-    flex-shrink: 0
+    flex-shrink: 0;
+}
+
+.img-container::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60%;
+    background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.5) 100%);
+    z-index: 2;
+    pointer-events: none;
 }
 
 .img-container .map {
@@ -148,11 +185,12 @@
 
 .details {
     flex: 1;
-    padding: 12px 16px;
+    padding: 14px 18px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    min-height: 120px
+    min-height: 132px;
+    background: linear-gradient(90deg, rgba(30, 41, 59, 0.2) 0%, transparent 100%);
 }
 
 .details .title {
@@ -180,34 +218,53 @@
 .details .table {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 16px;
+    gap: 4px 12px;
     font-size: 14px;
-    align-items: center
+    align-items: center;
+    padding: 6px 10px;
+    background: rgba(15, 23, 42, 0.4);
+    border-radius: 8px;
+    border: 1px solid rgba(71, 85, 105, 0.2);
 }
 
 .details .table .cell {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     white-space: nowrap;
     flex-shrink: 0
 }
 
 .details .table .cell img {
-    height: 18px;
-    width: 18px;
+    height: 16px;
+    width: 16px;
     object-fit: contain;
     flex-shrink: 0
 }
 
 .details .table .cell span {
     color: var(--text);
-    font-weight: 500
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .details .table .cell .mastery, .details .table .cell .type, .details .table .cell .level {
     height: 24px;
     width: 37px
+}
+
+/* Улучшение иконок статистики (просмотры, комментарии, скачивания) */
+.details .flex.flex-wrap.items-center.gap-4 span.inline-flex {
+    padding: 4px 8px;
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 6px;
+    border: 1px solid rgba(71, 85, 105, 0.2);
+    transition: all 0.2s ease;
+}
+
+.tovabb:hover .details .flex.flex-wrap.items-center.gap-4 span.inline-flex {
+    background: rgba(30, 41, 59, 0.6);
+    border-color: rgba(100, 116, 139, 0.3);
 }
 
 @keyframes fadeIn {

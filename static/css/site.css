@@ -167,24 +167,94 @@ a {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 8px 12px;
+    padding: 8px 14px;
     border-radius: 10px;
-    border: 1px solid #333;
-    background: #1b1b1b;
-    color: #f1f1f1;
+    border: 1px solid rgba(71, 85, 105, 0.3);
+    background: linear-gradient(135deg, rgba(51, 65, 85, 0.4) 0%, rgba(30, 41, 59, 0.5) 100%);
+    color: #e2e8f0;
     cursor: pointer;
-    transition: .12s ease;
-    text-decoration: none
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 13px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.btn:hover {
+    border-color: rgba(139, 92, 246, 0.5);
+    background: linear-gradient(135deg, rgba(71, 85, 105, 0.5) 0%, rgba(51, 65, 85, 0.6) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(139, 92, 246, 0.2);
+}
+
+.btn:hover::before {
+    opacity: 1;
+}
+
+.btn.active {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(109, 40, 217, 0.4) 100%);
+    border-color: rgba(139, 92, 246, 0.6);
+    color: #e9d5ff;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3), 0 0 0 1px rgba(139, 92, 246, 0.4);
 }
 
 .btn--ghost {
     background: transparent;
-    color: var(--muted)
+    color: var(--muted);
+    border-color: rgba(71, 85, 105, 0.2);
+}
+
+.btn--ghost:hover {
+    background: rgba(51, 65, 85, 0.3);
+    color: #cbd5e1;
 }
 
 .btn--accent {
-    background: var(--accent);
-    border-color: #7a1f16
+    background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
+    border-color: rgba(192, 57, 43, 0.6);
+    color: white;
+    box-shadow: 0 4px 8px rgba(192, 57, 43, 0.3);
+}
+
+.btn--accent:hover {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    box-shadow: 0 6px 12px rgba(192, 57, 43, 0.4);
+}
+
+.btn--danger {
+    background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+    border-color: rgba(185, 28, 28, 0.6);
+    color: white;
+    box-shadow: 0 4px 8px rgba(185, 28, 28, 0.3);
+    font-size: 0.875rem;
+    padding: 8px 16px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn--danger:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    box-shadow: 0 6px 12px rgba(185, 28, 28, 0.4);
+    transform: scale(1.05);
+}
+
+.btn--danger-sm {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    line-height: 1.2;
 }
 
 .messages {

@@ -25,8 +25,12 @@
     <link rel="shortcut icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
     <link rel="apple-touch-icon" href="{% static 'favicon.ico' %}">
 
-    <!-- Tailwind CSS CDN for auth pages styling -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/site.css' %}">
@@ -62,12 +66,13 @@
 {% include "includes/_upload_modal.html" %}
 {% include "includes/_alert_modal.html" %}
 
-<!-- jQuery -->
+<!-- jQuery (для обратной совместимости) -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <!-- jQuery UI -->
 <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
 
-<script src="{% static 'js/upload-modal.js' %}"></script>
+<!-- Старый upload-modal.js отключен, используется Alpine.js компонент -->
+{# <script src="{% static 'js/upload-modal.js' %}"></script> #}
 
 {% block extra_js %}{% endblock %}
 
