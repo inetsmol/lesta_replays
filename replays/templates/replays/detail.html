@@ -557,12 +557,14 @@
   <div class="row"><span class="left">Автопополнение боекомплекта</span><span class="right red">-{{ detailed_report.credits.costs.auto_ammo|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
 
   {% if detailed_report.credits.costs.auto_equipment > 0 or detailed_report.gold.spent > 0 %}
-  <div class="row gold">
+    <div class="row"><span class="left">Автопополнение снаряжения</span><span class="right red">-{{ detailed_report.credits.costs.auto_equipment|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+
+  {% comment %} <div class="row gold">
     <span class="left">Автопополнение снаряжения</span>
     <span class="right red">-{{ detailed_report.credits.costs.auto_equipment|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
       <span class="gold">{{ detailed_report.gold.spent|default:0|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>
     </span>
-  </div>
+  </div> {% endcomment %}
   {% endif %}
 
   <div class="row top gold" >
@@ -573,7 +575,7 @@
   </div>
 </div>
 
-          <div class="data-wrapper credit premium {% if detailed_report.economics.is_premium %}active{% else %}inactive{% endif %}">
+   <div class="data-wrapper credit premium {% if detailed_report.economics.is_premium %}active{% else %}inactive{% endif %}">
   <div class="row">&nbsp;<span class="right">{{ detailed_report.credits.premium.accrued|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
 
   {% if detailed_report.credits.premium.order_credits > 0 %}
@@ -605,14 +607,16 @@
   <div class="row">&nbsp;<span class="right red">-{{ detailed_report.credits.costs.auto_ammo|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
 
   {% if detailed_report.credits.costs.auto_equipment > 0 or detailed_report.gold.spent > 0 %}
-  <div class="row gold">&nbsp;
+    <div class="row">&nbsp;<span class="right red">-{{ detailed_report.credits.costs.auto_equipment|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+
+  {% comment %} <div class="row gold">&nbsp;
     <span class="right red">-{{ detailed_report.credits.costs.auto_equipment|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
       <span class="gold">{{ detailed_report.gold.spent|default:0|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>
     </span>
-  </div>
+  </div> {% endcomment %}
   {% endif %}
 
-  <div class="row top {% if detailed_report.credits.costs.auto_equipment > 0 or detailed_report.gold.spent > 0 %}gold{% endif %}" style="height:20px;">
+  <div class="row top gold">
     &nbsp;<span class="right {% if detailed_report.credits.premium.after_costs < 0 %}red{% endif %}">{{ detailed_report.credits.premium.after_costs|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
       <span class="gold">{{ detailed_report.gold.spent|default:0|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>
     </span>

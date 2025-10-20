@@ -2163,7 +2163,7 @@ table.tank-list.score th.xp div {
 }
 
 .personal-data.tab .data-wrapper.credit .left, .personal-data.tab .data-wrapper.xp .left, .personal-data.tab .data-wrapper.bonds .left {
-    width: 236px;
+    /* width: 236px; */
     display: inline-block
 }
 
