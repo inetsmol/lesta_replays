@@ -127,7 +127,7 @@
                 <!-- Result Messages (shown after upload) -->
                 <div x-show="uploadCompleted" class="mt-1">
                   <p x-show="fileItem.status === 'success'" class="text-xs text-green-400">Загружен успешно</p>
-                  <p x-show="fileItem.status === 'error' && fileItem.error" class="text-xs text-red-400" x-text="fileItem.error"></p>
+                  <p x-show="fileItem.status === 'error'" class="text-xs text-red-400" x-text="fileItem.error || 'Ошибка при загрузке'"></p>
                 </div>
 
                 <!-- Description Input (shown before upload) -->
@@ -381,9 +381,11 @@ function uploadModal() {
         formData.append('csrfmiddlewaretoken', csrfToken);
       }
 
-      this.files.forEach(item => {
+      this.files.forEach((item, index) => {
         formData.append('files', item.file);
         formData.append('descriptions', (item.desc || '').trim());
+        // Обновляем статус на uploading
+        item.status = 'uploading';
       });
 
       try {
@@ -417,16 +419,47 @@ function uploadModal() {
               }
             } else {
               const error = data.error || `Ошибка сервера (${xhr.status})`;
+
+              // Помечаем все файлы как ошибочные, если получена общая ошибка
+              if (data.results && data.results.length > 0) {
+                this.showUploadResults(data.summary || {}, data.results);
+              } else {
+                // Если нет детальных результатов, помечаем все файлы ошибкой
+                this.files = this.files.map(fileItem => ({
+                  ...fileItem,
+                  status: 'error',
+                  error: error
+                }));
+              }
+
               this.showMessage(error, 'error');
             }
           } catch (err) {
+            console.error('Parse error:', err);
             this.showMessage('Ошибка обработки ответа сервера', 'error');
+
+            // Помечаем все файлы как ошибочные
+            this.files = this.files.map(fileItem => ({
+              ...fileItem,
+              status: 'error',
+              error: 'Ошибка обработки ответа сервера'
+            }));
           }
         };
 
         xhr.onerror = () => {
           this.isUploading = false;
-          this.showMessage('Сетевая ошибка при загрузке. Проверьте подключение к интернету и попробуйте снова.', 'error');
+          this.uploadCompleted = true;
+
+          const errorMsg = 'Сетевая ошибка при загрузке. Проверьте подключение к интернету и попробуйте снова.';
+          this.showMessage(errorMsg, 'error');
+
+          // Помечаем все файлы как ошибочные
+          this.files = this.files.map(fileItem => ({
+            ...fileItem,
+            status: 'error',
+            error: errorMsg
+          }));
         };
 
         xhr.open('POST', '{% url "replay_upload" %}', true);
@@ -435,7 +468,17 @@ function uploadModal() {
 
       } catch (err) {
         this.isUploading = false;
-        this.showMessage('Ошибка при загрузке файлов', 'error');
+        this.uploadCompleted = true;
+
+        const errorMsg = 'Ошибка при загрузке файлов';
+        this.showMessage(errorMsg, 'error');
+
+        // Помечаем все файлы как ошибочные
+        this.files = this.files.map(fileItem => ({
+          ...fileItem,
+          status: 'error',
+          error: errorMsg
+        }));
       }
     },
 
@@ -444,16 +487,31 @@ function uploadModal() {
       console.log('Updating file statuses:', results);
 
       // Создаем новый массив с обновленными статусами для реактивности Alpine.js
-      this.files = this.files.map(fileItem => {
-        const result = results.find(r => r.file === fileItem.file.name);
+      this.files = this.files.map((fileItem, index) => {
+        // Сначала пытаемся найти результат по имени файла
+        let result = results.find(r => r.file === fileItem.file.name);
+
+        // Если не нашли по имени, используем индекс (порядок загрузки)
+        if (!result && results[index]) {
+          result = results[index];
+        }
+
         if (result) {
+          console.log(`File ${fileItem.file.name}: ok=${result.ok}, error=${result.error}`);
           return {
             ...fileItem,
             status: result.ok ? 'success' : 'error',
-            error: result.error || null
+            error: result.error || 'Неизвестная ошибка'
           };
         }
-        return fileItem;
+
+        // Если результат не найден вообще, считаем ошибкой
+        console.warn(`No result found for file: ${fileItem.file.name}`);
+        return {
+          ...fileItem,
+          status: 'error',
+          error: 'Результат загрузки не получен'
+        };
       });
 
       console.log('Final files state:', this.files);
