@@ -559,12 +559,6 @@
   {% if detailed_report.credits.costs.auto_equipment > 0 or detailed_report.gold.spent > 0 %}
     <div class="row"><span class="left">Автопополнение снаряжения</span><span class="right red">-{{ detailed_report.credits.costs.auto_equipment|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
 
-  {% comment %} <div class="row gold">
-    <span class="left">Автопополнение снаряжения</span>
-    <span class="right red">-{{ detailed_report.credits.costs.auto_equipment|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
-      <span class="gold">{{ detailed_report.gold.spent|default:0|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>
-    </span>
-  </div> {% endcomment %}
   {% endif %}
 
   <div class="row top gold" >
@@ -609,11 +603,6 @@
   {% if detailed_report.credits.costs.auto_equipment > 0 or detailed_report.gold.spent > 0 %}
     <div class="row">&nbsp;<span class="right red">-{{ detailed_report.credits.costs.auto_equipment|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
 
-  {% comment %} <div class="row gold">&nbsp;
-    <span class="right red">-{{ detailed_report.credits.costs.auto_equipment|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
-      <span class="gold">{{ detailed_report.gold.spent|default:0|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>
-    </span>
-  </div> {% endcomment %}
   {% endif %}
 
   <div class="row top gold">
@@ -660,45 +649,6 @@
               <span class="bonus">{{ detailed_report.xp.base.free_accrued|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="FreeXP"></span>
             </span>
           </div>
-
-{#          <div class="row">#}
-{#            <span class="left">Штраф за урон союзникам</span>#}
-{#            <span class="right">{{ detailed_report.xp.base.penalty|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP"></span>#}
-{#          </div>#}
-{##}
-{#          {% if income.is_first_win %}#}
-{#          <div class="row bonus">#}
-{#            <span class="left">Награда за первую победу в день</span>#}
-{#            <span class="right">x{{ detailed_report.xp.multipliers.daily }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">#}
-{#                <span class="bonus">x{{ detailed_report.xp.multipliers.daily }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="XP"></span>#}
-{#            </span>#}
-{#          </div>#}
-{#          {% endif %}#}
-{##}
-{#          {% if detailed_report.xp.multipliers.managed > 1 %}#}
-{#          <div class="row bonus">#}
-{#            <span class="left">Управляемый бонус к опыту</span>#}
-{#            <span class="right">x{{ detailed_report.xp.multipliers.managed }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">#}
-{#                <span class="bonus">x{{ detailed_report.xp.multipliers.managed }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="XP"></span>#}
-{#            </span>#}
-{#          </div>#}
-{#          {% endif %}#}
-{##}
-{#          <div class="row bonus">#}
-{#            <span class="left">Эффект от личных резервов</span>#}
-{#            <span class="right">#}
-{#              {{ detailed_report.xp.base.boosters.xp|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">#}
-{#              <span class="bonus">{{ detailed_report.xp.base.boosters.free_xp|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="FreeXP"></span>#}
-{#            </span>#}
-{#          </div>#}
-{##}
-{#          <div class="row top bonus">#}
-{#            <span class="left">Итого:</span>#}
-{#            <span class="right">#}
-{#              {{ detailed_report.xp.base.total|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">#}
-{#              <span class="bonus">{{ detailed_report.xp.base.free_total|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="FreeXP"></span>#}
-{#            </span>#}
-{#          </div>#}
         </div>
 
 
@@ -710,41 +660,6 @@
               <span class="bonus">{{ detailed_report.xp.premium.free_accrued|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="FreeXP"></span>
             </span>
           </div>
-
-{#          <div class="row" style="height:20px;">#}
-{##}
-{#            <span class="right">{{ detailed_report.xp.premium.penalty|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP"></span>#}
-{#          </div>#}
-{##}
-{#          {% if income.is_first_win %}#}
-{#          <div class="row bonus" style="height:20px;">#}
-{#            <span class="right">x{{ detailed_report.xp.multipliers.daily }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">#}
-{#                <span class="bonus">x{{ detailed_report.xp.multipliers.daily }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="XP"></span>#}
-{#            </span>#}
-{#          </div>#}
-{#          {% endif %}#}
-{#          {% if detailed_report.xp.multipliers.managed > 1 %}#}
-{#          <div class="row bonus" style="height:20px;">#}
-{#            <span class="right">x{{ detailed_report.xp.multipliers.managed }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">#}
-{#                 <span class="bonus">x{{ detailed_report.xp.multipliers.managed }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="XP"></span>#}
-{#            </span>#}
-{#          </div>#}
-{#          {% endif %}#}
-{##}
-{#          <div class="row bonus" style="height:20px;">#}
-{##}
-{#            <span class="right">#}
-{#              {{ detailed_report.xp.premium.boosters.xp|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">#}
-{#              <span class="bonus">{{ detailed_report.xp.premium.boosters.free_xp|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="FreeXP"></span>#}
-{#            </span>#}
-{#          </div>#}
-{##}
-{#          <div class="row top bonus" style="height:20px;">#}
-{#            <span class="right">#}
-{#              {{ detailed_report.xp.premium.total|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/XpIcon.png' %}" alt="XP">#}
-{#              <span class="bonus">{{ detailed_report.xp.premium.free_total|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/FreeXpIcon-1.png' %}" alt="FreeXP"></span>#}
-{#            </span>#}
-{#          </div>#}
         </div>
 
       </div> <!-- /personal-data tab -->
@@ -836,6 +751,23 @@ function initTeamScoreSorting() {
         defaultHeader.dataset.sortDirection = defaultDirection;
         defaultHeader.classList.add('sorting_1');
         updateColumnHighlight(table, defaultIndex);
+
+        // Применяем начальную сортировку по убыванию
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        rows.sort((rowA, rowB) => {
+          const sortType = defaultHeader.dataset.sortType || 'string';
+          const valueA = getCellValue(rowA.children[defaultIndex], sortType);
+          const valueB = getCellValue(rowB.children[defaultIndex], sortType);
+          if (valueA < valueB) {
+            return defaultDirection === 'asc' ? -1 : 1;
+          }
+          if (valueA > valueB) {
+            return defaultDirection === 'asc' ? 1 : -1;
+          }
+          return 0;
+        });
+        rows.forEach(row => tbody.appendChild(row));
+        applyStripe(rows);
       }
     } else if (sortableHeaders[0]) {
       const fallbackIndex = allHeaders.indexOf(sortableHeaders[0]);
@@ -853,7 +785,15 @@ function initTeamScoreSorting() {
         }
 
         const sortType = header.dataset.sortType || 'string';
-        const nextDirection = header.dataset.sortDirection === 'asc' ? 'desc' : 'asc';
+        // Если колонка еще не имеет направления сортировки, начинаем с убывания
+        // Иначе переключаем направление
+        const currentDirection = header.dataset.sortDirection;
+        let nextDirection;
+        if (!currentDirection) {
+          nextDirection = 'desc'; // Первый клик всегда сортирует по убыванию
+        } else {
+          nextDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+        }
 
         sortableHeaders.forEach(otherHeader => {
           otherHeader.classList.remove('sorting_asc', 'sorting_desc', 'sorting_1');
