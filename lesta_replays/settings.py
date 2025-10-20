@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+from email.utils import formataddr
 import logging
 import os
 from pathlib import Path
@@ -145,7 +146,9 @@ ACCOUNT_FORMS = {
 }
 
 # Email
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@lesta-replays.ru")
+DEFAULT_FROM_EMAIL = formataddr(('Lesta Replays', os.getenv("DEFAULT_FROM_EMAIL", "no-reply@lesta-replays.ru")))
+# DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@lesta-replays.ru")
+EMAIL_USE_LOCALTIME = False
 if DEBUG:
     EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
 else:
