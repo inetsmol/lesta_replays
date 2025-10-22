@@ -77,20 +77,32 @@
     </nav>
   </div>
 
-  <!-- DEV banner -->
-  <div id="dev-banner"
-       class="flex items-center justify-center gap-3 py-2.5 px-3.5 border-b border-black/10 text-[13px] bg-[#fff6d6] text-[#4a3b00] dark:bg-[#3b3420] dark:text-[#ffe9a6] dark:border-b-white/10"
-       role="alert" aria-live="polite">
-    <div class="pr-2">
-      <strong>Портал в стадии активной разработки.</strong>
-      Возможны временные сбои. Если вы видите ошибку — напишите в
-      <a href="https://t.me/inetsmol" target="_blank" rel="noopener" class="underline text-inherit">Telegram @inetsmol</a>
-      или на почту <a href="mailto:inetsmol@gmail.com" class="underline text-inherit">inetsmol@gmail.com</a>.
+<!-- DEV banner (compact, chat icon + Telegram CTA) -->
+<div id="dev-banner"
+     class="flex flex-col md:flex-row items-center justify-center gap-3 py-2 px-3 border-b border-black/10 text-[13px] bg-[#fff6d6] text-[#4a3b00] dark:bg-[#3b3420] dark:text-[#ffe9a6] dark:border-b-white/10"
+     role="alert" aria-live="polite">
+  <div class="flex items-center gap-3 pr-2">
+    <!-- SVG chat icon -->
+    <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 2H4a2 2 0 00-2 2v14l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2zM6 11.5V9h12v2.5H6z" fill="currentColor"/>
+    </svg>
+
+    <div>
+      <strong>Портал в активной разработке.</strong>
+      Возможны временные сбои. Если заметили ошибку или есть предложение 
     </div>
-    <!-- Если нужна кнопка закрытия баннера, раскомментируй:
-    <button class="appearance-none border-0 bg-transparent text-[22px] leading-none cursor-pointer text-inherit opacity-60 hover:opacity-100" aria-label="Закрыть">×</button>
-    -->
+    <div class="flex items-center ml-0">
+      <a href="https://t.me/lesta_replays" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-white bg-[#1d9bf0] hover:opacity-90 no-underline" aria-label="Написать в Telegram">
+        <!-- Telegram paper-plane icon (inline SVG) -->
+        <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22 2L2 13l4.5 1.6L9 13l10 7 3-20z" fill="currentColor"/>
+        </svg>
+        <span class="text-[13px] font-medium">Написать в Telegram</span>
+      </a>
+    </div>
   </div>
+
+</div>
 </header>
 
 <script>

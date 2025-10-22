@@ -22,3 +22,4 @@ cert.key
 node_modules/
 CLAUDE.MD
 .claude/
+static/favicon.png
