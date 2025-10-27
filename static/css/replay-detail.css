@@ -2107,11 +2107,11 @@ table.tank-list.score th.xp div {
 }
 
 .personal-data.tab .data-wrapper.credit.premium .row, .personal-data.tab .data-wrapper.xp.premium .row {
-    width: 66px
+    width: 70px
 }
 
 .personal-data.tab .data-wrapper.credit.premium .row.gold, .personal-data.tab .data-wrapper.xp.premium .row.bonus {
-    width: 121px
+    width: 124px
 }
 
 .personal-data.tab .data-wrapper .right .gold {
