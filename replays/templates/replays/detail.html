@@ -45,6 +45,11 @@
     <!-- TAB: Личный результат -->
     <div class="replay-tab-wrapper active" id="tab-personal">
       <div class="tanks-image {% if battle_outcome.status_class == 'victory' %}win{% else %}{{ battle_outcome.status_class }}{% endif %}">
+        <div class="map-battle-info">
+          <span class="reason">{{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}</span>
+          <span class="reason">&nbsp;-&nbsp;</span>
+          <span class="reason">{{ battle_type_label }}</span>
+        </div>
         <div class="winner-team {{ battle_outcome.status_class }}">
           <span class="status">{{ battle_outcome.status_text }}</span>
           <div class="reason">{{ battle_outcome.reason_text }}</div>
@@ -97,61 +102,6 @@
                   title="&lt;div class='title'&gt;{{ ach.name|escape }}&lt;/div&gt;&lt;img src='{% static ach.image_big %} '/&gt; {{ ach.description|default_if_none:''|escape }}{% if ach.condition %}&lt;div class='condition'&gt;{{ ach.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}">
               </div>
             {% endfor %}
-          </div>
-        </div>
-      </div>
-
-      <div class="titles-line">
-        <div class="half">
-          <div class="battle-type">
-            <span class="map-name">{{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}</span>&nbsp;&nbsp;-&nbsp;&nbsp;{{ battle_type_label }}
-          </div>
-        </div>
-        <div class="half">
-          <div class="hit-list">
-            <table>
-              <tbody>
-              <tr class="title">
-                <td class="table-title" colspan="2">Боевая эффективность</td>
-
-                <td class="spotted" title="Обнаруженные танки (шт.)">
-                  <img {% if interactions_summary.spotted_tanks == 0 %}style="opacity:0.1;"{% endif %}
-                       src="{% static 'style/images/wot/battleresults/battleResults-19.png' %}" alt="Spotted">
-                  <div class="info">{{ interactions_summary.spotted_tanks }}</div>
-                </td>
-
-                <td class="assits" title="Помощь в уничтожении (число целей)">
-                  <img {% if interactions_summary.assist_tanks == 0 %}style="opacity:0.1;"{% endif %}
-                       src="{% static 'style/images/wot/battleresults/battleResults-25.png' %}" alt="Assist">
-                  <div class="info">{{ interactions_summary.assist_tanks }}</div>
-                </td>
-
-                <td class="assits" title="Использование брони (число целей с рикошетами/непробитиями)">
-                  <img class="bigger" {% if interactions_summary.blocked_tanks == 0 %}style="opacity:0.1;"{% endif %}
-                       src="{% static 'style/images/wot/battleresults/teamStatsComponents-12.png' %}" alt="Armor use">
-                  <div class="info">{{ interactions_summary.blocked_tanks }}</div>
-                </td>
-
-                <td class="crits" title="Критические попадания (шт.)">
-                  <img {% if interactions_summary.crits_total == 0 %}style="opacity:0.1;"{% endif %}
-                       src="{% static 'style/images/wot/battleresults/battleResults-21.png' %}" alt="Crits">
-                  <div class="info">{{ interactions_summary.crits_total }}</div>
-                </td>
-
-                <td class="damage" title="Попадания, нанесящие урон (пробития, шт.)">
-                  <img {% if interactions_summary.piercings_total == 0 %}style="opacity:0.1;"{% endif %}
-                       src="{% static 'style/images/wot/battleresults/battleResults-20.png' %}" alt="Damaging hits">
-                  <div class="info">{{ interactions_summary.piercings_total }}</div>
-                </td>
-
-                <td class="kill" title="Уничтоженные танки (шт.)">
-                  <img {% if interactions_summary.destroyed_tanks == 0 %}style="opacity:0.1;"{% endif %}
-                       src="{% static 'style/images/wot/battleresults/battleResults-23.png' %}" alt="Kills">
-                  <div class="info">{{ interactions_summary.destroyed_tanks }}</div>
-                </td>
-              </tr>
-              </tbody>
-            </table>
           </div>
         </div>
       </div>
@@ -258,6 +208,42 @@
         </div>
 
         <div class="half" style="padding-bottom:15px;">
+
+          <div class="hit-list">
+            <table>
+              <tbody>
+              <tr class="title">
+                <td class="table-title" style="width: 147.5px; max-width: 147.5px; text-align: padding-right: 5px; line-height: 28px; color: #bcbdbe; font-weight: bold; text-shadow: 1px 1px 2px #000; padding-top: 3px;">Игрок</td>
+                <td class="table-title" style="width: 153px; max-width: 153px; padding-left: 5px; line-height: 28px; color: #bcbdbe; font-weight: bold; text-shadow: 1px 1px 2px #000; padding-top: 3px;">Техника</td>
+
+                <td class="spotted" style="width: 33px; max-width: 33px; text-align: center;" title="Обнаруженные танки">
+                  {{ interactions_summary.spotted_tanks }}
+                </td>
+
+                <td class="assits" style="width: 33px; max-width: 33px; text-align: center;" title="Помощь в уничтожении">
+                  {{ detailed_report.battle_stats.assist_total }}
+                </td>
+
+                <td class="assits" style="width: 33px; max-width: 33px; text-align: center;" title="Урон, заблокированный бронёй">
+                  {{ detailed_report.battle_stats.damage_blocked }}
+                </td>
+
+                <td class="crits" style="width: 33px; max-width: 33px; text-align: center;" title="Критические попадания">
+                  {{ interactions_summary.crits_total }}
+                </td>
+
+                <td class="damage" style="width: 33px; max-width: 33px; text-align: center;" title="Нанесение урона">
+                  {{ detailed_report.battle_stats.damage_dealt }}
+                </td>
+
+                <td class="kill" style="width: 34px; max-width: 34px; text-align: center;" title="Уничтоженные танки">
+                  {{ interactions_summary.destroyed_tanks }}
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+
           <div class="hit-list">
             <table style="width:100%;">
               <tbody>

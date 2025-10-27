@@ -616,7 +616,7 @@ img {
     justify-content: space-between;
     height: 85px;
     background-size: 150% 100%;
-    margin-top: 30px
+    margin-top: 40px
 }
 
 .tanks-image.win .battle-records {
@@ -782,7 +782,30 @@ img {
 
 .tanks-image {
     height: 220px;
-    background-size: 100%
+    background-size: 100%;
+    position: relative
+}
+
+.tanks-image .map-battle-info {
+    position: absolute;
+    top: 10px;
+    left: 15px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    z-index: 10;
+    padding: 8px 12px;
+    border-radius: 4px;
+    backdrop-filter: blur(3px)
+}
+
+.tanks-image .map-battle-info .map-name {
+    color: #f0ad4e
+}
+
+.tanks-image .map-battle-info .battle-type {
+    color: #bcbdbe
 }
 
 .tanks-image.win {
@@ -1668,10 +1691,6 @@ table.tank-list.score th.xp div {
     border: 0 solid rgb(14, 12, 9);
     border-collapse: separate;
     border-spacing: 0
-}
-
-.hit-list .title {
-    background: #26251E
 }
 
 .titles-line .hit-list {
