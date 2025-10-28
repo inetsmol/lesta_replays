@@ -404,6 +404,15 @@ function uploadModal() {
           try {
             const data = JSON.parse(xhr.responseText || '{}');
 
+            // Проверка на необходимость авторизации (403 Forbidden)
+            if (xhr.status === 403 && data.redirect_url) {
+              this.showMessage('Для загрузки реплеев необходимо авторизоваться. Сейчас вы будете перенаправлены на страницу входа.', 'error');
+              setTimeout(() => {
+                window.location.href = data.redirect_url;
+              }, 2000);
+              return;
+            }
+
             if (xhr.status >= 200 && xhr.status < 300 && data.success !== false) {
               const summary = data.summary || {};
 

@@ -40,16 +40,32 @@ def health(request):
     return HttpResponse("OK")
 
 
-class ReplayBatchUploadView(View):
+class ReplayBatchUploadView(LoginRequiredMixin, View):
     """
     Пакетная загрузка .mtreplay файлов.
     Принимает несколько файлов, валидирует и создаёт Replay по каждому.
+    Требует авторизации пользователя.
     """
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.replay_service = ReplayProcessingService()
         self.error_handler = ReplayErrorHandler()
+
+    def handle_no_permission(self):
+        """Переопределяем обработку неавторизованного доступа для AJAX запросов."""
+        if self._is_ajax_request(self.request):
+            return JsonResponse({
+                "success": False,
+                "error": "Для загрузки реплеев необходимо авторизоваться",
+                "redirect_url": f"{settings.LOGIN_URL}?next={self.request.path}"
+            }, status=403)
+        return super().handle_no_permission()
+
+    @staticmethod
+    def _is_ajax_request(request: HttpRequest) -> bool:
+        """Проверяет, является ли запрос AJAX."""
+        return request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
     def post(self, request: HttpRequest):
         """Обрабатывает POST запрос с файлами реплеев."""
@@ -152,11 +168,6 @@ class ReplayBatchUploadView(View):
 
         # Для AJAX запроса
         return self._build_json_response(results, total, created_count, error_count)
-
-    @staticmethod
-    def _is_ajax_request(request: HttpRequest) -> bool:
-        """Проверяет, является ли запрос AJAX."""
-        return request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
     @staticmethod
     def _build_html_response(request: HttpRequest, created: int, errors: int, total: int):
@@ -766,10 +777,11 @@ class ReplayDetailView(DetailView):
     #     }
 
 
-class ReplayDownloadView(View):
+class ReplayDownloadView(LoginRequiredMixin, View):
     """
     View для скачивания файлов реплеев World of Tanks.
     Возвращает .mtreplay файл по ID реплея с оптимизацией для больших файлов.
+    Требует авторизации пользователя.
     """
 
     # Максимальный размер файла для скачивания (100MB)

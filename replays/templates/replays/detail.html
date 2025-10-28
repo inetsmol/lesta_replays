@@ -35,9 +35,9 @@
         {% if user.is_authenticated %}
           <a href="{% url 'replay_download' replay.pk %}" target="_blank" class="big-red-button">Скачать</a>
         {% else %}
-          <button type="button"
-                  onclick="window.app.showAlert('Скачивать реплеи могут только авторизованные пользователи. Пожалуйста, войдите в аккаунт или зарегистрируйтесь.', function() { window.location.href='{% url 'account_login' %}?next={{ request.path|urlencode }}'; }, null);"
-                  class="big-red-button">Скачать</button>
+          <a href="{% url 'account_login' %}?next={{ request.path|urlencode }}"
+             class="big-red-button"
+             title="Для скачивания реплеев необходимо авторизоваться">Скачать</a>
         {% endif %}
       </div>
     </div>

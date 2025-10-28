@@ -118,6 +118,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # Базовые настройки аккаунта
+LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"  # обязательное подтверждение email
