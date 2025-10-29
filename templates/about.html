@@ -62,6 +62,28 @@
 
                            <article class="changelog-entry mb-16">
                                 <h3 class="mt-0 mb-8">
+                                    <time datetime="2025-10-29">29.10.2025</time>
+                                    <span class="badge badge-success ml-8">Производительность</span>
+                                </h3>
+                                <ul class="mb-0">
+                                    <li><strong>Масштабная оптимизация страницы деталей реплея:</strong>
+                                        <ul class="mt-4">
+                                            <li>Ускорение обработки на <strong>83%</strong> (с 16.30 мс до 2.70 мс)</li>
+                                            <li>Сокращение SQL запросов на <strong>81%</strong> (с 16 до 3 запросов)</li>
+                                            <li>Оптимизация парсинга JSON на <strong>90%+</strong> (с 10-15 до 1 раза)</li>
+                                        </ul>
+                                    </li>
+                                    <li>Реализован <code>ReplayDataCache</code> для кеширования данных из JSON payload с ленивой загрузкой свойств.</li>
+                                    <li>Добавлена пакетная загрузка связанных объектов (танки, достижения) одним запросом вместо N+1 запросов.</li>
+                                    <li>Оптимизированы методы <code>ExtractorV2</code> с использованием мемоизации и предзагруженных кешей.</li>
+                                    <li>Удалены устаревшие методы <code>get_player_interactions()</code> и <code>_avatar_info()</code>, вызывавшие множественные запросы к БД.</li>
+                                    <li>Добавлены инструменты для мониторинга производительности: бенчмарки, профилирование, анализ SQL запросов.</li>
+                                    <li>Реализованы unit-тесты для <code>ReplayDataCache</code> и оптимизированного <code>ExtractorV2</code>.</li>
+                                </ul>
+                           </article>
+
+                           <article class="changelog-entry mb-16">
+                                <h3 class="mt-0 mb-8">
                                     <time datetime="2025-10-29">21-29.10.2025</time>
                                 </h3>
                                 <ul class="mb-0">
