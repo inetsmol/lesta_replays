@@ -252,11 +252,25 @@ function uploadModal() {
         this.openModal();
       });
 
-      // Add click handler to upload button if exists
+      // Add click handler to upload button if exists (only once)
       const uploadBtn = document.getElementById('upload-replay-btn');
-      if (uploadBtn) {
+      if (uploadBtn && !uploadBtn.dataset.handlerAttached) {
+        uploadBtn.dataset.handlerAttached = 'true';
+
         uploadBtn.addEventListener('click', (e) => {
           e.preventDefault();
+
+          // Проверяем авторизацию пользователя
+          const isAuthenticated = uploadBtn.dataset.authenticated === 'true';
+
+          if (!isAuthenticated) {
+            // Показываем alert и перенаправляем на страницу входа
+            if (confirm('Для загрузки реплеев необходимо авторизоваться. Перейти на страницу входа?')) {
+              window.location.href = '{% url "account_login" %}?next=/';
+            }
+            return;
+          }
+
           this.openModal();
         });
       }
@@ -401,17 +415,17 @@ function uploadModal() {
           this.isUploading = false;
           this.uploadCompleted = true;
 
+          // Проверяем 403 статус сначала, до парсинга JSON
+          if (xhr.status === 403) {
+            this.showMessage('Для загрузки реплеев необходимо авторизоваться. Сейчас вы будете перенаправлены на страницу входа.', 'error');
+            setTimeout(() => {
+              window.location.href = '{% url 'account_login' %}?next=/';
+            }, 2000);
+            return;
+          }
+
           try {
             const data = JSON.parse(xhr.responseText || '{}');
-
-            // Проверка на необходимость авторизации (403 Forbidden)
-            if (xhr.status === 403 && data.redirect_url) {
-              this.showMessage('Для загрузки реплеев необходимо авторизоваться. Сейчас вы будете перенаправлены на страницу входа.', 'error');
-              setTimeout(() => {
-                window.location.href = data.redirect_url;
-              }, 2000);
-              return;
-            }
 
             if (xhr.status >= 200 && xhr.status < 300 && data.success !== false) {
               const summary = data.summary || {};

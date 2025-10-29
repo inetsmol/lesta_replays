@@ -12,27 +12,16 @@
 
     <!-- Навигация -->
     <nav class="flex items-center space-x-[18px]">
-    {% if user.is_authenticated %}
       <button id="upload-replay-btn"
               type="button"
-              class="big-red-button inline-flex items-center justify-center gap-2 select-none">
+              class="big-red-button inline-flex items-center justify-center gap-2 select-none"
+              data-authenticated="{{ user.is_authenticated|lower }}">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
           <path d="M7.646 1.146a.5.5 0 0 1 .708 0L10.5 3.293V10a.5.5 0 0 1-1 0V4.414L8.354 5.56a.5.5 0 0 1-.708-.708L8.5 4.207V10a.5.5 0 0 1-1 0V3.707L6.354 4.854a.5.5 0 1 1-.708-.708l2-2z"/>
           <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/>
         </svg>
         <span>Загрузить</span>
       </button>
-    {% else %}
-      <a href="{% url 'account_login' %}?next=/"
-         class="big-red-button inline-flex items-center justify-center gap-2 select-none no-underline"
-         title="Для загрузки реплеев необходимо авторизоваться">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-          <path d="M7.646 1.146a.5.5 0 0 1 .708 0L10.5 3.293V10a.5.5 0 0 1-1 0V4.414L8.354 5.56a.5.5 0 0 1-.708-.708L8.5 4.207V10a.5.5 0 0 1-1 0V3.707L6.354 4.854a.5.5 0 1 1-.708-.708l2-2z"/>
-          <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/>
-        </svg>
-        <span>Загрузить</span>
-      </a>
-    {% endif %}
 
     {% if user.is_authenticated %}
         <details class="relative ml-[18px]" data-user-menu>

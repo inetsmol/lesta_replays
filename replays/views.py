@@ -54,11 +54,12 @@ class ReplayBatchUploadView(LoginRequiredMixin, View):
 
     def handle_no_permission(self):
         """Переопределяем обработку неавторизованного доступа для AJAX запросов."""
-        if self._is_ajax_request(self.request):
+        request = getattr(self, 'request', None)
+        if request and self._is_ajax_request(request):
             return JsonResponse({
                 "success": False,
                 "error": "Для загрузки реплеев необходимо авторизоваться",
-                "redirect_url": f"{settings.LOGIN_URL}?next={self.request.path}"
+                "redirect_url": f"{settings.LOGIN_URL}?next={request.path}"
             }, status=403)
         return super().handle_no_permission()
 
