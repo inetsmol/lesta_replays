@@ -7,6 +7,7 @@ import logging
 import math
 import re
 from collections import defaultdict
+from functools import lru_cache
 from logging import critical
 
 from typing import Any, Dict, List, Sequence, Tuple, Mapping, Optional, Iterable
@@ -1163,11 +1164,15 @@ class ExtractorV2:
         return ach_nonbattle_qs, ach_battle_qs
 
     @staticmethod
+    @lru_cache(maxsize=8)
     def _death_reason_to_text(code: int) -> str:
         """
         Преобразует код причины смерти в понятный текст.
         По данным реплеев:  -1 = жив, 0 = выстрел (типовая смерть).
         Остальные коды при необходимости дополни.
+
+        Кешируется с помощью lru_cache, т.к. значений мало (0-3),
+        а вызовов может быть много при обработке команд.
         """
         mapping = {
             0: "выстрелом",
@@ -1361,6 +1366,102 @@ class ExtractorV2:
         }
 
     @staticmethod
+    @lru_cache(maxsize=32)
+    def _get_battle_type_by_gameplay_id(gameplay_id: str) -> Optional[str]:
+        """
+        Кешируемая функция для определения типа боя по gameplay ID.
+
+        Args:
+            gameplay_id: Строковый идентификатор режима игры
+
+        Returns:
+            Название режима или None, если не найдено
+        """
+        gp_map = {
+                "ctf": "Стандартный бой",
+                "ctf2": "Завоевание",
+                "ctf30x30": "Генеральное сражение",
+                "comp7": "Натиск",
+                "comp7_1": "Натиск (Защита баз)",
+                "comp7_2": "Натиск (Атака)",
+                "domination": "Встречный бой",
+                "domination3": "Столкновение",
+                "domination30x30": "Генеральное сражение",
+                "epic": "Линия фронта",
+                "escort": "Эскорт",
+                "fallout": "«Стальная охота»",
+                "fallout1": "«Стальная охота»",
+                "fallout2": "«Стальная охота»",
+                "fallout3": "«Стальная охота»",
+                "fallout4": "«Превосходство»",
+                "fallout5": "«Превосходство»",
+                "fallout6": "«Превосходство»",
+                "maps_training": "Топография",
+                "nations": "Противостояние",
+                "rts": "Искусство стратегии",
+                "rts_bootcamp": "Искусство стратегии",
+                "winback": "Разминка"
+            }
+        return gp_map.get(gameplay_id)
+
+    @staticmethod
+    @lru_cache(maxsize=16)
+    def _get_battle_type_by_code(code: int) -> Optional[str]:
+        """
+        Кешируемая функция для определения типа боя по числовому коду.
+
+        Args:
+            code: Числовой код типа боя (battleType или bonusType)
+
+        Returns:
+            Название режима или None, если не найдено
+        """
+        code_map = {
+            0: "Специальный бой",
+            1: "Случайный бой",
+            2: "Тренировочный бой",
+            4: "Боевое обучение",
+            5: "Командный бой",
+            6: "Исторический бой",
+            7: "Специальный игровой режим",
+            8: "Вылазки",
+            9: "Бой с кланом",
+            10: "Командный бой: игра в Ладдере",
+            11: "Учебный бой",
+            12: "Учебный бой",
+            13: "«Превосходство»",
+            14: "«Стальная охота»",
+            15: "Вылазка",
+            16: "Наступление",
+            17: "Ранговый бой",
+            18: "«Превосходство»",
+            19: "Случайный бой",
+            20: "Тренировочный бой",
+            21: "Линия фронта",
+            22: "Линия фронта",
+            23: "Стальной охотник",
+            24: "Разведка боем",
+            25: "Обучение на картах",
+            26: "Искусство стратегии",
+            27: "Линия фронта",
+            28: "Основы стратегии",
+            29: "«Стальной охотник»",
+            30: "Натиск",
+            31: "Разминка",
+            32: "«Битва блогеров»",
+            33: "Натиск",
+            37: "«Разведка боем»",
+            38: "«Топография»",
+            42: "Полевые испытания",
+            43: "Натиск",
+            44: "Разминка",
+            50: "Полигон",
+            61: "Разлом",
+            31000: "Полигон",
+        }
+        return code_map.get(code)
+
+    @staticmethod
     def get_battle_type_label(cache: 'ReplayDataCache') -> str:
         """
         Вернёт человекочитаемое название типа боя.
@@ -1372,42 +1473,23 @@ class ExtractorV2:
         Returns:
             Человекочитаемое название типа боя
         """
-        # основные режимы WoT
-        gp_map = {
-            "ctf": "Стандартный бой",
-            "comp7": "Натиск",
-            "domination": "Встречный бой",
-            "assault": "Штурм",
-            "assault2": "Штурм",
-            "epic_battle": "Линия фронта",
-            "epic": "Линия фронта",
-            "nations": "Нации",
-            "battle_royale": "Стальной охотник",
-            "ranked": "Ранговый бой",
-            "clan": "Укрепрайон",
-            "sandbox": "Тренировочный бой",
-            "tutorial": "Тренировка",
-            "ctf30x30": "Большие бои",
-            # при необходимости дополняй
-        }
-
+        # Пытаемся определить по gameplay ID
         gameplay_id = str(cache.first_block.get("gameplayID") or "").strip()
         if gameplay_id:
-            return gp_map.get(gameplay_id, "Неизвестный режим")
+            label = ExtractorV2._get_battle_type_by_gameplay_id(gameplay_id)
+            if label:
+                return label
+            return "Неизвестный режим"
 
-        # На случай отсутствия gameplayID попробуем числовые коды
-        # ВНИМАНИЕ: это не тип режима, а тип "бонус-боя", оставим общее имя.
+        # Fallback: пытаемся по числовым кодам
         bt = cache.first_block.get("battleType")
         bonus = cache.common.get("bonusType")
         for code in (bt, bonus):
             try:
-                if int(code) == 1:
-                    return "Случайный бой"
-                if int(code) == 2:
-                    return "Ротный/Командный бой"
-                if int(code) == 10:
-                    return "Ранговый бой"
-                # и т.п., по мере необходимости
+                code_int = int(code)
+                label = ExtractorV2._get_battle_type_by_code(code_int)
+                if label:
+                    return label
             except (TypeError, ValueError):
                 pass
 
