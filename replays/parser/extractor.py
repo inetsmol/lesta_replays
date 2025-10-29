@@ -754,6 +754,7 @@ class ExtractorV2:
 
             'serverName': first_block.get('serverName'),
             'battleType': first_block.get('battleType'),
+            'battleModeLabel': ExtractorV2.get_battle_mode_label(cache),
             'clientVersion': first_block.get('clientVersionFromExe'),
             'playerName': first_block.get('playerName'),
             'clanAbbrev': clan_abbrev
@@ -1339,26 +1340,38 @@ class ExtractorV2:
     @staticmethod
     def get_battle_type_label(cache: 'ReplayDataCache') -> str:
         """
-        Вернёт человекочитаемое название типа боя.
-        Приоритет: gameplayID (строка) → fallback по battleType/bonusType (число) → 'Неизвестный режим'.
+        Вернёт человекочитаемое название типа игры по gameplayID.
+        Например: "Стандартный бой", "Встречный бой", "Господство".
 
         Args:
             cache: Кеш данных реплея
 
         Returns:
-            Человекочитаемое название типа боя
+            Человекочитаемое название типа игры
         """
-        # Пытаемся определить по gameplay ID
         gameplay_id = str(cache.first_block.get("gameplayID") or "").strip()
         if gameplay_id:
             label = ExtractorV2._get_battle_type_by_gameplay_id(gameplay_id)
             if label:
                 return label
-            return "Неизвестный режим"
+        return "Неизвестный режим"
 
-        # Fallback: пытаемся по числовым кодам
+    @staticmethod
+    def get_battle_mode_label(cache: 'ReplayDataCache') -> str:
+        """
+        Вернёт человекочитаемое название режима боя по battleType/bonusType.
+        Например: "Случайный бой", "Ранговый бой", "Тренировочный бой".
+
+        Args:
+            cache: Кеш данных реплея
+
+        Returns:
+            Человекочитаемое название режима боя
+        """
+        # Проверяем battleType и bonusType
         bt = cache.first_block.get("battleType")
         bonus = cache.common.get("bonusType")
+
         for code in (bt, bonus):
             try:
                 code_int = int(code)
