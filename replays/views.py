@@ -12,7 +12,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q, F, Count, OuterRef, Subquery, IntegerField, CharField, Value
+from django.db.models import Q, F, Count, OuterRef, Subquery, IntegerField, CharField, Value, FloatField
 from django.db.models.functions import Coalesce, Cast
 from django.http import JsonResponse, Http404, HttpResponse, StreamingHttpResponse, HttpRequest
 from django.shortcuts import redirect, render, get_object_or_404
@@ -580,9 +580,97 @@ class ReplayDetailView(DetailView):
         context = self.get_context_data(object=self.object)
         return self.render_to_response(context)
 
+    def _preload_tanks(self, cache) -> Dict[str, Tank]:
+        """
+        Предзагружает все танки, используемые в бою, одним запросом.
+
+        Args:
+            cache: ReplayDataCache с данными реплея
+
+        Returns:
+            Словарь {vehicleId: Tank}
+        """
+        from replays.parser.replay_cache import ReplayDataCache
+
+        tank_tags = set()
+
+        # Танк владельца реплея
+        player_vehicle = cache.first_block.get("playerVehicle")
+        if player_vehicle and ":" in player_vehicle:
+            _, tag = player_vehicle.split(":", 1)
+            tank_tags.add(tag)
+
+        # Танки всех участников боя
+        for avatar_id, avatar_data in cache.avatars.items():
+            if isinstance(avatar_data, dict):
+                vehicle_type = avatar_data.get("vehicleType", "")
+                if ":" in vehicle_type:
+                    _, tag = vehicle_type.split(":", 1)
+                    tank_tags.add(tag)
+
+        # Загружаем все танки одним запросом
+        tanks = Tank.objects.filter(vehicleId__in=tank_tags)
+        tanks_cache = {t.vehicleId: t for t in tanks}
+        
+        logger.debug(f"Предзагружено {len(tanks_cache)} танков из {len(tank_tags)} запрошенных")
+
+        return tanks_cache
+
+    def _preload_achievements(self, cache) -> tuple:
+        """
+        Предзагружает достижения текущего игрока одним запросом.
+
+        Args:
+            cache: ReplayDataCache с данными реплея
+
+        Returns:
+            Кортеж (achievements_nonbattle, achievements_battle)
+        """
+        achievement_ids = cache.get_achievements()
+
+        if not achievement_ids:
+            empty = Achievement.objects.none()
+            return empty, empty
+
+        # Нормализуем ID
+        ids = []
+        for aid in achievement_ids:
+            try:
+                ids.append(int(aid))
+            except (TypeError, ValueError):
+                continue
+
+        if not ids:
+            empty = Achievement.objects.none()
+            return empty, empty
+
+        # Загружаем ВСЕ достижения одним запросом
+        achievements = Achievement.objects.filter(
+            achievement_id__in=ids,
+            is_active=True
+        ).annotate(
+            weight=Coalesce(
+                Cast('order', FloatField()),
+                Value(0.0),
+                output_field=FloatField(),
+            )
+        )
+
+        # Разделяем на battle и nonbattle
+        battle_sections = ('battle', 'epic')
+        ach_battle = achievements.filter(section__in=battle_sections).order_by('-weight', 'name')
+        ach_nonbattle = achievements.exclude(section__in=battle_sections).order_by('-weight', 'name')
+
+        logger.debug(
+            f"Предзагружено достижений: {ach_nonbattle.count()} небоевых, {ach_battle.count()} боевых"
+        )
+
+        return ach_nonbattle, ach_battle
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
+        # Back URL
         fallback = reverse("replay_list")
         back = self.request.GET.get("back") or self.request.META.get("HTTP_REFERER", "")
         safe_back = fallback
@@ -598,74 +686,88 @@ class ReplayDetailView(DetailView):
         context["back_url"] = safe_back
 
         try:
-            # Парсим данные реплея
-            replay_data = self.object.payload
+            # ============================================================
+            # ЭТАП 1: СОЗДАНИЕ КЕША (парсинг JSON один раз!)
+            # ============================================================
+            from replays.parser.replay_cache import ReplayDataCache
+            cache = ReplayDataCache(self.object.payload)
+            logger.debug(f"Создан кеш для реплея {self.object.id}")
 
-            # === Персональные данные ===
-            personal_data = ExtractorV2.get_personal_data(replay_data)
-            context['personal_data'] = personal_data
+            # ============================================================
+            # ЭТАП 2: ПРЕДЗАГРУЗКА ДАННЫХ (минимум запросов к БД)
+            # ============================================================
+            tanks_cache = self._preload_tanks(cache)
+            achievements_nonbattle, achievements_battle = self._preload_achievements(cache)
 
-            # === ДОСТИЖЕНИЯ ===
-            achievements_ids = ExtractorV2.get_achievements(replay_data)
-            # print(f"achievements_ids: {achievements_ids}")
-            if achievements_ids:
-                ach_nonbattle, ach_battle = ExtractorV2.split_achievements_by_section(achievements_ids)
+            # Создаём контекст для кеширования промежуточных вычислений
+            from replays.parser.extractor import ExtractorContext
+            extractor_context = ExtractorContext(cache)
 
-                context['achievements_nonbattle'] = ach_nonbattle
-                context['achievements_battle'] = ach_battle
+            logger.debug(
+                f"Предзагружено: {len(tanks_cache)} танков, "
+                f"{achievements_nonbattle.count()} + {achievements_battle.count()} достижений"
+            )
 
-                # мастерство — как и было
-                m = int(self.object.mastery or 0)
-                label_map = {
-                    4: "Мастер - 100%",
-                    3: "1 степень - 95%",
-                    2: "2 степень - 80%",
-                    1: "3 степень - 50%",
-                }
-                context['has_mastery'] = m > 0
-                context['mastery'] = m
-                context['mastery_label'] = label_map.get(m, "")
-                context['mastery_image'] = f"style/images/wot/achievement/markOfMastery{m}.png" if m else ""
+            # ============================================================
+            # ЭТАП 3: ИЗВЛЕЧЕНИЕ ДАННЫХ (с использованием кеша)
+            # ============================================================
 
-                # сколько значков показать в «бейджах»
-                context['achievements_count_in_badges'] = ach_nonbattle.count() + (1 if m > 0 else 0)
-                context['achievements_battle_count'] = ach_battle.count()
+            # Персональные данные (минимальный набор полей)
+            context['personal_data'] = ExtractorV2.get_personal_data_minimal(cache)
 
-            else:
-                context['achievements_nonbattle'] = Achievement.objects.none()
-                context['achievements_battle'] = Achievement.objects.none()
-                context['achievements_count_in_badges'] = 0
+            # Достижения
+            context['achievements_nonbattle'] = achievements_nonbattle
+            context['achievements_battle'] = achievements_battle
 
-            details = ExtractorV2.get_details_data(replay_data)
-            context['details'] = details
+            # Мастерство
+            m = int(self.object.mastery or 0)
+            label_map = {
+                4: "Мастер - 100%",
+                3: "1 степень - 95%",
+                2: "2 степень - 80%",
+                1: "3 степень - 50%",
+            }
+            context['has_mastery'] = m > 0
+            context['mastery'] = m
+            context['mastery_label'] = label_map.get(m, "")
+            context['mastery_image'] = f"style/images/wot/achievement/markOfMastery{m}.png" if m else ""
+            context['achievements_count_in_badges'] = achievements_nonbattle.count() + (1 if m > 0 else 0)
+            context['achievements_battle_count'] = achievements_battle.count()
 
-            interactions = ExtractorV2.get_player_interactions(replay_data)
-            # print(f"interactions: {interactions}")
-            context["interactions"] = interactions
+            # Детали боя (оптимизированная версия с cache)
+            context['details'] = ExtractorV2.get_details_data(cache)
 
-
-            interaction_rows = ExtractorV2.build_interaction_rows(replay_data)
-            # print(f"interaction_rows: {interaction_rows}")
+            # Взаимодействия (оптимизированная версия - один проход вместо двух!)
+            interaction_rows, interactions_summary = ExtractorV2.build_interactions_data(cache, tanks_cache)
             context["interaction_rows"] = interaction_rows
-
-            interactions_summary = ExtractorV2.build_interactions_summary(interaction_rows)
-            # print(f"interactions_summary: {interactions_summary}")
             context["interactions_summary"] = interactions_summary
 
-            context['death_reason_text'] = ExtractorV2.get_death_text(replay_data)
+            # Старый метод interactions (пока оставляем для совместимости)
+            interactions = ExtractorV2.get_player_interactions(self.object.payload)
+            context["interactions"] = interactions
 
-            context['income'] = ExtractorV2.build_income_summary(replay_data)
+            # Причина смерти (оптимизированная версия с cache)
+            context['death_reason_text'] = ExtractorV2.get_death_text(cache)
 
-            context["battle_type_label"] = ExtractorV2.get_battle_type_label(replay_data)
+            # Экономическая сводка (оптимизированная версия с кешированием)
+            context['income'] = ExtractorV2.build_income_summary_cached(cache, extractor_context)
 
-            context["battle_outcome"] = ExtractorV2.get_battle_outcome(replay_data)
+            # Тип боя (оптимизированная версия с cache)
+            context["battle_type_label"] = ExtractorV2.get_battle_type_label(cache)
 
-            context['team_results'] = ExtractorV2.get_team_results(replay_data)
+            # Результат боя (оптимизированная версия с cache)
+            context["battle_outcome"] = ExtractorV2.get_battle_outcome(cache)
 
-            context['detailed_report'] = ExtractorV2.get_detailed_report(replay_data)
+            # Командные результаты (оптимизированная версия с кешем танков и медалей!)
+            context['team_results'] = ExtractorV2.get_team_results(cache, tanks_cache)
+
+            # Подробный отчёт (оптимизированная версия с cache)
+            context['detailed_report'] = ExtractorV2.get_detailed_report(cache)
+
+            logger.debug(f"Контекст для реплея {self.object.id} успешно сформирован")
 
         except (KeyError, TypeError, ValueError) as e:
-            logger.error(f"Ошибка парсинга реплея {self.object.id}: {str(e)}")
+            logger.error(f"Ошибка парсинга реплея {self.object.id}: {str(e)}", exc_info=True)
             context['parse_error'] = f"Ошибка обработки данных реплея: {str(e)}"
 
         return context

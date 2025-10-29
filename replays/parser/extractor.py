@@ -69,10 +69,53 @@ class ParserUtils:
                             yield v
 
 
+class ExtractorContext:
+    """
+    Контекст для хранения промежуточных вычислений при работе экстрактора.
+
+    Позволяет избежать повторных вычислений одних и тех же значений,
+    например, суммарного ассиста, который используется в нескольких методах.
+    """
+
+    def __init__(self, cache: 'ReplayDataCache'):
+        """
+        Args:
+            cache: ReplayDataCache с данными реплея
+        """
+        from replays.parser.replay_cache import ReplayDataCache
+
+        self.cache = cache
+        self._total_assist: Optional[int] = None
+
+    def get_total_assist(self) -> int:
+        """
+        Получает суммарный ассист (с кешированием).
+        Вычисляется только один раз, последующие вызовы возвращают закешированное значение.
+
+        Returns:
+            Суммарный ассист-урон
+        """
+        if self._total_assist is None:
+            p = self.cache.personal
+            assist_radio = p.get('damageAssistedRadio', 0)
+            assist_track = p.get('damageAssistedTrack', 0)
+            assist_stun = p.get('damageAssistedStun', 0)
+            assist_smoke = p.get('damageAssistedSmoke', 0)
+            assist_inspire = p.get('damageAssistedInspire', 0)
+
+            self._total_assist = assist_radio + assist_track + assist_stun + assist_smoke + assist_inspire
+
+        return self._total_assist
+
+
 class ExtractorV2:
     @staticmethod
     def _calculate_total_assist(personal: Dict[str, Any]) -> int:
-        """Вычисляет общую помощь в уроне (все виды ассиста)"""
+        """
+        Вычисляет общую помощь в уроне (все виды ассиста).
+
+        DEPRECATED: Используйте ExtractorContext.get_total_assist() для избежания повторных вычислений.
+        """
         assist_radio = personal.get('damageAssistedRadio', 0)
         assist_track = personal.get('damageAssistedTrack', 0)
         assist_stun = personal.get('damageAssistedStun', 0)
@@ -488,6 +531,31 @@ class ExtractorV2:
             return '', '', ''
 
     @staticmethod
+    def get_personal_data_minimal(cache: 'ReplayDataCache') -> dict:
+        """
+        Возвращает ТОЛЬКО те поля из personal, которые реально используются в шаблоне detail.html.
+
+        Вместо 60+ полей возвращаем только 3 нужных поля.
+        Это существенно снижает потребление памяти и ускоряет обработку.
+
+        Args:
+            cache: ReplayDataCache с данными реплея
+
+        Returns:
+            Словарь с минимальным набором полей: credits, xp, crystal
+        """
+        from replays.parser.replay_cache import ReplayDataCache
+
+        p = cache.personal
+
+        return {
+            # Только поля, которые используются в шаблоне detail.html
+            'credits': int(p.get('credits', 0)),
+            'xp': int(p.get('xp', 0)),
+            'crystal': int(p.get('crystal', 0)),
+        }
+
+    @staticmethod
     def get_personal_data(replay_data: dict) -> dict:
         p = ExtractorV2.get_personal_by_player_id(replay_data) or {}
 
@@ -690,17 +758,22 @@ class ExtractorV2:
         return out
 
     @staticmethod
-    def get_details_data(payload) -> Dict[str, Any]:
+    def get_details_data(cache: 'ReplayDataCache') -> Dict[str, Any]:
+        """
+        Извлекает детальные данные боя для отображения.
 
-        personal = ExtractorV2.get_personal_by_player_id(payload)
-        first_block = ExtractorV2.get_first_block(payload)
-        second_block = ExtractorV2.get_second_block(payload)
+        Args:
+            cache: Кеш данных реплея
 
-        player_id = first_block.get("playerID")
-        players = second_block[0].get("players")
-        player = players.get(str(player_id))
+        Returns:
+            Словарь с детальными данными
+        """
+        personal = cache.personal
+        first_block = cache.first_block
 
-        clan_abbrev = player.get("clanAbbrev")
+        player_id = cache.player_id
+        player = cache.players.get(str(player_id), {})
+        clan_abbrev = player.get("clanAbbrev", "")
 
         details_data = {
             'xp': personal.get('xp'),
@@ -810,6 +883,147 @@ class ExtractorV2:
             out[k] = uniq
 
         return out
+
+    @staticmethod
+    def build_interactions_data(cache: 'ReplayDataCache', tanks_cache: Dict[str, 'Tank']) -> tuple:
+        """
+        Строит данные взаимодействий И суммарную статистику за ОДИН проход.
+
+        Это оптимизированная версия, которая объединяет build_interaction_rows и
+        build_interactions_summary в один метод, избегая двойного прохода по данным.
+
+        Args:
+            cache: ReplayDataCache с данными реплея
+            tanks_cache: Предзагруженные танки {vehicleId: Tank}
+
+        Returns:
+            Кортеж (interaction_rows: list, interactions_summary: dict)
+        """
+        from replays.models import Tank
+        from replays.parser.replay_cache import ReplayDataCache
+
+        details = cache.get_details()
+
+        if not isinstance(details, Mapping):
+            empty_summary = {
+                "spotted_tanks": 0,
+                "assist_tanks": 0,
+                "blocked_tanks": 0,
+                "crits_total": 0,
+                "piercings_total": 0,
+                "destroyed_tanks": 0,
+            }
+            return [], empty_summary
+
+        rows = []
+
+        # Счётчики для summary (считаем сразу в цикле!)
+        spotted_count = 0
+        assist_count = 0
+        blocked_count = 0
+        crits_total = 0
+        piercings_total = 0
+        destroyed_count = 0
+
+        for k, d in details.items():
+            if not isinstance(d, Mapping):
+                continue
+
+            aid = ExtractorV2._parse_target_avatar_id(str(k))
+            if not aid:
+                continue
+
+            # Получаем информацию об аватаре
+            avatar_data = cache.avatars.get(aid, {})
+            vehicle_type = str(avatar_data.get("vehicleType", ""))
+
+            if ":" in vehicle_type:
+                _, vehicle_tag = vehicle_type.split(":", 1)
+            else:
+                vehicle_tag = vehicle_type
+
+            # Используем предзагруженный кеш танков!
+            tank = tanks_cache.get(vehicle_tag)
+            if not tank:
+                # Создаём неизвестный танк (но это должно быть редким случаем)
+                tank, _ = Tank.objects.get_or_create(
+                    vehicleId=vehicle_tag,
+                    defaults={
+                        'name': f'Неизвестный танк ({vehicle_tag})',
+                        'level': 1,
+                        'type': 'unknown'
+                    }
+                )
+                # Добавляем в кеш для последующих использований
+                tanks_cache[vehicle_tag] = tank
+
+            # Вычисляем метрики
+            spotted = int(d.get("spotted") or 0)
+            assist_value = (
+                int(d.get("damageAssistedTrack") or 0) +
+                int(d.get("damageAssistedRadio") or 0) +
+                int(d.get("damageAssistedStun") or 0) +
+                int(d.get("damageAssistedSmoke") or 0) +
+                int(d.get("damageAssistedInspire") or 0)
+            )
+            blocked_events = (
+                int(d.get("rickochetsReceived") or 0) +
+                int(d.get("noDamageDirectHitsReceived") or 0)
+            )
+            crits_mask = int(d.get("crits") or 0)
+            crits_count = crits_mask.bit_count() if hasattr(int, "bit_count") else bin(crits_mask).count("1")
+            damage_piercings = int(d.get("piercings") or 0)
+            target_kills = int(d.get("targetKills") or 0)
+
+            # Обновляем суммарные счётчики (ЗА ОДИН ПРОХОД!)
+            if spotted > 0:
+                spotted_count += 1
+            if assist_value > 0:
+                assist_count += 1
+            if blocked_events > 0:
+                blocked_count += 1
+            crits_total += crits_count
+            piercings_total += damage_piercings
+            if target_kills > 0:
+                destroyed_count += 1
+
+            # Формируем строку
+            rows.append({
+                "avatar_id": aid,
+                "name": avatar_data.get("name") or aid,
+                "vehicle_tag": vehicle_tag,
+                "vehicle_name": tank.name,
+                "vehicle_img": f"style/images/wot/shop/vehicles/180x135/{vehicle_tag}.png" if vehicle_tag else "tanks/tank_placeholder.png",
+                "team": avatar_data.get("team"),
+
+                # Флаги для иконок (opacity)
+                "spotted": spotted > 0,
+                "assist": assist_value > 0,
+                "blocked": blocked_events > 0,
+                "crits": crits_count > 0,
+                "damaged": damage_piercings > 0,
+                "destroyed": target_kills > 0,
+
+                # Числовые значения для отображения
+                "spotted_count": spotted,
+                "assist_value": assist_value,
+                "blocked_events": blocked_events,
+                "crits_count": crits_count,
+                "damage_piercings": damage_piercings,
+                "destroyed_count": target_kills,
+            })
+
+        # Формируем summary
+        summary = {
+            "spotted_tanks": spotted_count,
+            "assist_tanks": assist_count,
+            "blocked_tanks": blocked_count,
+            "crits_total": crits_total,
+            "piercings_total": piercings_total,
+            "destroyed_tanks": destroyed_count,
+        }
+
+        return rows, summary
 
     @staticmethod
     def build_interaction_rows(payload) -> List[Dict[str, Any]]:
@@ -964,12 +1178,19 @@ class ExtractorV2:
         return mapping.get(int(code), "уничтожен")
 
     @staticmethod
-    def get_killer_name(payload, default: str = "") -> str:
+    def get_killer_name(cache: 'ReplayDataCache', default: str = "") -> str:
         """
         Возвращает ник убийцы по killerID из personal текущего игрока.
         Если игрок выжил или данных нет — вернёт default.
+
+        Args:
+            cache: Кеш данных реплея
+            default: Значение по умолчанию
+
+        Returns:
+            Ник убийцы или default
         """
-        p = ExtractorV2.get_personal_by_player_id(payload) or {}
+        p = cache.personal
         killer_id = p.get("killerID")
         try:
             killer_id_int = int(killer_id)
@@ -978,19 +1199,25 @@ class ExtractorV2:
 
         if killer_id_int <= 0:
             return default
-        second_block = ExtractorV2.get_second_block(payload)
-        killer = second_block[1].get(str(killer_id_int)) or {}
+
+        killer = cache.avatars.get(str(killer_id_int), {})
         # В верхнеуровневом блоке по avatarId есть 'name' (а для ботов ещё и fakeName)
         return killer.get("name") or killer.get("fakeName") or str(killer_id_int)
 
     @staticmethod
-    def get_death_text(payload) -> str:
+    def get_death_text(cache: 'ReplayDataCache') -> str:
         """
         Строит строку для шаблона:
           - "Выжил", если deathReason == -1
           - "Уничтожен <причина> (<ник>)", если погиб
+
+        Args:
+            cache: Кеш данных реплея
+
+        Returns:
+            Текст статуса жизни
         """
-        p = ExtractorV2.get_personal_by_player_id(payload) or {}
+        p = cache.personal
         death_reason = p.get("deathReason", -1)
         try:
             dr = int(death_reason)
@@ -1001,8 +1228,72 @@ class ExtractorV2:
             return "Выжил"
 
         reason = ExtractorV2._death_reason_to_text(dr)
-        killer = ExtractorV2.get_killer_name(payload)
+        killer = ExtractorV2.get_killer_name(cache)
         return f"Уничтожен {reason}" + (f" ({killer})" if killer else "")
+
+    @staticmethod
+    def build_income_summary_cached(cache: 'ReplayDataCache', context: 'ExtractorContext') -> Dict[str, Any]:
+        """
+        Оптимизированная версия build_income_summary с использованием кеша.
+
+        Args:
+            cache: ReplayDataCache с данными реплея
+            context: ExtractorContext для кеширования вычислений
+
+        Returns:
+            Словарь со сводкой по доходам
+        """
+        from replays.parser.replay_cache import ReplayDataCache
+
+        # персональные данные текущего игрока
+        p = cache.personal
+        common = cache.common
+
+        # --- первая победа (x2) ---
+        team = int(p.get('team') or 0)
+        winner_team = int(common.get('winnerTeam') or -1)
+        is_victory = (team == winner_team)
+        daily_factor10 = int(p.get('dailyXPFactor10') or 10)
+        is_first_win = is_victory and daily_factor10 >= 20
+
+        # --- кредиты (база и прем) ---
+        base_credits = int(p.get('originalCredits') or p.get('subtotalCredits') or p.get('credits') or 0)
+        prem_cred_factor = (int(p.get('premiumCreditsFactor100') or 100)) / 100.0
+        prem_credits = int(round(base_credits * prem_cred_factor))
+
+        # --- опыт (база и прем) ---
+        base_xp = int(p.get('originalXP') or p.get('subtotalXP') or p.get('xp') or 0)
+        prem_xp_factor = (int(p.get('premiumXPFactor100') or 100)) / 100.0
+        prem_xp = int(round(base_xp * prem_xp_factor))
+
+        # x2 за первую победу
+        victory_mult = 2 if is_first_win else 1
+        xp_with_first_base = base_xp * victory_mult
+        xp_with_first_prem = int(round(prem_xp * victory_mult))
+
+        # --- меткость ---
+        shots = int(p.get('shots') or 0)
+        hits = int(p.get('directHits') or p.get('directEnemyHits') or 0)
+        hit_percent = (hits / shots * 100.0) if shots > 0 else 0.0
+
+        # --- ассист и урон (используем кешированное значение!) ---
+        assist_total = context.get_total_assist()
+        damage_total = int(p.get('damageDealt') or 0)
+
+        return {
+            'credits_base': base_credits,
+            'credits_premium': prem_credits,
+            'xp_base': base_xp,
+            'xp_premium': prem_xp,
+            'xp_with_first_base': xp_with_first_base,
+            'xp_with_first_premium': xp_with_first_prem,
+            'is_first_win': is_first_win,
+            'shots': shots,
+            'hits': hits,
+            'hit_percent': hit_percent,
+            'assist_total': assist_total,
+            'damage_total': damage_total,
+        }
 
     @staticmethod
     def build_income_summary(payload) -> Dict[str, Any]:
@@ -1070,10 +1361,16 @@ class ExtractorV2:
         }
 
     @staticmethod
-    def get_battle_type_label(payload) -> str:
+    def get_battle_type_label(cache: 'ReplayDataCache') -> str:
         """
         Вернёт человекочитаемое название типа боя.
         Приоритет: gameplayID (строка) → fallback по battleType/bonusType (число) → 'Неизвестный режим'.
+
+        Args:
+            cache: Кеш данных реплея
+
+        Returns:
+            Человекочитаемое название типа боя
         """
         # основные режимы WoT
         gp_map = {
@@ -1094,17 +1391,14 @@ class ExtractorV2:
             # при необходимости дополняй
         }
 
-        first_block = ExtractorV2.get_first_block(payload)
-
-        gameplay_id = str(first_block.get("gameplayID") or "").strip()
+        gameplay_id = str(cache.first_block.get("gameplayID") or "").strip()
         if gameplay_id:
             return gp_map.get(gameplay_id, "Неизвестный режим")
 
         # На случай отсутствия gameplayID попробуем числовые коды
         # ВНИМАНИЕ: это не тип режима, а тип "бонус-боя", оставим общее имя.
-        bt = first_block.get("battleType")
-        common = ExtractorV2.get_common(payload)
-        bonus = common.get("bonusType")
+        bt = cache.first_block.get("battleType")
+        bonus = cache.common.get("bonusType")
         for code in (bt, bonus):
             try:
                 if int(code) == 1:
@@ -1120,35 +1414,20 @@ class ExtractorV2:
         return "Неизвестный режим"
 
     @staticmethod
-    def _get_player_team(payload) -> int | None:
-        """
-        Возвращает номер команды игрока (1 или 2).
-        Сначала из personal, затем из players по accountID.
-        """
-        p = ExtractorV2.get_personal_by_player_id(payload) or {}
-        team = p.get("team")
-        if isinstance(team, int):
-            return team
-
-        first_block = ExtractorV2.get_first_block(payload)
-        second_block = ExtractorV2.get_second_block(payload)
-
-        acc_id = first_block.get("playerID")
-        players = second_block[0].get("players") or {}
-        rec = players.get(str(acc_id)) or players.get(acc_id) or {}
-        team = rec.get("team")
-        return int(team) if isinstance(team, int) else None
-
-    @staticmethod
-    def get_battle_outcome(payload) -> dict[str, str]:
+    def get_battle_outcome(cache: 'ReplayDataCache') -> dict[str, str]:
         """
         Формирует текст статуса ('Победа! / Поражение / Ничья'),
         CSS-класс и человекочитаемую причину завершения боя.
+
+        Args:
+            cache: Кеш данных реплея
+
+        Returns:
+            Словарь с ключами: status_text, status_class, reason_text
         """
-        common = ExtractorV2.get_common(payload)
-        winner_team = common.get("winnerTeam")       # 0 = ничья
-        finish_reason = common.get("finishReason")   # 1 — уничтожены, 2 — база, 3 — время и т.д.
-        player_team = ExtractorV2._get_player_team(payload)
+        winner_team = cache.common.get("winnerTeam")       # 0 = ничья
+        finish_reason = cache.common.get("finishReason")   # 1 — уничтожены, 2 — база, 3 — время и т.д.
+        player_team = cache.player_team
 
         # Статус
         if winner_team in (0, None):
@@ -1188,10 +1467,83 @@ class ExtractorV2:
         }
 
     @staticmethod
+    def _preload_all_player_medals(cache: 'ReplayDataCache') -> Dict[str, Dict[str, Any]]:
+        """
+        Предзагружает медали для ВСЕХ игроков боя одним запросом.
+
+        Args:
+            cache: Кеш данных реплея
+
+        Returns:
+            Словарь {avatar_id: {"count": N, "title": "...", "has_medals": bool}}
+        """
+        from replays.models import Achievement
+
+        # Собираем все достижения всех игроков
+        all_achievement_ids = set()
+        player_achievements = {}  # {avatar_id: [achievement_ids]}
+
+        for avatar_id, vstats_list in cache.vehicles.items():
+            if isinstance(vstats_list, list) and vstats_list:
+                vstats = vstats_list[0] if isinstance(vstats_list[0], dict) else {}
+                achievements = vstats.get("achievements", [])
+                if achievements:
+                    player_achievements[avatar_id] = achievements
+                    for aid in achievements:
+                        try:
+                            all_achievement_ids.add(int(aid))
+                        except (TypeError, ValueError):
+                            pass
+
+        if not all_achievement_ids:
+            return {}
+
+        # ОДИН запрос для ВСЕХ достижений ВСЕХ игроков!
+        achievements = Achievement.objects.filter(
+            achievement_id__in=all_achievement_ids,
+            is_active=True,
+            achievement_type__in=['battle', 'epic']
+        ).values('achievement_id', 'name').order_by('name')
+
+        # Создаём lookup таблицу
+        ach_lookup = {ach['achievement_id']: ach['name'] for ach in achievements}
+
+        # Формируем результат для каждого игрока
+        result = {}
+        for avatar_id, ach_ids in player_achievements.items():
+            valid_names = []
+            for aid in ach_ids:
+                try:
+                    aid_int = int(aid)
+                    if aid_int in ach_lookup:
+                        valid_names.append(ach_lookup[aid_int])
+                except (TypeError, ValueError):
+                    pass
+
+            if valid_names:
+                result[avatar_id] = {
+                    "count": len(valid_names),
+                    "title": "&lt;br&gt;".join(f"«{name}»" for name in valid_names),
+                    "has_medals": True
+                }
+            else:
+                result[avatar_id] = {
+                    "count": 0,
+                    "title": "",
+                    "has_medals": False
+                }
+
+        logger.debug(f"Предзагружено медалей для {len(result)} игроков из {len(player_achievements)} с достижениями")
+
+        return result
+
+    @staticmethod
     def _get_player_medals(achievement_ids: list) -> Dict[str, Any]:
         """
         Получает информацию о медалях игрока из базы данных.
         Возвращает только боевые и эпические достижения.
+
+        DEPRECATED: Используйте _preload_all_player_medals() для batch-загрузки всех медалей.
         """
         if not achievement_ids:
             return {
@@ -1254,10 +1606,26 @@ class ExtractorV2:
             }
 
     @staticmethod
-    def _build_player_data(avatar_id: str, raw: Mapping[str, Any], vehicles_stats: Mapping[str, Any],
-                           players_info: Mapping[str, Any], payload) -> Dict[str, Any]:
+    def _build_player_data(
+        avatar_id: str,
+        raw: Mapping[str, Any],
+        vehicles_stats: Mapping[str, Any],
+        players_info: Mapping[str, Any],
+        cache: 'ReplayDataCache',
+        tanks_cache: Dict[str, 'Tank'],
+        medals_cache: Dict[str, Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """
         Формирует данные игрока для командного результата.
+
+        Args:
+            avatar_id: ID аватара игрока
+            raw: Сырые данные аватара
+            vehicles_stats: Статистика техники
+            players_info: Информация об игроках
+            cache: Кеш данных реплея
+            tanks_cache: Предзагруженные танки
+            medals_cache: Предзагруженные медали
         """
         # Базовая информация
         vehicle_type = str(raw.get("vehicleType", ""))
@@ -1288,13 +1656,10 @@ class ExtractorV2:
         is_alive = death_reason == -1
         killer_id = vstats.get("killerID", 0)
 
-        first_block = ExtractorV2.get_first_block(payload)
-        second_block = ExtractorV2.get_second_block(payload)
-
         # Текст причины смерти
         death_text = ""
         if not is_alive and killer_id > 0:
-            killer_data = second_block[1].get(str(killer_id), {})
+            killer_data = cache.avatars.get(str(killer_id), {})
             killer_name = killer_data.get("name") or killer_data.get("fakeName", "")
             if death_reason == 0:
                 death_text = f"Уничтожен выстрелом ({killer_name})"
@@ -1309,15 +1674,19 @@ class ExtractorV2:
         else:
             death_text = "Выжил"
 
-        # Получаем уровень танка и тип
-        try:
-            tank = Tank.objects.get(vehicleId=vehicle_tag)
-        except Tank.DoesNotExist:
-            tank = Tank.objects.create(
+        # Получаем танк из предзагруженного кеша
+        tank = tanks_cache.get(vehicle_tag)
+        if not tank:
+            # Редкий случай - танка нет в кеше (создаём на месте)
+            logger.warning(f"Танк {vehicle_tag} отсутствует в предзагруженном кеше, создаём новый")
+            from replays.models import Tank
+            tank, _ = Tank.objects.get_or_create(
                 vehicleId=vehicle_tag,
-                name=f"Неизвестный танк ({vehicle_tag})",
-                level=1,
-                type="unknown"
+                defaults={
+                    'name': f'Неизвестный танк ({vehicle_tag})',
+                    'level': 1,
+                    'type': 'unknown'
+                }
             )
         tank_level = tank.level
         tank_type = tank.type
@@ -1336,10 +1705,15 @@ class ExtractorV2:
                 int(vstats.get("damageAssistedInspire", 0))
         )
 
-        medals_data = ExtractorV2._get_player_medals(vstats.get("achievements", []))
+        # Получаем медали из предзагруженного кеша
+        medals_data = medals_cache.get(avatar_id, {
+            "count": 0,
+            "title": "",
+            "has_medals": False
+        })
 
         # Определяем, является ли это текущим игроком (владельцем реплея)
-        current_player_id = first_block.get("playerID")  # ID текущего игрока
+        current_player_id = cache.player_id  # ID текущего игрока
         player_account_id = vstats.get("accountDBID")  # ID этого игрока
 
         is_current_player = (
@@ -1396,18 +1770,17 @@ class ExtractorV2:
             "achievements": vstats.get("achievements", []),
 
             # Взвод
-            "platoon_id": ExtractorV2._get_platoon_id(avatar_id, payload),
+            "platoon_id": ExtractorV2._get_platoon_id(avatar_id, cache),
         }
 
     @staticmethod
-    def _get_platoon_id(avatar_id: str, payload) -> Optional[int]:
+    def _get_platoon_id(avatar_id: str, cache: 'ReplayDataCache') -> Optional[int]:
         """Определяет ID взвода игрока."""
         # В реплеях информация о взводах может быть в разных местах
         # Это примерная логика - нужно изучить конкретную структуру
 
         # Поиск в common.bots или других местах
-        common = ExtractorV2.get_common(payload)
-        bots = common.get("bots") or {}
+        bots = cache.common.get("bots") or {}
         if avatar_id in bots:
             bot_data = bots[avatar_id]
             if isinstance(bot_data, list) and len(bot_data) > 0:
@@ -1418,10 +1791,14 @@ class ExtractorV2:
         return None
 
     @staticmethod
-    def get_team_results(payload) -> Dict[str, Any]:
+    def get_team_results(cache: 'ReplayDataCache', tanks_cache: Dict[str, 'Tank']) -> Dict[str, Any]:
         """
         Извлекает командные результаты для отображения в шаблоне.
         Союзники игрока всегда в allies_players, противники в enemies_players.
+
+        Args:
+            cache: Кеш данных реплея
+            tanks_cache: Предзагруженные танки {vehicleId: Tank}
 
         Returns:
             Dict с ключами:
@@ -1430,28 +1807,32 @@ class ExtractorV2:
             - 'allies_name': "Союзники"
             - 'enemies_name': "Противник"
         """
-        second_block = ExtractorV2.get_second_block(payload)
-
-        vehicles_stats = second_block[0].get("vehicles") or {}
-        players_info = second_block[0].get("players") or {}
+        vehicles_stats = cache.vehicles
+        players_info = cache.players
 
         # Определяем команду текущего игрока
-        player_team = ExtractorV2._get_player_team(payload)
+        player_team = cache.player_team
         if player_team is None:
             # Фолбэк: если не можем определить команду игрока
             player_team = 1
+            logger.warning("Не удалось определить команду игрока, используем team=1")
+
+        # Предзагружаем медали для всех игроков одним запросом
+        medals_cache = ExtractorV2._preload_all_player_medals(cache)
 
         allies_players = []
         enemies_players = []
 
         # Обходим всех игроков
-        for avatar_id, raw in second_block[1].items():
+        for avatar_id, raw in cache.avatars.items():
             if not (isinstance(avatar_id, str) and avatar_id.isdigit() and isinstance(raw, Mapping)):
                 continue
             if "vehicleType" not in raw:
                 continue
 
-            player_data = ExtractorV2._build_player_data(avatar_id, raw, vehicles_stats, players_info, payload)
+            player_data = ExtractorV2._build_player_data(
+                avatar_id, raw, vehicles_stats, players_info, cache, tanks_cache, medals_cache
+            )
             if not player_data:
                 continue
 
@@ -1467,6 +1848,8 @@ class ExtractorV2:
         allies_players.sort(key=lambda x: x.get("damage_dealt", 0), reverse=True)
         enemies_players.sort(key=lambda x: x.get("damage_dealt", 0), reverse=True)
 
+        logger.debug(f"Обработано игроков: {len(allies_players)} союзников, {len(enemies_players)} противников")
+
         return {
             'allies_players': allies_players,
             'enemies_players': enemies_players,
@@ -1475,13 +1858,19 @@ class ExtractorV2:
         }
 
     @staticmethod
-    def get_detailed_report(payload) -> Dict[str, Any]:
+    def get_detailed_report(cache: 'ReplayDataCache') -> Dict[str, Any]:
         """
         Извлекает детализированные данные для подробного отчета.
+
+        Args:
+            cache: Кеш данных реплея
+
+        Returns:
+            Словарь с детальными данными отчёта
         """
-        first_block = ExtractorV2.get_first_block(payload)
-        personal = ExtractorV2.get_personal_by_player_id(payload) or {}
-        common = ExtractorV2.get_common(payload)
+        first_block = cache.first_block
+        personal = cache.personal
+        common = cache.common
 
         # === БОЕВАЯ СТАТИСТИКА === (оставляем как есть)
         battle_stats = {
