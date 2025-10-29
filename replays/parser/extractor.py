@@ -208,35 +208,6 @@ class ExtractorV2:
         return None
 
     @staticmethod
-    def _avatar_info(payload, avatar_id: str) -> Dict[str, Any]:
-
-        second_block = ExtractorV2.get_second_block(payload)
-        top = second_block[1].get(avatar_id) or {}
-        vtype = str(top.get("vehicleType", ""))
-        nation, tag = ("", vtype)
-        if ":" in vtype:
-            nation, tag = vtype.split(":", 1)
-        try:
-            tank = Tank.objects.get(vehicleId=tag)
-        except Tank.DoesNotExist:
-            tank = Tank.objects.create(
-                vehicleId=tag,
-                name=f"Неизвестный танк ({tag})",
-                level=1,
-                type="unknown"
-            )
-        vehicle_name = tank.name
-        return {
-            "avatar_id": avatar_id,
-            "name": top.get("name") or avatar_id,
-            "vehicle_type": vtype,
-            "vehicle_tag": tag,
-            "vehicle_name": vehicle_name,
-            "vehicle_img": f"style/images/wot/shop/vehicles/180x135/{tag}.png" if tag else "tanks/tank_placeholder.png",
-            "team": top.get("team"),
-        }
-
-    @staticmethod
     def get_first_block(payload):
         # Парсим JSON если нужно
         if isinstance(payload, str):
@@ -788,102 +759,6 @@ class ExtractorV2:
             'clanAbbrev': clan_abbrev
         }
         return details_data
-
-    @staticmethod
-    def get_player_interactions(payload) -> Dict[str, List[Dict[str, Any]]]:
-        """
-        Собирает списки техники (по аватару противника), над которой игрок:
-          - обнаружил (spotted > 0)
-          - помог в уничтожении (assist > 0: track/radio/stun/smoke/inspire)
-          - заблокировал урон (есть заблок/рикошеты/нодамаг-хиты от цели)
-          - нанёс критические попадания (crits > 0)
-          - нанёс урон (damageDealt > 0)
-          - уничтожил (targetKills > 0)
-
-        Возвращает dict с ключами: 'spotted', 'assist', 'blocked', 'crits', 'damaged', 'destroyed'.
-        Значение каждого ключа — список словарей с полями техники (avatar_id, vehicle_tag, ...).
-        """
-        # 1) Берём details текущего игрока
-        personal = ExtractorV2.get_personal_by_player_id(payload) or {}
-        details = personal.get("details")
-        # print(f"details: {details}")
-        if not isinstance(details, Mapping) or not details:
-            # Нет покиловой детализации — вернём пустые списки
-            return {k: [] for k in ("spotted", "assist", "blocked", "crits", "damaged", "destroyed")}
-
-        out = {
-            "spotted": [],   # обнаружил
-            "assist": [],    # помог в уничтожении
-            "blocked": [],   # заблокировал урон
-            "crits": [],     # нанёс крит. попадания
-            "damaged": [],   # нанёс урон
-            "destroyed": [], # уничтожил
-        }
-
-        # 2) Обходим цели в details: ключ "(avatarId,0)" -> значение с метриками по этой цели
-        for key, d in details.items():
-            # print(f"key: {key}")
-
-            if not isinstance(d, Mapping):
-                continue
-            avatar_id = ExtractorV2._parse_target_avatar_id(str(key))
-            # print(f"avatar_id: {avatar_id}")
-            if not avatar_id:
-                continue
-
-            # Значения по умолчанию = 0
-            spotted = int(d.get("spotted") or 0)
-
-            assist = (
-                int(d.get("damageAssistedTrack") or 0) +
-                int(d.get("damageAssistedRadio") or 0) +
-                int(d.get("damageAssistedStun") or 0) +
-                int(d.get("damageAssistedSmoke") or 0) +
-                int(d.get("damageAssistedInspire") or 0)
-            )
-
-            # Блок: любые индикаторы «вы заблокировали выстрелы/урон от этой цели»
-            blocked = (
-                int(d.get("damageBlockedByArmor") or 0) +
-                int(d.get("rickochetsReceived") or 0) +
-                int(d.get("noDamageDirectHitsReceived") or 0)
-            )
-
-            # Криты: в WoT это часто битовая маска, потому проверяем просто > 0
-            crits = int(d.get("crits") or 0)
-
-            # Урон и уничтожения по конкретной цели
-            damage_dealt = int(d.get("damageDealt") or 0)
-            target_kills = int(d.get("targetKills") or 0)
-
-            # Если по этой цели есть хотя бы одна из активностей — добавим карточку техники
-            info = ExtractorV2._avatar_info(payload, avatar_id)
-
-            if spotted > 0:
-                out["spotted"].append(info)
-            if assist > 0:
-                out["assist"].append(info)
-            if blocked > 0:
-                out["blocked"].append(info)
-            if crits > 0:
-                out["crits"].append(info)
-            if damage_dealt > 0:
-                out["damaged"].append(info)
-            if target_kills > 0:
-                out["destroyed"].append(info)
-
-        # 3) Убираем дубликаты на случай повторов (сохраняем порядок)
-        for k in out:
-            seen = set()
-            uniq = []
-            for item in out[k]:
-                aid = item["avatar_id"]
-                if aid not in seen:
-                    uniq.append(item)
-                    seen.add(aid)
-            out[k] = uniq
-
-        return out
 
     @staticmethod
     def build_interactions_data(cache: 'ReplayDataCache', tanks_cache: Dict[str, 'Tank']) -> tuple:

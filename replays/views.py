@@ -657,12 +657,19 @@ class ReplayDetailView(DetailView):
         )
 
         # Разделяем на battle и nonbattle
+        # ВАЖНО: Материализуем QuerySet в список, чтобы избежать повторных SQL запросов при .count()
         battle_sections = ('battle', 'epic')
-        ach_battle = achievements.filter(section__in=battle_sections).order_by('-weight', 'name')
-        ach_nonbattle = achievements.exclude(section__in=battle_sections).order_by('-weight', 'name')
+        all_achievements = list(achievements)  # Материализуем один раз!
+
+        ach_battle = [a for a in all_achievements if a.section in battle_sections]
+        ach_nonbattle = [a for a in all_achievements if a.section not in battle_sections]
+
+        # Сортируем в Python (данные уже загружены)
+        ach_battle.sort(key=lambda a: (-getattr(a, 'weight', 0.0), a.name))
+        ach_nonbattle.sort(key=lambda a: (-getattr(a, 'weight', 0.0), a.name))
 
         logger.debug(
-            f"Предзагружено достижений: {ach_nonbattle.count()} небоевых, {ach_battle.count()} боевых"
+            f"Предзагружено достижений: {len(ach_nonbattle)} небоевых, {len(ach_battle)} боевых"
         )
 
         return ach_nonbattle, ach_battle
@@ -705,7 +712,7 @@ class ReplayDetailView(DetailView):
 
             logger.debug(
                 f"Предзагружено: {len(tanks_cache)} танков, "
-                f"{achievements_nonbattle.count()} + {achievements_battle.count()} достижений"
+                f"{len(achievements_nonbattle)} + {len(achievements_battle)} достижений"
             )
 
             # ============================================================
@@ -731,8 +738,8 @@ class ReplayDetailView(DetailView):
             context['mastery'] = m
             context['mastery_label'] = label_map.get(m, "")
             context['mastery_image'] = f"style/images/wot/achievement/markOfMastery{m}.png" if m else ""
-            context['achievements_count_in_badges'] = achievements_nonbattle.count() + (1 if m > 0 else 0)
-            context['achievements_battle_count'] = achievements_battle.count()
+            context['achievements_count_in_badges'] = len(achievements_nonbattle) + (1 if m > 0 else 0)
+            context['achievements_battle_count'] = len(achievements_battle)
 
             # Детали боя (оптимизированная версия с cache)
             context['details'] = ExtractorV2.get_details_data(cache)
@@ -741,10 +748,6 @@ class ReplayDetailView(DetailView):
             interaction_rows, interactions_summary = ExtractorV2.build_interactions_data(cache, tanks_cache)
             context["interaction_rows"] = interaction_rows
             context["interactions_summary"] = interactions_summary
-
-            # Старый метод interactions (пока оставляем для совместимости)
-            interactions = ExtractorV2.get_player_interactions(self.object.payload)
-            context["interactions"] = interactions
 
             # Причина смерти (оптимизированная версия с cache)
             context['death_reason_text'] = ExtractorV2.get_death_text(cache)
