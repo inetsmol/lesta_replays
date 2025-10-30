@@ -1,3 +1,13 @@
+/*
+ * Этот файл закомментирован, так как стили мигрированы на Tailwind CSS
+ * Файл сохранен для возможности отката изменений
+ * Миграция выполнена: 2025-10-30
+ * Стили перенесены в: static/css/input.css
+ */
+
+/* DEPRECATED: Мигрировано на Tailwind CSS */
+
+/*
 .replay-grid {
     display: flex;
     flex-direction: column;
@@ -253,7 +263,6 @@
     width: 37px
 }
 
-/* Улучшение иконок статистики (просмотры, комментарии, скачивания) */
 .details .flex.flex-wrap.items-center.gap-4 span.inline-flex {
     padding: 4px 8px;
     background: rgba(15, 23, 42, 0.5);
@@ -381,3 +390,4 @@
     font-size: 12px;
     margin-top: 8px
 }
+*/

@@ -435,6 +435,218 @@
       @apply text-xs;
     }
   }
+
+  /* Replay Grid (List view) */
+  .replay-grid {
+    @apply flex flex-col gap-3;
+  }
+
+  /* Replay Card (tovabb) */
+  .tovabb {
+    @apply block relative max-w-[1024px] cursor-pointer no-underline;
+    @apply bg-gradient-to-br from-slate-700/40 to-slate-800/60;
+    @apply border border-slate-500/30 rounded-xl overflow-hidden;
+    @apply transition-all duration-300 ease-out;
+    @apply shadow-[0_4px_6px_-1px_rgba(0,0,0,0.3),0_2px_4px_-1px_rgba(0,0,0,0.2)];
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .tovabb::before {
+    content: '';
+    @apply absolute inset-0 opacity-0 pointer-events-none z-[1];
+    @apply transition-opacity duration-300;
+    background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+  }
+
+  .tovabb:hover {
+    @apply border-purple-500/40;
+    @apply shadow-[0_20px_25px_-5px_rgba(0,0,0,0.4),0_10px_10px_-5px_rgba(0,0,0,0.3),0_0_0_1px_rgba(139,92,246,0.1)];
+  }
+
+  .tovabb:hover::before {
+    @apply opacity-100;
+  }
+
+  .tovabb .wrapper {
+    @apply flex items-stretch relative z-[2];
+  }
+
+  /* Image Container */
+  .img-container {
+    @apply relative w-60 h-[132px] overflow-hidden flex-shrink-0;
+    @apply bg-gradient-to-br from-slate-900 to-slate-800;
+  }
+
+  .img-container::after {
+    content: '';
+    @apply absolute bottom-0 left-0 right-0 h-[60%] z-[2] pointer-events-none;
+    background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.5) 100%);
+  }
+
+  .img-container .map {
+    @apply absolute inset-0 w-full h-full object-cover z-[1];
+    @apply transition-opacity duration-200;
+  }
+
+  .img-container .tank {
+    @apply absolute right-1.5 bottom-1.5 h-[90px] w-auto max-w-[135px] object-contain z-[3];
+    @apply transition-opacity duration-200;
+    filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.7));
+  }
+
+  .img-container .map-name {
+    @apply absolute left-2.5 top-2 z-[2] inline-block max-w-[135px] px-1.5 py-0.5 rounded;
+    @apply text-sm font-semibold uppercase text-gray-600;
+    @apply bg-white/10 backdrop-blur-sm;
+    font-family: "Oswald", Arial, sans-serif;
+    text-shadow: 0 0 2px #fff, 0 0 6px #fff;
+  }
+
+  .img-container .name {
+    @apply absolute left-2.5 bottom-2.5 z-[2] px-1.5 py-0.5 rounded;
+    @apply text-text font-medium bg-black/30 backdrop-blur-sm;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+  }
+
+  .img-container .name.premium {
+    @apply text-gold;
+  }
+
+  /* Hide images with no src */
+  .img-container .map:not([src]),
+  .img-container .tank:not([src]) {
+    @apply opacity-0;
+  }
+
+  /* Details Section */
+  .details {
+    @apply flex-1 px-[18px] py-3.5 flex flex-col justify-between min-h-[132px];
+    @apply bg-gradient-to-r from-slate-800/20 to-transparent;
+  }
+
+  .details .title {
+    @apply font-bold text-base mb-1.5 leading-tight text-text;
+  }
+
+  .details .upload-info {
+    @apply text-xs text-text-muted mb-3;
+  }
+
+  .details .table {
+    @apply flex flex-wrap gap-1 gap-x-3 text-sm items-center;
+    @apply px-2.5 py-1.5 bg-slate-950/40 rounded-lg border border-slate-700/20;
+  }
+
+  .details .table .cell {
+    @apply flex items-center gap-1 whitespace-nowrap flex-shrink-0;
+  }
+
+  .details .table .cell img {
+    @apply h-4 w-4 object-contain flex-shrink-0;
+  }
+
+  .details .table .cell span {
+    @apply text-text font-semibold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Empty state */
+  .empty {
+    @apply text-center text-text-muted text-base px-6 py-12;
+    @apply bg-dark-700 border border-dark-600 rounded-custom;
+  }
+
+  /* Pagination from wot_record_skin.css */
+  .pagination {
+    @apply mt-6 flex flex-col gap-3;
+  }
+
+  .pagination-links {
+    @apply flex items-center gap-3 flex-wrap;
+  }
+
+  .pagination-link {
+    @apply px-3 py-2 border border-dark-600 rounded-custom-sm;
+    @apply bg-dark-700 text-text no-underline transition-all duration-200;
+    @apply hover:bg-dark-600;
+  }
+
+  .current-page {
+    @apply px-3 py-2 text-text-muted font-medium;
+  }
+
+  .pagination-info {
+    @apply text-text-muted text-xs mt-2;
+  }
+
+  /* Mobile responsive for replay cards */
+  @media (max-width: 768px) {
+    .tovabb .wrapper {
+      @apply flex-col;
+    }
+
+    .img-container {
+      @apply w-full h-[150px];
+    }
+
+    .img-container .tank {
+      @apply h-[100px] max-w-[140px];
+    }
+
+    .img-container .map-name {
+      @apply text-xs max-w-[120px];
+    }
+
+    .details {
+      @apply px-3;
+    }
+
+    .details .table {
+      @apply gap-1.5 gap-x-3 text-xs;
+    }
+
+    .details .table .cell img {
+      @apply h-4 w-4;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .img-container {
+      @apply h-[120px];
+    }
+
+    .img-container .tank {
+      @apply h-20 max-w-[100px];
+    }
+
+    .img-container .map-name,
+    .img-container .name {
+      @apply text-[10px] px-1 py-0.5 max-w-[100px];
+    }
+
+    .details {
+      @apply px-2;
+    }
+
+    .details .title {
+      @apply text-sm;
+    }
+
+    .details .table {
+      @apply gap-1 gap-x-2 text-[11px];
+    }
+  }
 }
 
 /* Custom utilities */
