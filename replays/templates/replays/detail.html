@@ -14,10 +14,6 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/replay-detail.css' %}">
 
-<!-- Fixed-width container with horizontal scroll for detail page -->
-<div class="w-screen overflow-x-auto">
-  <div class="min-w-[1003px] max-w-[1003px] mx-auto px-4">
-
 {% if parse_error %}
   <div class="card error">
     <h2>Ошибка обработки реплея</h2>
@@ -923,8 +919,5 @@ function initTeamScoreSorting() {
   }
 })();
 </script>
-
-  </div> <!-- /min-w-[1003px] max-w-[1003px] -->
-</div> <!-- /w-screen overflow-x-auto -->
 
 {% endblock %}

@@ -838,3 +838,17 @@
     box-shadow: 0 6px 18px rgba(0, 0, 0, .35);
   }
 }
+
+/* Detail page specific styles */
+@layer components {
+  /* Добавляем горизонтальный скролл к #content на detail странице */
+  body.detail #content {
+    @apply overflow-x-auto;
+  }
+
+  /* Фиксированная ширина контейнера на detail странице */
+  body.detail .container-center {
+    @apply w-[1003px];
+    flex: 0 0 auto; /* Не растягиваться и не сжиматься */
+  }
+}
