@@ -1,6 +1,6 @@
 {# templates/includes/_pagination.html #}
 {% if page_obj and page_obj.has_other_pages %}
-  <nav class="pagination">
+  <nav class="mt-3 flex items-center gap-3 flex-wrap">
     {% if page_obj.has_previous %}
       <a class="page-btn" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">&laquo; Назад</a>
     {% endif %}

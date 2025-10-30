@@ -413,6 +413,28 @@
   .message--debug {
     @apply border-gray-500/30 bg-gray-500/10 text-gray-300;
   }
+
+  /* Pagination */
+  .page-btn {
+    @apply px-2.5 py-1.5 border border-dark-600 rounded-lg bg-dark-800;
+    @apply text-text no-underline transition-all duration-200;
+    @apply hover:bg-dark-700 hover:border-dark-700 hover:-translate-y-px;
+  }
+
+  .page-state {
+    @apply text-text-muted text-sm;
+  }
+
+  /* Mobile responsive pagination */
+  @media (max-width: 640px) {
+    .page-btn {
+      @apply text-xs px-2 py-1;
+    }
+
+    .page-state {
+      @apply text-xs;
+    }
+  }
 }
 
 /* Custom utilities */
