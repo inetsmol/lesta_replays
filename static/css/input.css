@@ -388,6 +388,31 @@
     @apply appearance-none border-0 bg-transparent text-[22px] leading-none;
     @apply cursor-pointer text-inherit opacity-60 hover:opacity-100;
   }
+
+  /* Messages (Django messages framework) */
+  .message {
+    @apply px-3 py-2.5 rounded-lg border border-dark-600 bg-dark-800;
+  }
+
+  .message--error {
+    @apply border-red-500/30 bg-red-500/10 text-red-300;
+  }
+
+  .message--success {
+    @apply border-green-500/30 bg-green-500/10 text-green-200;
+  }
+
+  .message--info {
+    @apply border-blue-500/30 bg-blue-500/10 text-blue-200;
+  }
+
+  .message--warning {
+    @apply border-yellow-500/30 bg-yellow-500/10 text-yellow-200;
+  }
+
+  .message--debug {
+    @apply border-gray-500/30 bg-gray-500/10 text-gray-300;
+  }
 }
 
 /* Custom utilities */

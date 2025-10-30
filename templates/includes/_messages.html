@@ -1,6 +1,6 @@
 {# templates/includes/_messages.html #}
 {% if messages %}
-  <div class="messages">
+  <div class="my-2 grid gap-2">
     {% for message in messages %}
       <div class="message message--{{ message.tags|default:'info' }}">{{ message }}</div>
     {% endfor %}
