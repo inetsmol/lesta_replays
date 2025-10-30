@@ -647,6 +647,189 @@
       @apply gap-1 gap-x-2 text-[11px];
     }
   }
+
+  /* ==============================================
+     Filters Page Components (replays_filters.css)
+     ============================================== */
+
+  /* Card component for filters page */
+  .card {
+    @apply bg-dark-800 border border-dark-600 rounded-custom p-5;
+  }
+
+  /* Filter header container */
+  .filter-container {
+    @apply flex justify-between items-start gap-4 mb-5 flex-wrap;
+  }
+
+  .filter-container h1 {
+    @apply m-0 text-2xl font-bold text-text;
+  }
+
+  .filter-container .actions {
+    @apply flex gap-2.5 flex-wrap;
+  }
+
+  /* Form layout */
+  .form {
+    display: grid;
+    @apply gap-4;
+  }
+
+  .form-row {
+    display: grid;
+    @apply gap-4;
+  }
+
+  /* Responsive grid layouts */
+  .form-row.grid-2 {
+    @apply grid-cols-1 sm:grid-cols-2;
+  }
+
+  .form-row.grid-3 {
+    @apply grid-cols-1 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .form-row.grid-4 {
+    @apply grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+
+  /* Field styling */
+  .field {
+    @apply bg-dark-700 border border-dark-600 rounded-custom-sm p-3;
+  }
+
+  .field label {
+    @apply block mb-2 text-sm font-medium text-text;
+  }
+
+  .field input[type="text"],
+  .field input[type="search"],
+  .field input[type="date"],
+  .field input[type="number"] {
+    @apply w-full px-3 py-2 bg-dark-900 border border-dark-600 rounded-lg;
+    @apply text-text text-sm;
+    @apply focus:outline-none focus:border-accent-500/60 focus:ring-1 focus:ring-accent-500/30;
+    @apply transition-all duration-200;
+  }
+
+  .field input::placeholder {
+    @apply text-text-muted opacity-70;
+  }
+
+  /* Chips (checkboxes and radio buttons) */
+  .chips {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full;
+    @apply border border-dark-600 bg-dark-900;
+    @apply cursor-pointer select-none transition-all duration-150;
+    @apply hover:bg-dark-700;
+  }
+
+  /* Touch-friendly chips on mobile */
+  @media (max-width: 768px) {
+    .chip {
+      @apply min-h-[44px] min-w-[44px] justify-center;
+    }
+  }
+
+  .chip input {
+    @apply hidden;
+  }
+
+  /* Checked state for chips */
+  .chip:has(input:checked) {
+    @apply bg-gradient-to-b from-white/[0.18] to-white/[0.14];
+    @apply border-slate-600;
+    @apply shadow-[inset_0_0_0_1px_rgba(176,176,176,0.35)];
+  }
+
+  /* Lists (tanks, versions) */
+  .filter-list {
+    @apply max-h-80 overflow-auto border border-dashed border-dark-600 rounded-lg;
+    @apply bg-dark-900 p-2;
+  }
+
+  .filter-list-item {
+    @apply block px-2 py-1.5 rounded-lg cursor-pointer text-xs;
+    @apply transition-all duration-150;
+    @apply hover:bg-dark-700;
+  }
+
+  .filter-list-item input[type="checkbox"] {
+    @apply mr-2;
+  }
+
+  /* Custom scrollbar for filter lists */
+  .filter-list::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  .filter-list::-webkit-scrollbar-track {
+    @apply bg-white/5 rounded;
+  }
+
+  .filter-list::-webkit-scrollbar-thumb {
+    @apply bg-white/20 rounded hover:bg-white/30;
+  }
+
+  /* Helper text */
+  .text-muted-sm {
+    @apply text-xs text-text-muted opacity-80;
+  }
+
+  /* Divider */
+  .form hr {
+    @apply my-8 border-0 border-t border-dark-600;
+  }
+
+  /* Grid helper for number inputs */
+  .field .grid.grid-2 {
+    display: grid;
+    @apply grid-cols-2 gap-2;
+  }
+
+  /* Mobile adjustments for filters page */
+  @media (max-width: 640px) {
+    .filter-container {
+      @apply flex-col items-stretch;
+    }
+
+    .filter-container .actions {
+      @apply flex-col w-full;
+    }
+
+    .filter-container .actions .btn {
+      @apply w-full justify-center;
+    }
+
+    .card {
+      @apply p-4;
+    }
+
+    .filter-container h1 {
+      @apply text-xl;
+    }
+
+    .chips {
+      @apply gap-1.5;
+    }
+
+    .chip {
+      @apply text-[11px] px-2 py-1.5;
+    }
+
+    .filter-list {
+      @apply max-h-60;
+    }
+
+    .filter-list-item {
+      @apply px-1.5 py-1 text-[11px];
+    }
+  }
 }
 
 /* Custom utilities */

@@ -6,14 +6,13 @@
 {% block body_class %}replays filters{% endblock %}
 
 {% block content %}
-    <link rel="stylesheet" href="{% static 'css/replays_filters.css' %}">
-    <section class="card" style="padding:20px;">
+    <section class="card">
 
         <div class="filter-container">
             <div>
-                <h1 style="margin-bottom:16px;">Фильтры</h1>
+                <h1>Фильтры</h1>
             </div>
-            <div class="actions" style="display:flex; gap:10px; margin-top:16px;">
+            <div class="actions">
                 <a class="btn btn--ghost" href="{{ list_url }}">К списку</a>
                 <a class="btn btn--ghost" href="{{ list_url }}">Сбросить</a>
                 <button type="submit" class="btn btn--accent" form="filters-form">Применить</button>
@@ -131,7 +130,7 @@
                 {% endwith %}
             </div>
 
-            <hr class="mt-8 mb-8" style="border:none;border-top:1px solid var(--border);"/>
+            <hr/>
 
             <div class="form-row grid-3">
                 <div class="field">
@@ -212,7 +211,7 @@
 {#                </div>#}
 {#            </div>#}
 
-            <hr class="mt-8 mb-8" style="border:none;border-top:1px solid var(--border);"/>
+            <hr/>
 
         <div class="form-row">
   <div class="field">
@@ -228,14 +227,13 @@
     </div>
 
     {% with selected=current_filters.game_version|default:"" %}
-      <div id="gv-list" class="mt-8"
-           style="max-height:240px; overflow:auto; border:1px solid var(--border); border-radius: var(--radius-sm); padding:8px; background:var(--panel-2);">
+      <div id="gv-list" class="filter-list mt-2">
         {% for v in filter_data.game_versions %}
           {% with sv=v|stringformat:"s" %}
-            <label class="gv-item" data-name="{{ v|lower }}" style="display:block; padding:4px 2px;">
+            <label class="filter-list-item gv-item" data-name="{{ v|lower }}">
               <input type="checkbox" name="game_version" value="{{ sv }}"
                      {% if sv in selected %}checked{% endif %}>
-              <span class="checkbox"></span> {{ v }}
+              {{ v }}
             </label>
           {% endwith %}
         {% endfor %}
@@ -253,16 +251,14 @@
                             class="tank-count">{{ filter_data.tanks|length }}</span></div>
 
                     {% with selected=current_filters.tank|default:"" %}
-                        <div id="tank-list" class="mt-8"
-                             style="max-height:320px; overflow:auto; border:1px solid var(--border); border-radius: var(--radius-sm); padding:8px; background:var(--panel-2);">
+                        <div id="tank-list" class="filter-list mt-2">
                             {% for t in filter_data.tanks %}
                                 {% with tid=t.id|stringformat:"s" %}
-                                    <label class="tank-item" data-name="{{ t.name|lower }}" data-nation="{{ t.nation }}"
-                                           data-level="{{ t.level }}" data-type="{{ t.type }}"
-                                           style="display:block; padding:4px 2px;">
+                                    <label class="filter-list-item tank-item" data-name="{{ t.name|lower }}" data-nation="{{ t.nation }}"
+                                           data-level="{{ t.level }}" data-type="{{ t.type }}">
                                         <input type="checkbox" name="tank" value="{{ tid }}"
                                                {% if tid in selected %}checked{% endif %}>
-                                        <span class="checkbox"></span> {{ t.name }}
+                                        {{ t.name }}
                                     </label>
                                 {% endwith %}
                             {% endfor %}
@@ -271,7 +267,7 @@
                 </div>
             </div>
 
-            <div class="actions" style="display:flex; gap:10px; margin-top:16px;">
+            <div class="actions mt-4">
                 <a class="btn btn--ghost" href="{{ list_url }}">К списку</a>
                 <a class="btn btn--ghost" href="{{ list_url }}">Сбросить</a>
                 <button type="submit" class="btn btn--accent">Применить</button>
