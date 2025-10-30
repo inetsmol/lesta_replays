@@ -846,6 +846,16 @@
     @apply overflow-x-auto;
   }
 
+  /* Скрываем полосу прокрутки */
+  body.detail #content::-webkit-scrollbar {
+    display: none;
+  }
+
+  body.detail #content {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
   /* Фиксированная ширина контейнера на detail странице */
   body.detail .container-center {
     @apply w-[1003px];
