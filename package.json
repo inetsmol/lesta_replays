@@ -1,0 +1,20 @@
+{
+  "name": "lesta-replays",
+  "version": "1.0.0",
+  "description": "Django web application for World of Tanks replays",
+  "scripts": {
+    "build:css": "tailwindcss -i ./static/css/input.css -o ./static/css/output.css --minify",
+    "watch:css": "tailwindcss -i ./static/css/input.css -o ./static/css/output.css --watch",
+    "dev": "tailwindcss -i ./static/css/input.css -o ./static/css/output.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  },
+  "keywords": [
+    "django",
+    "tailwind",
+    "world-of-tanks"
+  ],
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,185 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom base styles */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    @apply h-full m-0 p-0;
+  }
+
+  body {
+    @apply bg-dark-900 text-text font-sans text-xs leading-normal min-h-screen flex flex-col;
+  }
+
+  @supports (height: 100svh) {
+    body {
+      min-height: 100svh;
+    }
+  }
+
+  a {
+    @apply text-inherit no-underline;
+  }
+}
+
+/* Custom components */
+@layer components {
+  /* Brand component */
+  .brand {
+    @apply flex items-center gap-2 font-extrabold tracking-wide no-underline;
+  }
+
+  .brand-logo {
+    @apply h-8 w-auto object-contain flex-shrink-0;
+  }
+
+  .brand-text {
+    @apply text-lg font-extrabold tracking-wide;
+  }
+
+  @media (max-width: 768px) {
+    .brand-logo {
+      @apply h-7;
+    }
+
+    .brand-text {
+      @apply text-base;
+    }
+  }
+
+  /* Container center - для большинства страниц */
+  .container-center {
+    @apply max-w-content mx-5;
+  }
+
+  /* Container center fixed - для detail страницы */
+  .container-center-fixed {
+    @apply min-w-content max-w-content mx-auto overflow-x-auto;
+  }
+
+  /* Content wrapper */
+  #content {
+    @apply py-5 pb-7 flex-1 w-full max-w-site mx-auto;
+  }
+
+  /* Footer */
+  .footer {
+    @apply max-w-footer mx-auto;
+  }
+
+  /* Sidebar cards */
+  .support-card,
+  .friends-card {
+    @apply bg-dark-700 border border-dark-600 rounded-custom-sm p-3 text-[#e9eef4] text-sm;
+  }
+
+  .support-card__title,
+  .friends-card__title {
+    @apply font-bold text-base mb-2 flex items-center gap-2;
+  }
+
+  .friends-card__title--sm {
+    @apply text-sm;
+  }
+
+  .support-card__text,
+  .friends-card__lead {
+    @apply leading-normal opacity-95 mb-2.5;
+  }
+
+  /* QR блок в донатах */
+  .support-qr {
+    @apply grid place-items-center bg-white/[0.03] border border-dashed border-white/[0.12] rounded-[10px] p-2.5 mb-2.5;
+  }
+
+  .support-qr img {
+    @apply w-full max-w-[160px] h-auto rounded-lg;
+    image-rendering: crisp-edges;
+  }
+
+  .support-mini {
+    @apply text-xs opacity-85 mt-1.5 text-center;
+  }
+
+  /* Кнопка доната */
+  .support-btn {
+    @apply inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/15
+           bg-gradient-to-b from-white/[0.06] to-white/[0.02] no-underline text-[#e9eef4]
+           font-semibold transition-all duration-75 select-none hover:-translate-y-px hover:border-white/25;
+  }
+
+  .support-note {
+    @apply mt-2 text-xs opacity-70;
+  }
+
+  /* Друзья: список и элементы */
+  .friends-links {
+    @apply list-none m-0 p-0 grid gap-2;
+  }
+
+  .social-btns {
+    @apply flex items-center gap-2.5 px-2.5 py-2.5 no-underline border border-white/10
+           rounded-[10px] bg-gradient-to-b from-white/[0.04] to-white/[0.02]
+           transition-all duration-75 text-[#e9eef4] hover:-translate-y-px hover:border-white/[0.22];
+  }
+
+  .social-icon {
+    @apply w-7 h-7 rounded-full object-cover inline-block flex-shrink-0;
+  }
+
+  .icon-wrap {
+    @apply w-7 h-7 rounded-full inline-grid place-items-center overflow-hidden flex-shrink-0;
+  }
+
+  .icon-wrap svg circle {
+    fill: rgba(255, 255, 255, 0.12);
+  }
+
+  .icon-wrap svg path {
+    @apply fill-white opacity-95;
+  }
+
+  .social-meta {
+    @apply grid leading-tight;
+  }
+
+  .social-name {
+    @apply font-semibold;
+  }
+
+  .social-link {
+    @apply text-xs opacity-80;
+  }
+
+  /* Big red button */
+  .big-red-button {
+    width: 152px;
+    height: 44px;
+    line-height: 42px;
+    background: url(../style/images/wot/buttons/red-button-sprite.png);
+    border: none;
+    border-radius: 4px;
+    font-family: "Oswald", sans-serif;
+    font-size: 20px;
+    color: #F2F2F2;
+    text-shadow: 0px 0px 10px black, 0px 0px 10px black, 0px 0px 1px black, 0px 0px 2px black;
+  }
+
+  .big-red-button.inactive,
+  .big-red-button.inactive:hover {
+    background-size: 100% 400%;
+    background-position: 0% 200%;
+  }
+}
+
+/* Custom utilities */
+@layer utilities {
+  .shadow-custom {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .35);
+  }
+}

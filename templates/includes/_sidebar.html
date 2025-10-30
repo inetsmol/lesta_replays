@@ -4,12 +4,12 @@
   Пример: ["includes/sidebar/_support.html", "includes/sidebar/_friends.html"]
 {% endcomment %}
 
-<div class="sidebar">
+<aside class="hidden lg:grid grid-cols-1 w-[266px] flex-shrink-0 gap-3">
   {% for tpl in widgets %}
-    <div class="sidebar__item">
+    <div>
       {% include tpl %}
     </div>
   {% empty %}
     {# Пустой сайдбар — ничего не рендерим #}
   {% endfor %}
-</div>
+</aside>

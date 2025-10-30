@@ -23,3 +23,5 @@ node_modules/
 CLAUDE.MD
 .claude/
 static/favicon.png
+static/css/output.css
+package-lock.json

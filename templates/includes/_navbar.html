@@ -1,7 +1,7 @@
 {# templates/includes/_navbar.html #}
 {% load static %}
 
-<header class="sticky top-0 z-50 backdrop-blur-md bg-[rgba(20,20,20,0.85)] border-b border-[var(--border)]">
+<header class="sticky top-0 z-50 backdrop-blur-md bg-dark-800/85 border-b border-dark-600">
   <div class="max-w-[1200px] mx-auto flex items-center justify-between py-3">
 
     <!-- Бренд -->
@@ -25,7 +25,7 @@
 
     {% if user.is_authenticated %}
         <details class="relative ml-[18px]" data-user-menu>
-          <summary class="list-none cursor-pointer inline-flex items-center gap-2 opacity-[0.85] hover:opacity-100 hover:text-[var(--accent-2)]">
+          <summary class="list-none cursor-pointer inline-flex items-center gap-2 opacity-85 hover:opacity-100 hover:text-accent-600">
             {{ user.username }}
             <!-- стрелка -->
             <svg class="h-4 w-4 opacity-60" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -34,7 +34,7 @@
           </summary>
 
         <!-- Выпадающее меню -->
-        <div class="absolute right-0 mt-2 w-44 rounded-xl bg-white dark:bg-[#1a1a1a]
+        <div class="absolute right-0 mt-2 w-44 rounded-xl bg-white dark:bg-dark-700
             text-gray-900 dark:text-gray-100 shadow-lg ring-1 ring-black/10 dark:ring-white/10 p-1 z-50">
           <a
 {#              href="{% url 'profile' %}" #}
@@ -56,13 +56,13 @@
         </div>
       </details>
     {% else %}
-      <a href="{% url 'account_login' %}" class="ml-[18px] opacity-[0.85] hover:opacity-100 hover:text-[var(--accent-2)]">
+      <a href="{% url 'account_login' %}" class="ml-[18px] opacity-85 hover:opacity-100 hover:text-accent-600">
         Войти
       </a>
     {% endif %}
 
 
-      <a href="{% url 'about' %}" class="ml-[18px] opacity-[0.85] hover:opacity-100 hover:text-[var(--accent-2)]">О проекте</a>
+      <a href="{% url 'about' %}" class="ml-[18px] opacity-85 hover:opacity-100 hover:text-accent-600">О проекте</a>
     </nav>
   </div>
 
