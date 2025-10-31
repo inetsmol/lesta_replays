@@ -847,11 +847,11 @@
 
 /* Detail page specific styles */
 @layer components {
-  /* #content на detail странице должен быть отцентрирован с помощью mx-auto */
+  /* #content на detail странице должен быть отцентрирован с помощью mx-auto и max-width: 1600px */
   body.detail #content {
-    @apply px-0 max-w-none mx-auto flex-none;
+    @apply px-0 mx-auto flex-none;
+    max-width: 1600px;
     width: fit-content;
-    min-width: 100%;
   }
 
   /* Основной контейнер с таблицей ВСЕГДА имеет фиксированную ширину 1003px */

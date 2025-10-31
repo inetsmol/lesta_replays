@@ -32,7 +32,8 @@ img {
     overflow: hidden;
     padding-bottom: 15px;
     min-height: calc(100vh - 202px);
-    position: relative
+    position: relative;
+    margin-inline: auto
 }
 
 #content .left-panel {
