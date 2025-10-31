@@ -29,11 +29,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PATH="/opt/venv/bin:$PATH"
 
-# Установка только runtime dependencies
+# Установка Node.js и runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     curl \
     gettext \
+    nodejs \
+    npm \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get purge -y --auto-remove
 
@@ -53,6 +55,11 @@ RUN chmod +x /entrypoint.sh && \
 
 # Копирование кода приложения
 COPY . .
+
+# Установка npm зависимостей и сборка CSS
+RUN npm ci && \
+    npm run build:css && \
+    rm -rf node_modules
 
 # Компиляция переводов
 # RUN /opt/venv/bin/python manage.py compilemessages
