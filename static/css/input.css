@@ -847,9 +847,9 @@
 
 /* Detail page specific styles */
 @layer components {
-  /* Убираем отступы, центрирование и ограничения ширины с #content на detail странице */
+  /* #content на detail странице должен быть отцентрирован с помощью mx-auto */
   body.detail #content {
-    @apply px-0 max-w-none mx-0 flex-none;
+    @apply px-0 max-w-none mx-auto flex-none;
     width: fit-content;
     min-width: 100%;
   }
