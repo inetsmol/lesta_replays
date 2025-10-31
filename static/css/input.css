@@ -10,6 +10,7 @@
 
   html, body {
     @apply h-full m-0 p-0;
+    width: 100%;
   }
 
   body {
@@ -54,7 +55,7 @@
 
   /* Container center - для большинства страниц */
   .container-center {
-    @apply max-w-content mx-5;
+    @apply max-w-content mx-5 min-w-0;
   }
 
   /* Container center fixed - для detail страницы */
@@ -64,7 +65,12 @@
 
   /* Content wrapper */
   #content {
-    @apply py-5 pb-7 flex-1 w-full max-w-site mx-auto;
+    @apply py-5 pb-7 flex-1 w-full max-w-site mx-auto px-3;
+  }
+
+  /* Предотвращаем горизонтальное переполнение */
+  #content > .flex {
+    @apply min-w-0;
   }
 
   /* Footer */
@@ -841,24 +847,31 @@
 
 /* Detail page specific styles */
 @layer components {
-  /* Добавляем горизонтальный скролл к #content на detail странице */
+  /* Убираем отступы, центрирование и ограничения ширины с #content на detail странице */
   body.detail #content {
-    @apply overflow-x-auto;
+    @apply px-0 max-w-none mx-0 flex-none;
+    width: fit-content;
+    min-width: 100%;
   }
 
-  /* Скрываем полосу прокрутки */
-  body.detail #content::-webkit-scrollbar {
-    display: none;
-  }
-
-  body.detail #content {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-  }
-
-  /* Фиксированная ширина контейнера на detail странице */
+  /* Основной контейнер с таблицей ВСЕГДА имеет фиксированную ширину 1003px */
   body.detail .container-center {
-    @apply w-[1003px];
-    flex: 0 0 auto; /* Не растягиваться и не сжиматься */
+    width: 1003px;
+    min-width: 1003px;
+    flex: 0 0 auto;
+  }
+
+  /* На больших экранах (>=768px) - горизонтальный layout с сайдбарами */
+  @media (min-width: 768px) {
+    body.detail #content > .flex {
+      @apply min-w-min;
+    }
+  }
+
+  /* На маленьких экранах (<768px) - вертикальный layout, сайдбары внизу */
+  @media (max-width: 767px) {
+    body.detail #content > .flex {
+      @apply flex-col;
+    }
   }
 }
