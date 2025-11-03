@@ -874,10 +874,20 @@ function initTeamScoreSorting() {
 (function () {
   function decodeHtml(s) {
     if (!s) return "";
-    if (!/[&][a-z#0-9]+;/.test(s)) return s;
     var ta = document.createElement("textarea");
     ta.innerHTML = s;
-    return ta.value;
+    var decoded = ta.value;
+    // Конвертируем \n в <br> для переносов строк
+    decoded = decoded.replace(/\\n/g, '<br>');
+    // Конвертируем множественные пробелы в начале строк в &nbsp; для сохранения отступов
+    decoded = decoded.replace(/(<br>)([ ]{2,})/g, function(match, br, spaces) {
+      return br + spaces.replace(/ /g, '&nbsp;');
+    });
+    // Обрабатываем отступы в начале текста
+    decoded = decoded.replace(/^([ ]{2,})/g, function(match, spaces) {
+      return spaces.replace(/ /g, '&nbsp;');
+    });
+    return decoded;
   }
 
   function initAchiTooltips() {
