@@ -1869,10 +1869,26 @@ class ExtractorV2:
         }
 
         # === РАСШИРЕННАЯ ЭКОНОМИКА ===
+        # Получаем данные аватара для экономических расчётов
+        avatar_data = cache.avatar_data
+
+        # Создаём комбинированный словарь данных для экономических функций:
+        # - Основные значения (credits, xp, gold) берём из avatar_data
+        # - Множители и факторы берём из personal
+        economy_data = dict(personal)  # Копируем все данные из personal
+        if avatar_data:
+            # Переопределяем только те поля, которые есть в avatar_data
+            for key in ['credits', 'xp', 'gold', 'freeXP', 'eventCredits', 'eventXP',
+                       'eventGold', 'eventFreeXP', 'eventCreditsList', 'eventXPList',
+                       'eventGoldList', 'eventFreeXPList', 'crystal', 'eventCrystal',
+                       'eventCrystalList']:
+                if key in avatar_data:
+                    economy_data[key] = avatar_data[key]
+
         # == Credits ==
-        credits = summarize_credits(personal)
-        xp = summarize_xp(personal)
-        gold = summarize_gold(personal)
+        credits = summarize_credits(economy_data)
+        xp = summarize_xp(economy_data)
+        gold = summarize_gold(economy_data)
 
 
 

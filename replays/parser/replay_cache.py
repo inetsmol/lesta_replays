@@ -253,6 +253,32 @@ class ReplayDataCache:
         return self._avatars
 
     @property
+    def avatar_data(self) -> Dict[str, Any]:
+        """
+        Данные аватара текущего игрока из блока personal['avatar'].
+
+        Эти данные содержат итоговые значения с аккаунта игрока после боя
+        (credits, xp, gold на аккаунте), в отличие от personal[player_id],
+        которые содержат детали конкретного боя.
+
+        Returns:
+            Словарь с данными аватара или пустой словарь
+        """
+        if isinstance(self.second_block, (list, tuple)) and len(self.second_block) > 0:
+            first_result = self.second_block[0]
+            if isinstance(first_result, dict):
+                personal_root = first_result.get('personal', {})
+                if isinstance(personal_root, dict):
+                    avatar = personal_root.get('avatar', {})
+                    if isinstance(avatar, dict):
+                        return avatar
+                    else:
+                        logger.warning(f"personal['avatar'] не является словарём: {type(avatar)}")
+
+        logger.warning("Не удалось получить данные avatar")
+        return {}
+
+    @property
     def player_team(self) -> Optional[int]:
         """
         Номер команды текущего игрока (1 или 2).

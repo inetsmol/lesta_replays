@@ -522,8 +522,11 @@
     <div class="row"><span class="left">Эффект от личных резервов</span><span class="right">{{ detailed_report.credits.base.booster_effect|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
   {% endif %}
 
-  {% if detailed_report.credits.event_credits > 0 %}
-    <div class="row"><span class="left">Бонус за боевые задачи и события</span><span class="right">{{ detailed_report.credits.event_credits|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+  {% if detailed_report.credits.event_credits > 0 or detailed_report.gold.base.event_income > 0 %}
+    <div class="row {% if detailed_report.gold.base.event_income > 0 %}gold{% endif %}">
+      <span class="left">Бонус за боевые задачи и события</span><span class="right">{{ detailed_report.credits.event_credits|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
+      {% if detailed_report.gold.base.event_income > 0 %}<span class="gold">{{ detailed_report.gold.base.event_income|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>{% endif %}
+    </span></div>
   {% endif %}
 
   {% if detailed_report.credits.base.team_subs_bonus > 0 %}
@@ -537,12 +540,15 @@
   <div class="row top"><span class="left">Штраф за урон союзникам</span><span class="right">{{ detailed_report.credits.base.team_damage_penalty|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
   <div class="row"><span class="left">Компенсация за урон от союзников</span><span class="right">{{ detailed_report.credits.base.team_damage_compensation|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
 
-  <div class="row top"><span class="left">Итого за бой:</span><span class="right">{{ detailed_report.credits.base.total_for_battle|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+  <div class="row top {% if detailed_report.gold.base.total_for_battle > 0 %}gold{% endif %}">
+    <span class="left">Итого за бой:</span><span class="right">{{ detailed_report.credits.base.total_for_battle|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
+      {% if detailed_report.gold.base.total_for_battle > 0 %}<span class="gold">{{ detailed_report.gold.base.total_for_battle|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>{% endif %}
+    </span></div>
 
   <div class="row top"><span class="left">Автоматический ремонт техники</span><span class="right red">-{{ detailed_report.credits.costs.auto_repair|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
   <div class="row"><span class="left">Автопополнение боекомплекта</span><span class="right red">-{{ detailed_report.credits.costs.auto_ammo|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
 
-  {% if detailed_report.credits.costs.auto_equipment > 0 or detailed_report.gold.spent > 0 %}
+  {% if detailed_report.credits.costs.auto_equipment > 0 or detailed_report.gold.base.total_for_battle > 0 %}
     <div class="row"><span class="left">Автопополнение снаряжения</span><span class="right red">-{{ detailed_report.credits.costs.auto_equipment|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
 
   {% endif %}
@@ -550,7 +556,7 @@
   <div class="row top gold" >
     <span class="left">Итого:</span>
     <span class="right {% if detailed_report.credits.base.after_costs < 0 %}red{% endif %}">{{ detailed_report.credits.base.after_costs|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
-      <span class="gold">{{ detailed_report.gold.spent|default:0|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>
+      <span class="gold">{{ detailed_report.gold.base.total_for_battle|default:0|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>
     </span>
   </div>
 </div>
@@ -566,8 +572,11 @@
     <div class="row">&nbsp;<span class="right">{{ detailed_report.credits.premium.booster_effect|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
   {% endif %}
 
-  {% if detailed_report.credits.event_credits > 0 %}
-    <div class="row">&nbsp;<span class="right">{{ detailed_report.credits.event_credits|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+  {% if detailed_report.credits.event_credits > 0 or detailed_report.gold.base.event_income > 0 %}
+    <div class="row {% if detailed_report.gold.base.event_income > 0 %}gold{% endif %}">&nbsp;
+      <span class="right">{{ detailed_report.credits.event_credits|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
+      {% if detailed_report.gold.base.event_income > 0 %}<span class="gold">{{ detailed_report.gold.base.event_income|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>{% endif %}
+    </span></div>
   {% endif %}
 
   {% if detailed_report.credits.premium.team_subs_bonus > 0 %}
@@ -581,19 +590,22 @@
   <div class="row top">&nbsp;<span class="right">{{ detailed_report.credits.premium.team_damage_penalty|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
   <div class="row">&nbsp;<span class="right">{{ detailed_report.credits.premium.team_damage_compensation|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
 
-  <div class="row top">&nbsp;<span class="right">{{ detailed_report.credits.premium.total_for_battle|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
+  <div class="row top {% if detailed_report.gold.base.total_for_battle > 0 %}gold{% endif %}">&nbsp;
+    <span class="right">{{ detailed_report.credits.premium.total_for_battle|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
+      {% if detailed_report.gold.base.total_for_battle > 0 %}<span class="gold">{{ detailed_report.gold.base.total_for_battle|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>{% endif %}
+    </span></div>
 
   <div class="row top">&nbsp;<span class="right red">-{{ detailed_report.credits.costs.auto_repair|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
   <div class="row">&nbsp;<span class="right red">-{{ detailed_report.credits.costs.auto_ammo|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
 
-  {% if detailed_report.credits.costs.auto_equipment > 0 or detailed_report.gold.spent > 0 %}
+  {% if detailed_report.credits.costs.auto_equipment > 0 or detailed_report.gold.base.total_for_battle > 0 %}
     <div class="row">&nbsp;<span class="right red">-{{ detailed_report.credits.costs.auto_equipment|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits"></span></div>
 
   {% endif %}
 
   <div class="row top gold">
     &nbsp;<span class="right {% if detailed_report.credits.premium.after_costs < 0 %}red{% endif %}">{{ detailed_report.credits.premium.after_costs|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/CreditsIcon.png' %}" alt="Credits">
-      <span class="gold">{{ detailed_report.gold.spent|default:0|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>
+      <span class="gold">{{ detailed_report.gold.base.total_for_battle|default:0|intcomma }}<img class="credit" src="{% static 'style/images/wot/library/GoldIcon.png' %}" alt="Gold"></span>
     </span>
   </div>
 </div>
