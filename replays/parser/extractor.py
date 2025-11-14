@@ -14,6 +14,7 @@ from typing import Any, Dict, List, Sequence, Tuple, Mapping, Optional, Iterable
 
 from django.db.models.functions import Coalesce, Cast
 from django.db.models import Value, FloatField
+from django.utils import timezone
 
 from replays.models import Tank
 from replays.utils import summarize_credits, summarize_xp, summarize_gold
@@ -25,13 +26,15 @@ class ParserUtils:
     @staticmethod
     def _parse_battle_datetime(dt_str: str) -> _dt.datetime:
         """
-        Парсит дату боя формата 'DD.MM.YYYYHH:MM:SS' в объект datetime.
+        Парсит дату боя формата 'DD.MM.YYYYHH:MM:SS' в объект datetime с timezone.
         Пример: '25.08.2025 15:57:56' и '25.08.202515:57:56' (без пробела) — поддерживаем оба.
         """
         # ⚠ В некоторых реплеях между датой и временем нет пробела.
         if " " not in dt_str and len(dt_str) == 19:
             dt_str = f"{dt_str[:10]} {dt_str[10:]}"
-        return _dt.datetime.strptime(dt_str, "%d.%m.%Y %H:%M:%S")
+        naive_dt = _dt.datetime.strptime(dt_str, "%d.%m.%Y %H:%M:%S")
+        # Делаем datetime aware (используем текущий timezone из Django настроек)
+        return timezone.make_aware(naive_dt)
 
     @staticmethod
     def _extract_tank_tag(player_vehicle: Any) -> str | None:

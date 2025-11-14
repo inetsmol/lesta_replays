@@ -31,7 +31,7 @@ class HeaderV2:
         if magic != MAGIC:
             raise ParseError(f"Неизвестная сигнатура: 0x{magic:08X} (ожидалась 0x11343212).")
         if version != SUPPORTED_VERSION:
-            raise ParseError(f"Неподдерживаемая версия: {version} (поддерживается только 2).")
+            raise ParseError("Файл реплея не содержит статистику боя. Возможно, игрок покинул бой досрочно.")
         if len_first == 0:
             raise ParseError("LEN_FIRST равен 0 — повреждённый файл.")
         return cls(magic=magic, version=version, len_first=len_first)
@@ -62,6 +62,16 @@ class Parser:
         :raises ParseError: при несоответствии формату/длинам/краям блоков
         """
         data = Path(path).read_bytes()
+        return self.parse_bytes(data)
+
+    def parse_bytes(self, data: bytes) -> str:
+        """
+        Парсить байты .mtreplay и вернуть строку JSON вида:  [{...},[...]]
+
+        :param data: байты файла .mtreplay
+        :return: JSON-строка "пара" — первый объект и второй массив
+        :raises ParseError: при несоответствии формату/длинам/краям блоков
+        """
         hdr = HeaderV2.parse(data)  # проверит сигнатуру/версию/len_first
         first_text, after_first = self._read_first_json(data, hdr.len_first)
         second_text, _ = self._read_second_json(data, after_first)

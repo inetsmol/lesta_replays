@@ -378,6 +378,22 @@ if SENTRY_DSN:
         if exc_type and exc_type in ignored_types:
             return None
 
+        # 3) ValidationError с ожидаемыми сообщениями (дубликаты, файлы без статистики)
+        if exc_type == "django.core.exceptions.ValidationError":
+            exc_value = str(exc[1]) if exc and exc[1] else ""
+            ignored_messages = (
+                "Такой реплей уже существует в базе данных",
+                "не содержит статистику боя",
+            )
+            if any(msg in exc_value for msg in ignored_messages):
+                return None
+
+        # 4) ParseError с ожидаемыми сообщениями (файлы без статистики)
+        if exc_type == "replays.parser.parser.ParseError":
+            exc_value = str(exc[1]) if exc and exc[1] else ""
+            if "не содержит статистику боя" in exc_value:
+                return None
+
         return event
 
     sentry_sdk.init(

@@ -258,12 +258,13 @@ class ReplayProcessingService:
         file_path = None
 
         try:
-            # Шаг 1: Сохранение файла
-            file_path = self.file_storage.save_file(uploaded_file)
+            # Шаг 1: Чтение файла в память
+            uploaded_file.seek(0)  # На всякий случай сбрасываем указатель
+            file_content = uploaded_file.read()
 
-            # Шаг 2: Парсинг данных
+            # Шаг 2: Парсинг данных из памяти
             parser = Parser()
-            data = parser.parse(file_path)
+            data = parser.parse_bytes(file_content)
 
             # Шаг 3: Извлечение полей
             replay_fields = ExtractorV2.extract_replay_fields_v2(data, uploaded_file.name)
@@ -280,12 +281,20 @@ class ReplayProcessingService:
                 map_display_name=replay_fields.get('map_display_name')
             )
 
-            # Шаг 5.1: Проверка на дубликат
+            # Шаг 5.1: Проверка на дубликат (ДО сохранения файла)
             battle_date = replay_fields.get('battle_date')
             if Replay.objects.filter(owner=owner, battle_date=battle_date, tank=tank).exists():
+                logger.info(
+                    f"Дубликат реплея отклонён: {uploaded_file.name} "
+                    f"(owner={owner.name}, date={battle_date}, tank={tank.vehicleId})"
+                )
                 raise ValidationError("Такой реплей уже существует в базе данных.")
 
-            # Шаг 6: Создание реплея
+            # Шаг 6: Сохранение файла (только если НЕ дубликат)
+            uploaded_file.seek(0)  # Сбрасываем указатель перед сохранением
+            file_path = self.file_storage.save_file(uploaded_file)
+
+            # Шаг 7: Создание реплея
             replay = self._create_replay(
                 user=user,
                 replay_fields=replay_fields,
@@ -297,34 +306,27 @@ class ReplayProcessingService:
                 description=description
             )
 
-            # Шаг 7: Привязка игроков
+            # Шаг 8: Привязка игроков
             self._attach_players_to_replay(replay, payload)
 
             logger.info(f"Реплей создан: {replay.id} - {uploaded_file.name}")
             return replay
 
         except ParseError as e:
-            if file_path:
-                error_message = str(e)
-                if "Неподдерживаемая версия" in error_message:
-                    archived_path = self.file_storage.move_to_directory(
-                        file_path,
-                        self.UNSUPPORTED_VERSION_DIR
-                    )
-                    logger.warning(
-                        f"Реплей {uploaded_file.name} сохранён для анализа по пути: {archived_path}"
-                    )
-                else:
-                    self.file_storage.delete_file(file_path)
+            # ParseError означает, что файл не содержит статистику боя
+            # Не сохраняем такие файлы, сразу отклоняем
+            logger.info(f"Реплей отклонён (нет статистики боя): {uploaded_file.name}")
             raise
 
         except (json.JSONDecodeError, ValueError) as e:
-            self.file_storage.delete_file(file_path)
+            if file_path:
+                self.file_storage.delete_file(file_path)
             logger.error(f"Ошибка обработки реплея {uploaded_file.name}: {e}")
             raise ValidationError(f"Ошибка обработки файла реплея: {str(e)}")
 
         except Exception as e:
-            self.file_storage.delete_file(file_path)
+            if file_path:
+                self.file_storage.delete_file(file_path)
             logger.error(f"Неожиданная ошибка при обработке {uploaded_file.name}: {e}")
             raise
 
