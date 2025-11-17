@@ -169,38 +169,24 @@ class PlayerService:
             owner_clan: Optional[str]
     ) -> Player:
         """
-        Получает или создает игрока, обновляя его данные при необходимости.
+        Получает или создает игрока.
+
+        ВАЖНО: Игрок идентифицируется по комбинации (name, real_name, clan_tag).
+        name может совпадать у разных игроков, если они скрыли реальное имя.
 
         Args:
-            owner_name: Имя игрока
-            owner_real_name: Реальное имя
-            owner_clan: Клан
+            owner_name: Имя игрока (может быть автогенерированным)
+            owner_real_name: Реальное имя игрока (пустая строка, если скрыто)
+            owner_clan: Клан игрока
 
         Returns:
             Player: Объект игрока
         """
-        player, created = Player.objects.get_or_create(
+        player, _ = Player.objects.get_or_create(
             name=owner_name,
-            defaults={
-                'real_name': owner_real_name,
-                'clan_tag': owner_clan
-            }
+            real_name=owner_real_name or '',
+            clan_tag=owner_clan or '',
         )
-
-        if not created:
-            updated_fields = []
-
-            if owner_real_name and player.real_name != owner_real_name:
-                player.real_name = owner_real_name
-                updated_fields.append('real_name')
-
-            if owner_clan and player.clan_tag != owner_clan:
-                player.clan_tag = owner_clan
-                updated_fields.append('clan_tag')
-
-            if updated_fields:
-                player.save(update_fields=updated_fields)
-                logger.info(f"Обновлены данные игрока {owner_name}: {', '.join(updated_fields)}")
 
         return player
 
@@ -348,35 +334,26 @@ class ReplayProcessingService:
         """
         Создаёт/обновляет игроков по данным из payload и возвращает список объектов Player.
 
-        Поиск ведётся по уникальному Player.name (логин).
-        При нахождении записи обновляются real_name и clan_tag, если пришли непустые и отличаются.
+        Поиск ведётся по комбинации (name, real_name, clan_tag).
+        ВАЖНО: name может совпадать у разных игроков (если они скрыли реальное имя),
+        поэтому используем все три поля для идентификации уникального игрока.
         """
         # Ожидаем, что парсер вернёт коллекцию игроков (dicts/tuples/strings)
         raw_players: Iterable[Any] = ExtractorV2.parse_players_payload(payload) or []
         players: List[Player] = []
 
         for raw in raw_players:
-            login, real_name, clan_tag = _extract_triplet(raw)
-            if not login:
-                # пропускаем мусор без логина — иначе упрёмся в UNIQUE(name)
+            name, real_name, clan_tag = _extract_triplet(raw)
+            if not name:
+                # пропускаем записи без имени
                 continue
 
-            obj, created = Player.objects.get_or_create(
-                name=login,
-                defaults={"real_name": real_name, "clan_tag": clan_tag},
+            # Поиск/создание по трём полям
+            obj, _ = Player.objects.get_or_create(
+                name=name,
+                real_name=real_name,
+                clan_tag=clan_tag,
             )
-
-            to_update = []
-            if not created:
-                # мягкие обновления (только если пришло непустое и отличается)
-                if real_name and obj.real_name != real_name:
-                    obj.real_name = real_name
-                    to_update.append("real_name")
-                if clan_tag and obj.clan_tag != clan_tag:
-                    obj.clan_tag = clan_tag
-                    to_update.append("clan_tag")
-                if to_update:
-                    obj.save(update_fields=to_update)
 
             players.append(obj)
 

@@ -23,11 +23,17 @@ class ReplayDataCache:
     Кеширует часто используемые данные из payload для предотвращения
     повторного парсинга и обращений к структуре данных.
 
-    Структура payload: [metadata, battle_results, vehicles_copy, frags]
-    - payload[0] - метаданные (playerName, playerID, dateTime, ...)
-    - payload[1] - результаты боя и статистика
-        - payload[1][0] - словарь с 'common', 'personal', 'players', 'vehicles'
-        - payload[1][1] - словарь аватаров {avatarId: {...}}
+    Структура payload: [metadata, battle_data]
+    - payload[0] - метаданные (playerName, playerID, dateTime, vehicles, ...)
+    - payload[1] - массив результатов боя (3 элемента):
+        - payload[1][0] - BATTLE_RESULTS: словарь с 'common', 'personal', 'players', 'vehicles', 'avatars'
+        - payload[1][1] - дубликат payload[0]['vehicles'] (ИЗБЫТОЧНО, не использовать!)
+        - payload[1][2] - фраги {session_id: {'frags': count}} (ИЗБЫТОЧНО, не использовать!)
+
+    ВАЖНО: Боты в бою
+    - Список ботов: common['bots'] = {accountDBID: [team, 'bot_technical_name']}
+    - Боты присутствуют в: metadata.vehicles, vehicles
+    - Боты ОТСУТСТВУЮТ в: players, avatars
 
     Attributes:
         payload: Полные данные реплея
@@ -36,11 +42,12 @@ class ReplayDataCache:
 
     Properties:
         player_id: ID текущего игрока (владельца реплея)
-        common: Общие данные боя
+        common: Общие данные боя (включая bots)
         personal: Персональные данные текущего игрока
-        players: Словарь всех игроков боя
-        vehicles: Статистика техники всех игроков
-        avatars: Информация об аватарах игроков
+        players: Словарь всех РЕАЛЬНЫХ игроков боя (без ботов!)
+        vehicles: Статистика техники всех участников (игроки + боты)
+        avatars: Краткая статистика РЕАЛЬНЫХ игроков (без ботов!)
+        metadata_vehicles: Базовая информация об участниках из metadata
         player_team: Номер команды текущего игрока
     """
 
@@ -94,6 +101,7 @@ class ReplayDataCache:
         self._players: Optional[Dict[str, Any]] = None
         self._vehicles: Optional[Dict[str, Any]] = None
         self._avatars: Optional[Dict[str, Any]] = None
+        self._metadata_vehicles: Optional[Dict[str, Any]] = None
         self._player_id: Optional[int] = None
         self._player_team: Optional[int] = None
 
@@ -232,25 +240,61 @@ class ReplayDataCache:
     @property
     def avatars(self) -> Dict[str, Any]:
         """
-        Информация об аватарах игроков (второй уровень second_block).
+        Краткая статистика РЕАЛЬНЫХ игроков (без ботов!) из payload[1][0]['avatars'].
 
-        Структура: {avatarId: {"vehicleType": "...", "team": 1, "name": "...", ...}}
+        ВАЖНО: Боты отсутствуют в этой секции! Ключ - accountDBID игрока.
+
+        Структура: {accountDBID: {
+            "avatarKills": 0,
+            "avatarDamageDealt": 0,
+            "sumPoints": 0,
+            "badges": [...],
+            "playerRank": 0,
+            ...
+        }}
 
         Returns:
-            Словарь аватаров или пустой словарь
+            Словарь со статистикой игроков или пустой словарь
         """
         if self._avatars is None:
-            if isinstance(self.second_block, (list, tuple)) and len(self.second_block) > 1:
-                second_level = self.second_block[1]
-                if isinstance(second_level, dict):
-                    self._avatars = second_level
+            if isinstance(self.second_block, (list, tuple)) and len(self.second_block) > 0:
+                first_result = self.second_block[0]
+                if isinstance(first_result, dict):
+                    self._avatars = first_result.get('avatars', {})
                 else:
-                    logger.warning(f"second_block[1] не является словарём: {type(second_level)}")
+                    logger.warning(f"second_block[0] не является словарём: {type(first_result)}")
                     self._avatars = {}
             else:
-                logger.warning("second_block не содержит второго уровня")
+                logger.warning("second_block пустой или некорректный")
                 self._avatars = {}
         return self._avatars
+
+    @property
+    def metadata_vehicles(self) -> Dict[str, Any]:
+        """
+        Базовая информация об участниках из metadata (payload[0]['vehicles']).
+
+        Содержит информацию о ВСЕХ участниках (игроки + боты). Ключ - avatarSessionID.
+
+        Структура: {avatarSessionID: {
+            "name": "player_real_name" или "bot_display_name",
+            "fakeName": "player_battle_name" или "BotCrew_...",
+            "vehicleType": "...",
+            "team": 1,
+            "maxHealth": 1500,
+            ...
+        }}
+
+        Идентификация ботов:
+        - fakeName начинается с "BotCrew_"
+        - ИЛИ avatarSessionID присутствует в common['bots']
+
+        Returns:
+            Словарь с информацией об участниках или пустой словарь
+        """
+        if self._metadata_vehicles is None:
+            self._metadata_vehicles = self.first_block.get('vehicles', {})
+        return self._metadata_vehicles
 
     @property
     def avatar_data(self) -> Dict[str, Any]:

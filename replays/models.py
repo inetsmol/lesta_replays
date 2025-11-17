@@ -273,19 +273,24 @@ class Achievement(models.Model):
 class Player(models.Model):
     """
     Игрок World of Tanks.
+
+    ВАЖНО: Игроки могут скрывать своё реальное имя, в этом случае
+    им присваивается автоматическое имя (name), которое может совпадать
+    у разных игроков. Уникальность определяется комбинацией:
+    (name, real_name, clan_tag).
     """
     name = models.CharField(
-        "Логин",
+        "Имя/Отображаемое имя",
         max_length=50,
-        unique=True,
-        help_text="Игровой логин (уникален в рамках сервера)"
+        db_index=True,
+        help_text="Игровое имя или автогенерированное имя (может совпадать у разных игроков)"
     )
     real_name = models.CharField(
-        "Ник",
+        "Настоящее имя",
         max_length=50,
         db_index=True,
         default="",
-        help_text="Игровой ник"
+        help_text="Настоящее игровое имя (если не скрыто)"
     )
     clan_tag = models.CharField(
         "Клан",
@@ -298,14 +303,23 @@ class Player(models.Model):
     class Meta:
         verbose_name = "Игрок"
         verbose_name_plural = "Игроки"
-        ordering = ["real_name"]
+        ordering = ["real_name", "name"]
         indexes = [
+            models.Index(fields=["name"]),
             models.Index(fields=["real_name"]),
             models.Index(fields=["clan_tag"]),
         ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'real_name', 'clan_tag'],
+                name='unique_player_identity'
+            )
+        ]
 
     def __str__(self) -> str:
-        return f"[{self.clan_tag}] {self.name}" if self.clan_tag else self.name
+        # Отображаем реальное имя игрока (или name, если real_name пустое)
+        display_name = self.real_name or self.name
+        return f"[{self.clan_tag}] {display_name}" if self.clan_tag else display_name
 
 
 class Map(models.Model):

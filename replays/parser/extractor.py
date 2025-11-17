@@ -482,17 +482,22 @@ class ExtractorV2:
             if player_id_str in players:
                 player_data = players[player_id_str]
                 if isinstance(player_data, dict):
+                    # name - отображаемое имя (может быть fake, совпадать у разных игроков)
                     owner_name = (player_data.get('name') or owner_real_name).strip()
+                    # realName - настоящее имя игрока (уникальное)
+                    # Если realName пусто, значит игрок скрыл имя, используем playerName из metadata
+                    owner_real_name_from_players = (player_data.get('realName') or owner_real_name).strip()
                     clan_tag = (player_data.get('clanAbbrev') or '').strip()
-                    return owner_name, owner_real_name, clan_tag
+                    return owner_name, owner_real_name_from_players, clan_tag
 
             # Если не нашли по строковому ID, пробуем числовой
             if player_id in players:
                 player_data = players[player_id]
                 if isinstance(player_data, dict):
                     owner_name = (player_data.get('name') or owner_real_name).strip()
+                    owner_real_name_from_players = (player_data.get('realName') or owner_real_name).strip()
                     clan_tag = (player_data.get('clanAbbrev') or '').strip()
-                    return owner_name, owner_real_name, clan_tag
+                    return owner_name, owner_real_name_from_players, clan_tag
 
             # Не нашли в словаре игроков
             logger.info(f"Игрок {owner_real_name} (ID: {player_id}) не найден в словаре players")
@@ -813,8 +818,8 @@ class ExtractorV2:
             if not aid:
                 continue
 
-            # Получаем информацию об аватаре
-            avatar_data = cache.avatars.get(aid, {})
+            # Получаем информацию об аватаре из metadata_vehicles
+            avatar_data = cache.metadata_vehicles.get(aid, {})
             vehicle_type = str(avatar_data.get("vehicleType", ""))
 
             if ":" in vehicle_type:
@@ -867,10 +872,15 @@ class ExtractorV2:
             if target_kills > 0:
                 destroyed_count += 1
 
+            # Получаем имя игрока (приоритет: realName > name)
+            player_info = cache.players.get(str(aid), {})
+            player_real_name = player_info.get("realName") if isinstance(player_info, dict) else None
+            player_name = player_real_name or avatar_data.get("name") or aid
+
             # Формируем строку
             rows.append({
                 "avatar_id": aid,
-                "name": avatar_data.get("name") or aid,
+                "name": player_name,
                 "vehicle_tag": vehicle_tag,
                 "vehicle_name": tank.name,
                 "vehicle_img": f"style/images/wot/shop/vehicles/180x135/{vehicle_tag}.png" if vehicle_tag else "tanks/tank_placeholder.png",
@@ -1084,9 +1094,25 @@ class ExtractorV2:
         if killer_id_int <= 0:
             return default
 
-        killer = cache.avatars.get(str(killer_id_int), {})
-        # В верхнеуровневом блоке по avatarId есть 'name' (а для ботов ещё и fakeName)
-        return killer.get("name") or killer.get("fakeName") or str(killer_id_int)
+        # killer_id_int - это avatarSessionID, берём данные из metadata_vehicles
+        killer = cache.metadata_vehicles.get(str(killer_id_int), {})
+
+        # Получаем accountDBID убийцы из vehicles
+        killer_vehicle_list = cache.vehicles.get(str(killer_id_int), [])
+        killer_account_id = None
+        if isinstance(killer_vehicle_list, list) and killer_vehicle_list:
+            killer_vstats = killer_vehicle_list[0] if isinstance(killer_vehicle_list[0], dict) else {}
+            killer_account_id = killer_vstats.get("accountDBID")
+
+        # Получаем realName из players
+        real_name = None
+        if killer_account_id:
+            killer_player_info = cache.players.get(str(killer_account_id), {})
+            if isinstance(killer_player_info, dict):
+                real_name = killer_player_info.get("realName")
+
+        # Приоритет: realName из players > name из metadata_vehicles > fakeName
+        return real_name or killer.get("name") or killer.get("fakeName") or str(killer_id_int)
 
     @staticmethod
     def get_death_text(cache: 'ReplayDataCache') -> str:
@@ -1607,23 +1633,24 @@ class ExtractorV2:
         else:
             vehicle_nation, vehicle_tag = "", vehicle_type
 
-        # Статистика из vehicles
+        # Статистика из vehicles (ключ - avatarSessionID)
         vstats = {}
         vehicle_list = vehicles_stats.get(avatar_id, [])
         if isinstance(vehicle_list, list) and vehicle_list:
             vstats = vehicle_list[0] if isinstance(vehicle_list[0], dict) else {}
 
-        # Информация об игроке
-        player_info = players_info.get(avatar_id, {})
-        if not isinstance(player_info, dict):
-            # Ищем по accountDBID в players
-            account_id = vstats.get("accountDBID")
-            if account_id:
-                for pid, pinfo in players_info.items():
-                    if isinstance(pinfo, dict) and pinfo.get("accountDBID") == account_id:
-                        player_info = pinfo
-                        break
+        # Информация об игроке из players (ключ - accountDBID)
+        # Нужно найти accountDBID из vstats, чтобы получить данные из players
+        account_id = vstats.get("accountDBID")
+        player_info = {}
 
+        if account_id:
+            # Преобразуем к строке для поиска
+            player_info = players_info.get(str(account_id), {})
+            if not isinstance(player_info, dict):
+                player_info = players_info.get(int(account_id), {})
+            if not isinstance(player_info, dict):
+                player_info = {}                
         # Определяем статус жизни
         death_reason = vstats.get("deathReason", -1)
         is_alive = death_reason == -1
@@ -1632,8 +1659,26 @@ class ExtractorV2:
         # Текст причины смерти
         death_text = ""
         if not is_alive and killer_id > 0:
-            killer_data = cache.avatars.get(str(killer_id), {})
-            killer_name = killer_data.get("name") or killer_data.get("fakeName", "")
+            # killer_id - это avatarSessionID, берём данные из metadata_vehicles
+            killer_data = cache.metadata_vehicles.get(str(killer_id), {})
+
+            # Получаем accountDBID убийцы из vehicles
+            killer_vehicle_list = vehicles_stats.get(str(killer_id), [])
+            killer_account_id = None
+            if isinstance(killer_vehicle_list, list) and killer_vehicle_list:
+                killer_vstats = killer_vehicle_list[0] if isinstance(killer_vehicle_list[0], dict) else {}
+                killer_account_id = killer_vstats.get("accountDBID")
+
+            # Получаем realName из players
+            killer_real_name = None
+            if killer_account_id:
+                killer_player_info = players_info.get(str(killer_account_id), {})
+                if isinstance(killer_player_info, dict):
+                    killer_real_name = killer_player_info.get("realName")
+
+            # Приоритет: realName из players > name из metadata_vehicles > fakeName
+            killer_name = killer_real_name or killer_data.get("name") or killer_data.get("fakeName", "")
+
             if death_reason == 0:
                 death_text = f"Уничтожен выстрелом ({killer_name})"
             elif death_reason == 2:
@@ -1664,9 +1709,16 @@ class ExtractorV2:
         tank_level = tank.level
         tank_type = tank.type
 
-        # Клан
-        clan_tag = player_info.get("clanAbbrev", "")
-        player_name = raw.get("name") or raw.get("fakeName", avatar_id)
+        # Имя и клан игрока
+        # Приоритет: realName из players > name из metadata_vehicles > fakeName
+        if player_info:
+            clan_tag = player_info.get("clanAbbrev", "")
+            player_name = player_info.get("realName") or raw.get("name") or raw.get("fakeName", avatar_id)
+        else:
+            # Если нет данных в players (бот), используем metadata_vehicles
+            clan_tag = ""
+            player_name = raw.get("name") or raw.get("fakeName", avatar_id)
+
         display_name = f"{player_name} [{clan_tag}]" if clan_tag else player_name
 
         # Ассисты
@@ -1796,8 +1848,10 @@ class ExtractorV2:
         allies_players = []
         enemies_players = []
 
-        # Обходим всех игроков
-        for avatar_id, raw in cache.avatars.items():
+        # Обходим всех участников (игроков + ботов) из metadata.vehicles
+        metadata_vehicles = cache.metadata_vehicles
+
+        for avatar_id, raw in metadata_vehicles.items():
             if not (isinstance(avatar_id, str) and avatar_id.isdigit() and isinstance(raw, Mapping)):
                 continue
             if "vehicleType" not in raw:
