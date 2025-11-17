@@ -282,7 +282,7 @@ class ReplayProcessingService:
             if Replay.objects.filter(owner=owner, battle_date=battle_date, tank=tank).exists():
                 logger.info(
                     f"Дубликат реплея отклонён: {uploaded_file.name} "
-                    f"(owner={owner.name}, date={battle_date}, tank={tank.vehicleId})"
+                    f"(owner={owner.real_name}, date={battle_date}, tank={tank.vehicleId})"
                 )
                 raise ValidationError("Такой реплей уже существует в базе данных.")
 
