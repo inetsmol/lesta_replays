@@ -360,16 +360,22 @@ class ExtractorV2:
         return fields
 
     @staticmethod
-    def parse_players_payload(payload) -> List[Tuple[str, str]]:
+    def parse_players_payload(payload) -> List[Dict[str, Any]]:
         """
-        Достаёт из payload кортежи (nickname, clan_tag).
+        Достаёт из payload данные всех игроков боя (БЕЗ ботов!).
+
         Структура payload: [metadata, [battle_results], vehicles_copy, frags]
-        - payload[0] - метаданные с playerName и playerID
         - payload[1][0]['players'] - словарь игроков {accountDBID: {name, realName, clanAbbrev, ...}}
 
-        Возвращает список без пустых/битых записей, без дублей.
-        """
+        ВАЖНО: Боты отсутствуют в секции 'players'!
 
+        Returns:
+            List[Dict]: Список словарей с полями:
+                - accountDBID: int - Уникальный ID игрока
+                - real_name: str - Настоящее имя (players.realName)
+                - fake_name: str - Имя в бою (players.name, анонимное если скрыто)
+                - clan_tag: str - Тег клана
+        """
         try:
             # Парсим JSON если нужно
             if isinstance(payload, str):
@@ -379,48 +385,68 @@ class ExtractorV2:
             # Проверяем базовую структуру
             if not isinstance(payload, (list, tuple)) or len(payload) < 2:
                 logger.warning(
-                    f"Некорректная структура payload: ожидается список из 4 элементов, получен {type(payload)}")
+                    f"Некорректная структура payload: ожидается список из 2+ элементов, получен {type(payload)}")
+                return []
 
             # Извлекаем детальные данные из второго элемента
             battle_results = payload[1]
             if not isinstance(battle_results, (list, tuple)) or len(battle_results) == 0:
                 logger.warning("Второй элемент payload пустой или некорректный")
+                return []
 
             # Получаем словарь игроков
             first_result = battle_results[0]
             if not isinstance(first_result, dict):
                 logger.warning("Первый элемент battle_results не является словарем")
+                return []
 
-            players = first_result.get('players')
+            players = first_result.get('players', {})
+            if not isinstance(players, dict):
+                logger.warning("players не является словарём")
+                return []
 
-            seen: set[Tuple[str, str]] = set()
-            result: List[Tuple[str, str]] = []
+            result: List[Dict[str, Any]] = []
 
-            # Внутри словаря ключи — любые ID; берём только значения
-            for p in players.values():
-                # в примерах бывают поля "name" и "realName" — берём приоритетно "name"
-                nickname = (p.get("realName") or p.get("name")).strip() or ""
-                if not nickname:
+            # Обрабатываем игроков: ключ - accountDBID
+            for account_id, player_data in players.items():
+                if not isinstance(player_data, dict):
                     continue
-                clan_tag = p.get("clanAbbrev").strip("[] ").upper() or ""
 
-                key = (nickname, clan_tag)
-                if key in seen:
+                # Извлекаем данные согласно документации
+                real_name = (player_data.get("realName") or "").strip()
+                fake_name = (player_data.get("name") or "").strip()
+                clan_tag = (player_data.get("clanAbbrev") or "").strip("[] ").upper()
+
+                # Пропускаем игроков без имени
+                if not real_name:
+                    logger.warning(f"Игрок {account_id} не имеет realName, пропускаем")
                     continue
-                seen.add(key)
-                result.append(key)
+
+                try:
+                    account_id_int = int(account_id)
+                except (ValueError, TypeError):
+                    logger.warning(f"Некорректный accountDBID: {account_id}")
+                    continue
+
+                result.append({
+                    "accountDBID": account_id_int,
+                    "real_name": real_name,
+                    "fake_name": fake_name,
+                    "clan_tag": clan_tag,
+                })
 
             return result
 
         except Exception as e:
             logger.error(f"Неожиданная ошибка при извлечении игроков: {e}", exc_info=True)
+            return []
 
     @staticmethod
-    def get_replay_owner_from_payload(payload):
+    def get_replay_owner_from_payload(payload) -> Dict[str, Any]:
         """
-        Извлекает данные владельца реплея из новой структуры.
+        Извлекает данные владельца реплея.
 
-        Структура payload: [metadata, [battle_results], vehicles_copy, frags]
+        Структура payload: [metadata, [battle_results]]
         - payload[0] - метаданные с playerName и playerID
         - payload[1][0]['players'] - словарь игроков {accountDBID: {name, realName, clanAbbrev, ...}}
 
@@ -428,7 +454,11 @@ class ExtractorV2:
             payload: Данные реплея
 
         Returns:
-            tuple: (owner_name, owner_real_name, clan_tag) - всегда 3 значения
+            Dict с полями:
+                - accountDBID: int - ID владельца реплея
+                - real_name: str - Настоящее имя (players.realName)
+                - fake_name: str - Имя в бою (players.name)
+                - clan_tag: str - Тег клана
         """
         try:
             # Парсим JSON если нужно
@@ -439,76 +469,70 @@ class ExtractorV2:
             # Проверяем базовую структуру
             if not isinstance(payload, (list, tuple)) or len(payload) < 2:
                 logger.warning(
-                    f"Некорректная структура payload: ожидается список из 4 элементов, получен {type(payload)}")
-                return '', '', ''
+                    f"Некорректная структура payload: ожидается список из 2+ элементов, получен {type(payload)}")
+                return {"accountDBID": 0, "real_name": "", "fake_name": "", "clan_tag": ""}
 
             # Извлекаем метаданные из первого элемента
             metadata = payload[0]
             if not isinstance(metadata, dict):
                 logger.warning(f"Первый элемент payload не является словарем: {type(metadata)}")
-                return '', '', ''
+                return {"accountDBID": 0, "real_name": "", "fake_name": "", "clan_tag": ""}
 
-            # Получаем базовые данные владельца
-            owner_real_name = (metadata.get('playerName') or '').strip()
+            # Получаем playerID - это и есть accountDBID владельца
             player_id = metadata.get('playerID')
-
-            if not owner_real_name:
-                logger.warning("В metadata отсутствует playerName")
-                return '', '', ''
-
             if not player_id:
                 logger.warning("В metadata отсутствует playerID")
-                return owner_real_name, owner_real_name, ''
+                return {"accountDBID": 0, "real_name": "", "fake_name": "", "clan_tag": ""}
+
+            try:
+                account_id_int = int(player_id)
+            except (ValueError, TypeError):
+                logger.warning(f"Некорректный playerID: {player_id}")
+                return {"accountDBID": 0, "real_name": "", "fake_name": "", "clan_tag": ""}
 
             # Извлекаем детальные данные из второго элемента
             battle_results = payload[1]
             if not isinstance(battle_results, (list, tuple)) or len(battle_results) == 0:
                 logger.warning("Второй элемент payload пустой или некорректный")
-                return owner_real_name, owner_real_name, ''
+                return {"accountDBID": account_id_int, "real_name": "", "fake_name": "", "clan_tag": ""}
 
             # Получаем словарь игроков
             first_result = battle_results[0]
             if not isinstance(first_result, dict):
                 logger.warning("Первый элемент battle_results не является словарем")
-                return owner_real_name, owner_real_name, ''
+                return {"accountDBID": account_id_int, "real_name": "", "fake_name": "", "clan_tag": ""}
 
-            players = first_result.get('players')
+            players = first_result.get('players', {})
             if not isinstance(players, dict):
                 logger.warning("Секция 'players' отсутствует или некорректна")
-                return owner_real_name, owner_real_name, ''
+                return {"accountDBID": account_id_int, "real_name": "", "fake_name": "", "clan_tag": ""}
 
-            # Ищем данные владельца по player_id
+            # Ищем данные владельца по accountDBID (ключ в players)
             player_id_str = str(player_id)
-            if player_id_str in players:
-                player_data = players[player_id_str]
-                if isinstance(player_data, dict):
-                    # name - отображаемое имя (может быть fake, совпадать у разных игроков)
-                    owner_name = (player_data.get('name') or owner_real_name).strip()
-                    # realName - настоящее имя игрока (уникальное)
-                    # Если realName пусто, значит игрок скрыл имя, используем playerName из metadata
-                    owner_real_name_from_players = (player_data.get('realName') or owner_real_name).strip()
-                    clan_tag = (player_data.get('clanAbbrev') or '').strip()
-                    return owner_name, owner_real_name_from_players, clan_tag
+            player_data = players.get(player_id_str) or players.get(player_id)
 
-            # Если не нашли по строковому ID, пробуем числовой
-            if player_id in players:
-                player_data = players[player_id]
-                if isinstance(player_data, dict):
-                    owner_name = (player_data.get('name') or owner_real_name).strip()
-                    owner_real_name_from_players = (player_data.get('realName') or owner_real_name).strip()
-                    clan_tag = (player_data.get('clanAbbrev') or '').strip()
-                    return owner_name, owner_real_name_from_players, clan_tag
+            if not isinstance(player_data, dict):
+                logger.warning(f"Игрок {player_id} не найден в словаре players")
+                return {"accountDBID": account_id_int, "real_name": "", "fake_name": "", "clan_tag": ""}
 
-            # Не нашли в словаре игроков
-            logger.info(f"Игрок {owner_real_name} (ID: {player_id}) не найден в словаре players")
-            return owner_real_name, owner_real_name, ''
+            # Извлекаем данные согласно документации
+            real_name = (player_data.get('realName') or "").strip()
+            fake_name = (player_data.get('name') or "").strip()
+            clan_tag = (player_data.get('clanAbbrev') or "").strip("[] ").upper()
+
+            return {
+                "accountDBID": account_id_int,
+                "real_name": real_name,
+                "fake_name": fake_name,
+                "clan_tag": clan_tag,
+            }
 
         except json.JSONDecodeError as e:
             logger.error(f"Ошибка парсинга JSON payload: {e}")
-            return '', '', ''
+            return {"accountDBID": 0, "real_name": "", "fake_name": "", "clan_tag": ""}
         except Exception as e:
             logger.error(f"Неожиданная ошибка при извлечении владельца реплея: {e}", exc_info=True)
-            return '', '', ''
+            return {"accountDBID": 0, "real_name": "", "fake_name": "", "clan_tag": ""}
 
     @staticmethod
     def get_personal_data_minimal(cache: 'ReplayDataCache') -> dict:

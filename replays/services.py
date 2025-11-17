@@ -8,7 +8,7 @@ import json
 import logging
 import datetime
 from pathlib import Path
-from typing import Any, List, Iterable
+from typing import Any, List, Dict
 from typing import Optional, Tuple
 
 from django.conf import settings
@@ -164,29 +164,39 @@ class PlayerService:
 
     @staticmethod
     def get_or_update_player(
-            owner_name: str,
-            owner_real_name: Optional[str],
-            owner_clan: Optional[str]
+            account_id: int,
+            real_name: str,
+            fake_name: str,
+            clan_tag: str
     ) -> Player:
         """
-        Получает или создает игрока.
+        Получает или обновляет игрока по accountDBID.
 
-        ВАЖНО: Игрок идентифицируется по комбинации (name, real_name, clan_tag).
-        name может совпадать у разных игроков, если они скрыли реальное имя.
+        ВАЖНО: Игрок идентифицируется по accountDBID - уникальному ID из БД Lesta/WG.
+        Если игрок найден, обновляются его имена и клан.
 
         Args:
-            owner_name: Имя игрока (может быть автогенерированным)
-            owner_real_name: Реальное имя игрока (пустая строка, если скрыто)
-            owner_clan: Клан игрока
+            account_id: Уникальный ID игрока (accountDBID)
+            real_name: Настоящее имя игрока (players.realName)
+            fake_name: Имя в бою (players.name, анонимное если скрыто)
+            clan_tag: Клан игрока
 
         Returns:
             Player: Объект игрока
         """
-        player, _ = Player.objects.get_or_create(
-            name=owner_name,
-            real_name=owner_real_name or '',
-            clan_tag=owner_clan or '',
+        player, created = Player.objects.update_or_create(
+            accountDBID=account_id,
+            defaults={
+                "real_name": real_name,
+                "fake_name": fake_name,
+                "clan_tag": clan_tag or '',
+            }
         )
+
+        if created:
+            logger.debug(f"Создан владелец реплея: {player}")
+        else:
+            logger.debug(f"Обновлён владелец реплея: {player}")
 
         return player
 
@@ -318,8 +328,13 @@ class ReplayProcessingService:
 
     def _get_or_update_owner(self, payload) -> Player:
         """Получает или обновляет владельца реплея."""
-        owner_name, owner_real_name, owner_clan = ExtractorV2.get_replay_owner_from_payload(payload)
-        return self.player_service.get_or_update_player(owner_name, owner_real_name, owner_clan)
+        owner_data = ExtractorV2.get_replay_owner_from_payload(payload)
+        return self.player_service.get_or_update_player(
+            account_id=owner_data["accountDBID"],
+            real_name=owner_data["real_name"],
+            fake_name=owner_data["fake_name"],
+            clan_tag=owner_data["clan_tag"]
+        )
 
     def _attach_players_to_replay(self, replay: Replay, payload) -> None:
         """
@@ -334,26 +349,41 @@ class ReplayProcessingService:
         """
         Создаёт/обновляет игроков по данным из payload и возвращает список объектов Player.
 
-        Поиск ведётся по комбинации (name, real_name, clan_tag).
-        ВАЖНО: name может совпадать у разных игроков (если они скрыли реальное имя),
-        поэтому используем все три поля для идентификации уникального игрока.
+        Поиск ведётся по accountDBID - уникальному ID игрока в БД Lesta/WG.
+        Если игрок найден, обновляются его имена и клан.
         """
-        # Ожидаем, что парсер вернёт коллекцию игроков (dicts/tuples/strings)
-        raw_players: Iterable[Any] = ExtractorV2.parse_players_payload(payload) or []
+        # Парсер возвращает список словарей с полями: accountDBID, real_name, fake_name, clan_tag
+        raw_players: List[Dict[str, Any]] = ExtractorV2.parse_players_payload(payload) or []
         players: List[Player] = []
 
-        for raw in raw_players:
-            name, real_name, clan_tag = _extract_triplet(raw)
-            if not name:
-                # пропускаем записи без имени
+        for player_data in raw_players:
+            account_id = player_data.get("accountDBID")
+            if not account_id:
+                logger.warning(f"Игрок без accountDBID: {player_data}")
                 continue
 
-            # Поиск/создание по трём полям
-            obj, _ = Player.objects.get_or_create(
-                name=name,
-                real_name=real_name,
-                clan_tag=clan_tag,
+            real_name = player_data.get("real_name", "")
+            fake_name = player_data.get("fake_name", "")
+            clan_tag = player_data.get("clan_tag", "")
+
+            if not real_name:
+                logger.warning(f"Игрок {account_id} без real_name, пропускаем")
+                continue
+
+            # Поиск/создание/обновление по accountDBID
+            obj, created = Player.objects.update_or_create(
+                accountDBID=account_id,
+                defaults={
+                    "real_name": real_name,
+                    "fake_name": fake_name,
+                    "clan_tag": clan_tag,
+                }
             )
+
+            if created:
+                logger.debug(f"Создан новый игрок: {obj}")
+            else:
+                logger.debug(f"Обновлён игрок: {obj}")
 
             players.append(obj)
 

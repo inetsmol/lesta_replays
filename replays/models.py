@@ -274,23 +274,41 @@ class Player(models.Model):
     """
     Игрок World of Tanks.
 
-    ВАЖНО: Игроки могут скрывать своё реальное имя, в этом случае
-    им присваивается автоматическое имя (name), которое может совпадать
-    у разных игроков. Уникальность определяется комбинацией:
-    (name, real_name, clan_tag).
+    ВАЖНО: Уникальность игрока определяется по accountDBID - постоянному ID игрока в БД.
+
+    Поля имен:
+    - accountDBID: Уникальный ID игрока из базы данных Lesta/WG (ключевое поле!)
+    - real_name: Настоящее игровое имя (из players[accountDBID]['realName'])
+    - fake_name: Имя, отображавшееся в бою (из players[accountDBID]['name'])
+
+    Связь с секциями battle_result.json:
+    - accountDBID - ключ в payload[1][0]['players']
+    - real_name = players[accountDBID]['realName']
+    - fake_name = players[accountDBID]['name']
+
+    Примеры:
+    1. Игрок БЕЗ анонимизации: real_name = fake_name = "PlayerName"
+    2. Игрок С анонимизацией: real_name = "RealPlayer", fake_name = "Anon_12345"
     """
-    name = models.CharField(
-        "Имя/Отображаемое имя",
-        max_length=50,
+    accountDBID = models.BigIntegerField(
+        "ID игрока",
+        unique=True,
         db_index=True,
-        help_text="Игровое имя или автогенерированное имя (может совпадать у разных игроков)"
+        null=True,  # Временно для миграции, потом удалим
+        help_text="Уникальный ID игрока из базы данных Lesta/WG"
     )
     real_name = models.CharField(
         "Настоящее имя",
         max_length=50,
         db_index=True,
-        default="",
-        help_text="Настоящее игровое имя (если не скрыто)"
+        help_text="Настоящее игровое имя (players.realName)"
+    )
+    fake_name = models.CharField(
+        "Имя в бою",
+        max_length=50,
+        db_index=True,
+        default="",  # Временно для миграции
+        help_text="Имя, отображавшееся в бою (players.name, анонимное если скрыто)"
     )
     clan_tag = models.CharField(
         "Клан",
@@ -303,23 +321,17 @@ class Player(models.Model):
     class Meta:
         verbose_name = "Игрок"
         verbose_name_plural = "Игроки"
-        ordering = ["real_name", "name"]
+        ordering = ["real_name"]
         indexes = [
-            models.Index(fields=["name"]),
+            models.Index(fields=["accountDBID"]),
             models.Index(fields=["real_name"]),
+            models.Index(fields=["fake_name"]),
             models.Index(fields=["clan_tag"]),
-        ]
-        constraints = [
-            models.UniqueConstraint(
-                fields=['name', 'real_name', 'clan_tag'],
-                name='unique_player_identity'
-            )
         ]
 
     def __str__(self) -> str:
-        # Отображаем реальное имя игрока (или name, если real_name пустое)
-        display_name = self.real_name or self.name
-        return f"[{self.clan_tag}] {display_name}" if self.clan_tag else display_name
+        # Отображаем реальное имя игрока
+        return f"[{self.clan_tag}] {self.real_name}" if self.clan_tag else self.real_name
 
 
 class Map(models.Model):
