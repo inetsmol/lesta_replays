@@ -19,7 +19,6 @@ cert.key
 .cursor/rules/
 .gemini/settings.json
 node_modules/
-CLAUDE.MD
 .claude/
 static/favicon.png
 static/css/output.css
