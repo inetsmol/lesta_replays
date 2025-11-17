@@ -4,7 +4,6 @@
 db.sqlite3
 /media
 */migrations
-replays/management
 texts/
 
 
@@ -24,3 +23,5 @@ CLAUDE.MD
 .claude/
 static/favicon.png
 static/css/output.css
+replays/management/commands/update_credits_xp.py
+batle_result.json
