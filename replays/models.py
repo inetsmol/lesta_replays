@@ -348,3 +348,36 @@ class Map(models.Model):
         db_index=True,
         help_text="Русское название карты"
     )
+
+
+class UserProfile(models.Model):
+    """
+    Расширение модели User для хранения дополнительной информации.
+
+    Связь один-к-одному с Django User.
+    """
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='profile',
+        help_text="Связь с пользователем Django"
+    )
+
+    lesta_account_id = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        unique=True,
+        db_index=True,
+        help_text="Account ID из Lesta Games API"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Профиль пользователя"
+        verbose_name_plural = "Профили пользователей"
+
+    def __str__(self):
+        return f"Профиль {self.user.username}"

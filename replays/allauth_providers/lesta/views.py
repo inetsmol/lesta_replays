@@ -38,66 +38,42 @@ class LestaOAuth2Adapter(OAuth2Adapter):
         super().__init__(request)
         self.client = LestaAPIClient()
 
-    def complete_login(self, request, app, token, **kwargs):
+    def get_authorize_url(self, request, app):
         """
-        Завершить процесс логина после получения данных от Lesta.
-
-        Lesta возвращает данные напрямую в callback URL:
-        ?status=ok&access_token=...&account_id=...&nickname=...&expires_at=...
+        Получить URL для авторизации пользователя.
 
         Args:
             request: Django request объект
             app: SocialApp instance
-            token: Не используется (Lesta возвращает токен в URL)
+
+        Returns:
+            str: URL для редиректа на страницу авторизации Lesta
+        """
+        callback_url = self.get_callback_url(request, app)
+        return self.client.get_login_url(redirect_uri=callback_url)
+
+    def complete_login(self, request, app, token, **kwargs):
+        """
+        Завершить процесс логина после получения данных от Lesta.
+
+        Args:
+            request: Django request объект
+            app: SocialApp instance
+            token: Токен (уже распарсенный через parse_token)
             **kwargs: Дополнительные параметры
 
         Returns:
             SocialLogin: Объект для завершения авторизации
-
-        Raises:
-            ValueError: При ошибке от Lesta или некорректных данных
         """
-        # Парсим параметры из callback URL
-        status = request.GET.get('status')
-
-        # Обработка ошибки от Lesta
-        if status == 'error':
-            code = request.GET.get('code')
-            message = request.GET.get('message')
-            logger.error(
-                f"Lesta auth failed: [{code}] {message}",
-                extra={
-                    'user_ip': request.META.get('REMOTE_ADDR'),
-                    'code': code,
-                }
-            )
-            raise ValueError(f"Lesta auth error [{code}]: {message}")
-
-        # Проверка успешного статуса
-        if status != 'ok':
-            logger.error(f"Unexpected Lesta response status: {status}")
-            raise ValueError(f"Unexpected Lesta response status: {status}")
-
-        # Извлекаем данные пользователя
+        # Извлекаем данные из request.GET (они уже провалидированы в LestaCallbackView)
         account_id = request.GET.get('account_id')
         nickname = request.GET.get('nickname')
-        access_token = request.GET.get('access_token')
-        expires_at = request.GET.get('expires_at')
 
-        # Валидация обязательных полей
-        if not all([account_id, nickname, access_token]):
-            logger.error("Missing required parameters from Lesta callback")
-            raise ValueError("Missing required parameters from Lesta (account_id, nickname, or access_token)")
-
-        # Формируем данные для создания SocialLogin
+        # Формируем данные для provider
         data = {
             'account_id': account_id,
             'nickname': nickname,
-            'access_token': access_token,
-            'expires_at': expires_at,
         }
-
-        logger.info(f"Lesta auth successful for account {account_id} (nickname: {nickname})")
 
         # Создаем SocialLogin через provider
         return self.get_provider().sociallogin_from_response(request, data)
@@ -152,6 +128,91 @@ class LestaOAuth2Adapter(OAuth2Adapter):
         }
 
 
+class LestaCallbackView(OAuth2CallbackView):
+    """
+    Кастомный callback view для обработки нестандартного Lesta OAuth2 flow.
+
+    Lesta возвращает данные напрямую в URL параметрах, минуя обмен code на token.
+    """
+
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Обработать callback от Lesta.
+
+        Args:
+            request: Django request объект
+            *args: Позиционные аргументы
+            **kwargs: Именованные аргументы
+
+        Returns:
+            HttpResponse: Результат обработки авторизации
+        """
+        from django.http import HttpResponseRedirect
+        from django.urls import reverse
+
+        # Парсим параметры от Lesta
+        status = request.GET.get('status')
+
+        # Проверка ошибки
+        if status == 'error':
+            code = request.GET.get('code')
+            message = request.GET.get('message')
+            logger.error(f"Lesta auth error: [{code}] {message}")
+            # Редирект на страницу ошибки входа
+            return HttpResponseRedirect(reverse('socialaccount_login_error'))
+
+        # Проверка успешного статуса
+        if status != 'ok':
+            logger.error(f"Unexpected Lesta status: {status}")
+            return HttpResponseRedirect(reverse('socialaccount_login_error'))
+
+        # Извлекаем данные
+        account_id = request.GET.get('account_id')
+        nickname = request.GET.get('nickname')
+        access_token = request.GET.get('access_token')
+        expires_at = request.GET.get('expires_at')
+
+        # Валидация
+        if not all([account_id, nickname, access_token]):
+            logger.error("Missing required Lesta parameters")
+            return HttpResponseRedirect(reverse('socialaccount_login_error'))
+
+        logger.info(f"Lesta callback: account_id={account_id}, nickname={nickname}")
+
+        # Создаём токен для allauth
+        token_data = self.adapter.parse_token({
+            'access_token': access_token,
+            'expires_at': expires_at,
+        })
+
+        # Завершаем процесс логина (app не используется в Lesta)
+        try:
+            from allauth.socialaccount.helpers import complete_social_login
+            from allauth.socialaccount.models import SocialToken
+            from datetime import datetime
+
+            # Создаём SocialLogin через adapter
+            login = self.adapter.complete_login(request, app=None, token=token_data)
+
+            # Создаём SocialToken объект (а не dict)
+            expires_at_dt = None
+            if token_data.get('expires_at'):
+                expires_at_dt = datetime.fromtimestamp(token_data['expires_at'])
+
+            social_token = SocialToken(
+                token=access_token,
+                token_secret='',  # Lesta не использует token_secret
+                expires_at=expires_at_dt
+            )
+            login.token = social_token
+
+            # Завершаем социальный вход через helper из allauth
+            return complete_social_login(request, login)
+        except Exception as e:
+            logger.exception(f"Failed to complete Lesta login: {e}")
+            return HttpResponseRedirect(reverse('socialaccount_login_error'))
+
+
 # View instances
 oauth2_login = OAuth2LoginView.adapter_view(LestaOAuth2Adapter)
-oauth2_callback = OAuth2CallbackView.adapter_view(LestaOAuth2Adapter)
+oauth2_callback = LestaCallbackView.adapter_view(LestaOAuth2Adapter)

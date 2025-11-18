@@ -191,7 +191,88 @@ python manage.py migrate
 
 ## Статические файлы
 
-### 1. Сборка статических файлов
+### 1. Сборка Tailwind CSS
+
+Проект использует Tailwind CSS для стилизации. CSS файлы нужно собирать отдельно.
+
+#### Установка Node.js и npm (если еще не установлены)
+
+**Ubuntu/Debian:**
+```bash
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+**macOS:**
+```bash
+brew install node
+```
+
+**Проверка установки:**
+```bash
+node --version
+npm --version
+```
+
+#### Установка зависимостей
+
+```bash
+# Из корневой директории проекта
+npm install
+```
+
+Это установит Tailwind CSS и зависимости из `package.json`.
+
+#### Сборка CSS
+
+**Development (с watch режимом):**
+```bash
+# Сборка CSS с отслеживанием изменений
+npm run build:css:watch
+
+# Или
+npx tailwindcss -i ./static/css/input.css -o ./static/css/output.css --watch
+```
+
+**Production (минифицированная версия):**
+```bash
+# Сборка минифицированного CSS для production
+npm run build:css
+
+# Или
+npx tailwindcss -i ./static/css/input.css -o ./static/css/output.css --minify
+```
+
+**Где находятся файлы:**
+- Исходный файл: `static/css/input.css`
+- Собранный файл: `static/css/output.css` (этот файл подключается в шаблонах)
+
+**⚠️ Важно:**
+- Файл `static/css/output.css` генерируется автоматически - **не редактируйте его вручную**!
+- Все изменения стилей делайте в `static/css/input.css` или используйте Tailwind классы в HTML
+- Перед деплоем **обязательно** соберите production версию CSS
+
+#### Конфигурация Tailwind
+
+Настройки Tailwind находятся в `tailwind.config.js`:
+
+```javascript
+module.exports = {
+  content: [
+    './templates/**/*.html',
+    './replays/templates/**/*.html',
+    './static/js/**/*.js',
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+```
+
+### 2. Сборка Django статических файлов
+
+После сборки CSS соберите все статические файлы в `STATIC_ROOT`:
 
 ```bash
 # Собрать все статические файлы в STATIC_ROOT
@@ -431,19 +512,25 @@ git pull origin main
 # 4. Установить/обновить зависимости
 pip install -r requirements.txt
 
-# 5. Применить миграции
+# 5. Установить/обновить npm зависимости (если package.json изменился)
+npm install
+
+# 6. Собрать Tailwind CSS для production
+npm run build:css
+
+# 7. Применить миграции
 python manage.py migrate
 
-# 6. Собрать статические файлы
+# 8. Собрать статические файлы Django
 python manage.py collectstatic --noinput
 
-# 7. Перезапустить Gunicorn
+# 9. Перезапустить Gunicorn
 sudo systemctl restart lesta_replays
 
-# 8. Проверить статус
+# 10. Проверить статус
 sudo systemctl status lesta_replays
 
-# 9. Проверить логи
+# 11. Проверить логи
 sudo journalctl -u lesta_replays -f
 ```
 

@@ -350,6 +350,8 @@ SOCIALACCOUNT_QUERY_EMAIL = True
 SOCIALACCOUNT_LOGIN_ON_GET = True
 # Автоматическая регистрация через соцсети
 SOCIALACCOUNT_AUTO_SIGNUP = True
+# Кастомный адаптер для обработки конфликтов username при авторизации через Lesta
+SOCIALACCOUNT_ADAPTER = 'replays.allauth_providers.lesta.adapter.LestaSocialAccountAdapter'
 
 # Переменные окружения для OAuth ключей
 GOOGLE_OAUTH2_CLIENT_ID = os.getenv("GOOGLE_OAUTH2_CLIENT_ID", "")

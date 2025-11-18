@@ -1,6 +1,6 @@
 # replays/admin.py
 from django.contrib import admin
-from .models import Tank, Player, Replay, Map
+from .models import Tank, Player, Replay, Map, UserProfile
 
 
 @admin.register(Tank)
@@ -25,6 +25,14 @@ class ReplayAdmin(admin.ModelAdmin):
     filter_horizontal = ("participants",)  # удобный M2M виджет
 
 @admin.register(Map)
-class PlayerAdmin(admin.ModelAdmin):
+class MapAdmin(admin.ModelAdmin):
     list_display = ("id", "map_name", "map_display_name")
     search_fields = ("id", "map_name", "map_display_name")
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "lesta_account_id", "created_at")
+    search_fields = ("user__username", "lesta_account_id")
+    list_filter = ("created_at",)
+    readonly_fields = ("created_at", "updated_at")

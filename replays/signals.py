@@ -3,14 +3,17 @@
 
 import logging
 
-from allauth.account.signals import user_logged_out
+from allauth.account.signals import user_logged_out, user_logged_in
 from allauth.socialaccount.signals import pre_social_login, social_account_updated
 from allauth.socialaccount.models import SocialToken
 from django.dispatch import receiver
+from django.db.models.signals import post_save
+from django.contrib.auth import get_user_model
 
 from replays.allauth_providers.lesta.client import LestaAPIClient
-from replays.models import Player
+from replays.models import Player, UserProfile
 
+User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
@@ -105,6 +108,68 @@ def update_user_nickname(sender, request, sociallogin, **kwargs):
             extra={
                 'user_id': sociallogin.user.id if sociallogin.user else None,
             }
+        )
+
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    """
+    Автоматически создать UserProfile при создании User.
+
+    Args:
+        sender: Модель User
+        instance: Экземпляр User
+        created: True если пользователь только что создан
+        **kwargs: Дополнительные параметры
+    """
+    if created:
+        try:
+            UserProfile.objects.create(user=instance)
+            logger.info(f"Created UserProfile for user {instance.id} ({instance.username})")
+        except Exception as e:
+            logger.error(
+                f"Failed to create UserProfile for user {instance.id}: {e}",
+                exc_info=True
+            )
+
+
+@receiver(user_logged_in)
+def sync_lesta_profile(sender, request, user, **kwargs):
+    """
+    Обновить UserProfile при каждом логине через Lesta.
+
+    Создаёт профиль если его нет, обновляет lesta_account_id если есть.
+
+    Args:
+        sender: Отправитель сигнала
+        request: Django request объект
+        user: Django User instance
+        **kwargs: Дополнительные параметры
+    """
+    try:
+        # Проверяем, был ли вход через Lesta
+        social_account = user.socialaccount_set.filter(provider='lesta').first()
+
+        if not social_account:
+            return  # Не Lesta логин
+
+        # Получаем или создаём профиль
+        profile, created = UserProfile.objects.get_or_create(user=user)
+
+        # Обновляем lesta_account_id
+        account_id = social_account.uid
+        if profile.lesta_account_id != account_id:
+            profile.lesta_account_id = account_id
+            profile.save(update_fields=['lesta_account_id', 'updated_at'])
+            logger.info(
+                f"{'Created' if created else 'Updated'} UserProfile for user {user.id} "
+                f"with lesta_account_id={account_id}"
+            )
+
+    except Exception as e:
+        logger.error(
+            f"Failed to sync UserProfile for user {user.id}: {e}",
+            exc_info=True
         )
 
 
