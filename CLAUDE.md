@@ -16,7 +16,7 @@ Django web application for uploading, parsing, and displaying World of Tanks gam
 
 - **Backend**: Django 5.2.6, Python 3.12
 - **Database**: SQLite (dev) / PostgreSQL (production)
-- **Auth**: django-allauth with Google/Yandex OAuth
+- **Auth**: django-allauth with Google/Yandex/Lesta OAuth
 - **Comments**: django-comments-xtd
 - **Monitoring**: Sentry
 - **Server**: Gunicorn + WhiteNoise (static files)
@@ -31,6 +31,9 @@ Django web application for uploading, parsing, and displaying World of Tanks gam
 - `models.py`: Core models (Replay, Tank, Player, Achievement, Map)
 - `views.py`: Class-based views for replay handling (ОПТИМИЗИРОВАНО - см. [Performance Optimization](#performance-optimization))
 - `services.py`: Business logic services (ReplayProcessingService, FileStorageService, etc.)
+- `middleware.py`: LestaTokenRefreshMiddleware - автоматическое продление Lesta токенов (НОВОЕ)
+- `signals.py`: Signal handlers для синхронизации Player и logout (НОВОЕ)
+- `apps.py`: ReplaysConfig с регистрацией signals (НОВОЕ)
 - `parser/`: Replay file parsing logic
   - `parser.py`: Main Parser class for .mtreplay files
   - `extractor.py`: ExtractorV2 class for extracting structured data (ОПТИМИЗИРОВАНО)
@@ -42,6 +45,11 @@ Django web application for uploading, parsing, and displaying World of Tanks gam
     - `reusable_info.py`: ReusableInfo - главный контейнер данных боя
     - `common.py`, `personal.py`, `players.py`, `vehicles.py`, `avatars.py`: Info классы
     - `constants.py`: ARENA_BONUS_TYPE, PLAYER_TEAM_RESULT и другие константы
+- `allauth_providers/lesta/`: Кастомный OAuth2 провайдер для Lesta Games (НОВОЕ)
+  - `client.py`: LestaAPIClient - HTTP клиент для Lesta API
+  - `provider.py`: LestaProvider и LestaAccount классы
+  - `views.py`: LestaOAuth2Adapter - обработка callback от Lesta
+  - `urls.py`: URL patterns для провайдера
 - `error_handlers.py`: Centralized error handling for replay uploads
 - `validators.py`: File and batch upload validation
 - `tests/`: Unit-тесты для оптимизированных компонентов (НОВОЕ)
@@ -549,3 +557,89 @@ python manage.py test replays.tests.test_extractor_reusable
 # Интеграционные тесты ReplayDataAdapter (17 тестов)
 python manage.py test replays.tests.test_client_adapter_integration
 ```
+
+### Lesta OpenID Integration (2025-02)
+
+Интегрирована аутентификация через Lesta Games OpenID API как кастомный провайдер для django-allauth.
+
+**Результаты:**
+
+| Компонент | Статус |
+|-----------|--------|
+| LestaAPIClient | ✅ Реализован |
+| LestaProvider | ✅ Реализован |
+| LestaOAuth2Adapter | ✅ Реализован |
+| Token refresh middleware | ✅ Реализован |
+| Signal handlers (Player sync, logout) | ✅ Реализованы |
+| Frontend (login button) | ✅ Добавлен |
+
+**Ключевые компоненты:**
+
+1. **LestaAPIClient** ([replays/allauth_providers/lesta/client.py](replays/allauth_providers/lesta/client.py))
+   - `get_login_url()` - формирование URL для авторизации
+   - `prolongate_token()` - продление срока действия токена
+   - `logout()` - инвалидация токена на стороне Lesta
+
+2. **LestaProvider** ([replays/allauth_providers/lesta/provider.py](replays/allauth_providers/lesta/provider.py))
+   - Регистрация провайдера в django-allauth
+   - Извлечение `account_id` и `nickname` из callback
+   - Email НЕ предоставляется API (запрашивается у пользователя)
+
+3. **LestaOAuth2Adapter** ([replays/allauth_providers/lesta/views.py](replays/allauth_providers/lesta/views.py))
+   - Обработка нестандартного OAuth2 flow (токен приходит в URL параметрах)
+   - Создание SocialLogin объекта для django-allauth
+
+4. **LestaTokenRefreshMiddleware** ([replays/middleware.py](replays/middleware.py))
+   - Автоматическое продление токенов за 24 часа до истечения
+   - Новый срок действия - 2 недели от момента продления
+
+5. **Signal Handlers** ([replays/signals.py](replays/signals.py))
+   - `sync_lesta_player` - создание/обновление Player при входе
+   - `update_user_nickname` - синхронизация first_name с никнеймом
+   - `lesta_logout` - инвалидация токена при выходе
+
+**Особенности Lesta API:**
+
+- **НЕ стандартный OAuth2**: токен и данные возвращаются сразу в URL callback
+- **Нет email**: API возвращает только `account_id` и `nickname`
+- **Срок действия токена**: до 2 недель (настраивается)
+- **HTTPS обязателен**: все запросы с токенами только по HTTPS
+
+**Использование:**
+
+```python
+# В settings.py
+LESTA_APPLICATION_ID = os.getenv("LESTA_OAUTH2_APLICATON_ID")
+LESTA_API_BASE_URL = "https://api.tanki.su/wot/auth"
+
+# В middleware
+'replays.middleware.LestaTokenRefreshMiddleware',  # После AuthenticationMiddleware
+
+# В INSTALLED_APPS
+'replays.allauth_providers.lesta',
+
+# В SOCIALACCOUNT_PROVIDERS
+'lesta': {
+    'APP': {
+        'client_id': os.getenv('LESTA_OAUTH2_APLICATON_ID'),
+    },
+    'VERIFIED_EMAIL': False,  # Email не возвращается
+}
+```
+
+**URL endpoints:**
+
+- Login: `/accounts/lesta/login/`
+- Callback: `/accounts/lesta/login/callback/`
+
+**Документация:**
+
+- [docs/LESTA_OPENID_IMPLEMENTATION_PLAN.md](docs/LESTA_OPENID_IMPLEMENTATION_PLAN.md) - полный план реализации
+- [docs/LESTA_INTEGRATION_COMPLETE.md](docs/LESTA_INTEGRATION_COMPLETE.md) - статус и инструкции
+
+**Настройка для production:**
+
+1. Создать SocialApp в Django Admin (Provider: Lesta Games)
+2. Зарегистрировать redirect_uri на https://developers.lesta.ru/
+3. Убедиться что HTTPS включен (`SECURE_SSL_REDIRECT = True`)
+4. Добавить домен в `ALLOWED_HOSTS` и `CSRF_TRUSTED_ORIGINS`

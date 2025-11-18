@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.yandex",
+    "replays.allauth_providers.lesta",  # Lesta Games provider
     "django_comments_xtd",
     "django_comments",
 
@@ -81,6 +82,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'replays.middleware.LestaTokenRefreshMiddleware',  # Продление Lesta токенов
 ]
 
 ROOT_URLCONF = 'lesta_replays.urls'
@@ -305,7 +307,19 @@ YOOMONEY_RECEIVER = "4100118749299139"  # кошелек YooMoney
 
 # Настройки для Google OAuth
 SOCIALACCOUNT_PROVIDERS = {
+    'lesta': {
+        'APP': {
+            'client_id': os.getenv('LESTA_OAUTH2_APLICATON_ID'),
+            'secret': '',  # Lesta doesn't use secret
+        },
+        'API_BASE_URL': os.getenv('LESTA_API_BASE_URL', 'https://api.tanki.su/wot/auth'),
+        'VERIFIED_EMAIL': False,  # Lesta не возвращает email
+    },
     'google': {
+        'APP': {
+            'client_id': os.getenv('GOOGLE_OAUTH2_CLIENT_ID'),
+            'secret': os.getenv('GOOGLE_OAUTH2_CLIENT_SECRET'),
+        },
         'SCOPE': [
             'profile',
             'email',
@@ -317,12 +331,16 @@ SOCIALACCOUNT_PROVIDERS = {
         'OAUTH_PKCE_ENABLED': True,
     },
     'yandex': {
+        'APP': {
+            'client_id': os.getenv('YANDEX_OAUTH2_CLIENT_ID'),
+            'secret': os.getenv('YANDEX_OAUTH2_CLIENT_SECRET'),
+        },
         'SCOPE': [
             'login:email',
             'login:info',
         ],
         'VERIFIED_EMAIL': True,
-    }
+    },
 }
 
 # Настройки для социальных аккаунтов
@@ -338,6 +356,10 @@ GOOGLE_OAUTH2_CLIENT_ID = os.getenv("GOOGLE_OAUTH2_CLIENT_ID", "")
 GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET", "")
 YANDEX_OAUTH2_CLIENT_ID = os.getenv("YANDEX_OAUTH2_CLIENT_ID", "")
 YANDEX_OAUTH2_CLIENT_SECRET = os.getenv("YANDEX_OAUTH2_CLIENT_SECRET", "")
+
+# Lesta API
+LESTA_APPLICATION_ID = os.getenv("LESTA_OAUTH2_APLICATON_ID", "")
+LESTA_API_BASE_URL = os.getenv("LESTA_API_BASE_URL", "https://api.tanki.su/wot/auth")
 
 
 SENTRY_DSN = os.getenv("SENTRY_DSN")
