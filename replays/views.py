@@ -600,7 +600,7 @@ class ReplayDetailView(DetailView):
             _, tag = player_vehicle.split(":", 1)
             tank_tags.add(tag)
 
-        # Танки всех участников боя
+        # Танки всех участников боя из avatars
         for avatar_id, avatar_data in cache.avatars.items():
             if isinstance(avatar_data, dict):
                 vehicle_type = avatar_data.get("vehicleType", "")
@@ -608,11 +608,22 @@ class ReplayDetailView(DetailView):
                     _, tag = vehicle_type.split(":", 1)
                     tank_tags.add(tag)
 
+        # Танки из metadata_vehicles (используется в get_team_results)
+        for avatar_id, vehicle_data in cache.metadata_vehicles.items():
+            if isinstance(vehicle_data, dict):
+                vehicle_type = vehicle_data.get("vehicleType", "")
+                if ":" in vehicle_type:
+                    _, tag = vehicle_type.split(":", 1)
+                    tank_tags.add(tag)
+
         # Загружаем все танки одним запросом
         tanks = Tank.objects.filter(vehicleId__in=tank_tags)
         tanks_cache = {t.vehicleId: t for t in tanks}
-        
+
         logger.debug(f"Предзагружено {len(tanks_cache)} танков из {len(tank_tags)} запрошенных")
+        if len(tanks_cache) < len(tank_tags):
+            missing = tank_tags - set(tanks_cache.keys())
+            logger.warning(f"В базе отсутствуют {len(missing)} танков: {missing}")
 
         return tanks_cache
 
