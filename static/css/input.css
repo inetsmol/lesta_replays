@@ -451,9 +451,9 @@
   .tovabb {
     @apply block relative max-w-[1024px] cursor-pointer no-underline;
     @apply bg-gradient-to-br from-slate-700/40 to-slate-800/60;
-    @apply border border-slate-500/30 rounded-xl overflow-hidden;
+    @apply rounded-xl overflow-hidden;
     @apply transition-all duration-300 ease-out;
-    @apply shadow-[0_4px_6px_-1px_rgba(0,0,0,0.3),0_2px_4px_-1px_rgba(0,0,0,0.2)];
+    @apply shadow-xl;
     animation: fadeIn 0.3s ease-in-out;
   }
 
@@ -472,12 +472,12 @@
     content: '';
     @apply absolute inset-0 opacity-0 pointer-events-none z-[1];
     @apply transition-opacity duration-300;
-    background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+    background: radial-gradient(circle at top right, rgba(255, 107, 53, 0.1) 0%, transparent 60%);
   }
 
   .tovabb:hover {
-    @apply border-purple-500/40;
-    @apply shadow-[0_20px_25px_-5px_rgba(0,0,0,0.4),0_10px_10px_-5px_rgba(0,0,0,0.3),0_0_0_1px_rgba(139,92,246,0.1)];
+    @apply shadow-2xl;
+    @apply scale-[1.02];
   }
 
   .tovabb:hover::before {

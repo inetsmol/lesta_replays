@@ -15,64 +15,153 @@
     <h1 class="text-3xl font-bold mb-4">{{ page_title }}</h1>
     {% endif %}
 
-    <div class="filters-actions flex items-center justify-between gap-1 mb-3">
+    {% if news_list %}
+    <!-- Bento Grid News Section -->
+    <div class="news-bento-grid mb-8 max-w-5xl">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-2xl font-bold text-white">Последние новости</h2>
+            <a href="#" class="btn btn--ghost">
+                <span>Все новости</span>
+                <i class="fas fa-arrow-right text-xs"></i>
+            </a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-[160px]">
+            {% for news in news_list|slice:":3" %}
+                {% if forloop.first %}
+                    <!-- Первая новость - занимает 2/3 ширины и 2 ряда -->
+                    <a href="#" class="md:col-span-2 md:row-span-2 group relative overflow-hidden rounded-2xl shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.02]">
+                        {% if news.image %}
+                            <img src="{{ news.image.url }}" alt="{{ news.title }}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        {% else %}
+                            <div class="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+                                <i class="fas fa-newspaper text-gray-700 text-6xl"></i>
+                            </div>
+                        {% endif %}
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent opacity-90 group-hover:opacity-95 transition-opacity duration-300"></div>
+                        <div class="absolute inset-0 p-6 md:p-8 flex flex-col justify-end">
+                            <div class="mb-3">
+                                <span class="inline-block px-3 py-1 bg-red-600/90 backdrop-blur-sm rounded-full text-xs font-bold text-white uppercase tracking-wide">
+                                    Главное
+                                </span>
+                            </div>
+                            <h3 class="text-2xl md:text-3xl font-bold text-white mb-3 leading-tight drop-shadow-2xl group-hover:text-yellow-400 transition-colors duration-300">
+                                {{ news.title }}
+                            </h3>
+                            <p class="text-gray-200 text-sm md:text-base leading-relaxed line-clamp-3 drop-shadow-lg">
+                                {{ news.text }}
+                            </p>
+                        </div>
+                        <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                                <i class="fas fa-arrow-right text-white text-lg"></i>
+                            </div>
+                        </div>
+                    </a>
+                {% else %}
+                    <!-- Вторая и третья новости - занимают 1/3 ширины -->
+                    <a href="#" class="group relative overflow-hidden rounded-2xl shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.02]">
+                        {% if news.image %}
+                            <img src="{{ news.image.url }}" alt="{{ news.title }}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        {% else %}
+                            <div class="absolute inset-0 bg-gradient-to-br from-blue-900 to-blue-800 flex items-center justify-center">
+                                <i class="fas fa-newspaper text-blue-700 text-5xl"></i>
+                            </div>
+                        {% endif %}
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-90 group-hover:opacity-95 transition-opacity duration-300"></div>
+                        <div class="absolute inset-0 p-5 flex flex-col justify-end">
+                            <h3 class="text-xl font-bold text-white mb-2 leading-tight drop-shadow-xl group-hover:text-yellow-400 transition-colors duration-300 line-clamp-2">
+                                {{ news.title }}
+                            </h3>
+                            <p class="text-gray-300 text-sm line-clamp-2 drop-shadow-lg">
+                                {{ news.text }}
+                            </p>
+                        </div>
+                        <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                                <i class="fas fa-arrow-right text-white text-sm"></i>
+                            </div>
+                        </div>
+                    </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 
-      <!-- СОРТИРОВКИ (слева) -->
-      <div class="sorters grid grid-cols-5 gap-2">
-        {# Дата загрузки #}
-        <a class="btn btn--ghost {% if current_sort == 'created_at' %}active{% endif %}"
-           href="?{{ page_qs_prefix }}sort=created_at&dir={{ next_dir.created_at }}"
-           title="Сортировать по дате загрузки">
-          <i class="far fa-clock inline-block text-base align-middle -translate-y-[2px]"></i>
-          Дата загрузки
-          {% if current_sort == 'created_at' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
-        </a>
+    <div class="filters-actions mb-3" x-data="{ expanded: false }">
+      <div class="flex items-start justify-between gap-2 mb-2 w-full">
+        <!-- СОРТИРОВКИ ПЕРВЫЙ РЯД (слева) -->
+        <div class="flex items-start gap-2">
+          <div class="sorters grid grid-cols-5 gap-2">
+            {# Урон #}
+            <a class="btn btn--ghost {% if current_sort == 'damage' %}active{% endif %}"
+               href="?{{ page_qs_prefix }}sort=damage&dir={{ next_dir.damage }}"
+               title="Сортировать по урону">
+              <img src="{% static 'style/images/wot/library/BattleResultIcon-1.png' %}" alt="Damage" class="inline-block h-4 -translate-y-[3px]">
+              Урон
+              {% if current_sort == 'damage' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
+            </a>
 
-        {# Урон #}
-        <a class="btn btn--ghost {% if current_sort == 'damage' %}active{% endif %}"
-           href="?{{ page_qs_prefix }}sort=damage&dir={{ next_dir.damage }}"
-           title="Сортировать по урону">
-          <img src="{% static 'style/images/wot/library/BattleResultIcon-1.png' %}" alt="Damage" class="inline-block h-4 -translate-y-[3px]">
-          Урон
-          {% if current_sort == 'damage' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
-        </a>
+            {# Кредиты #}
+            <a class="btn btn--ghost {% if current_sort == 'credits' %}active{% endif %}"
+               href="?{{ page_qs_prefix }}sort=credits&dir={{ next_dir.credits }}"
+               title="Сортировать по кредитам">
+              <img src="{% static 'style/images/wot/library/CreditsIconBig.png' %}" alt="Credits" class="inline-block h-4 -translate-y-[3px]">
+              Кредиты
+              {% if current_sort == 'credits' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
+            </a>
 
-        {# Кредиты #}
-        <a class="btn btn--ghost {% if current_sort == 'credits' %}active{% endif %}"
-           href="?{{ page_qs_prefix }}sort=credits&dir={{ next_dir.credits }}"
-           title="Сортировать по кредитам">
-          <img src="{% static 'style/images/wot/library/CreditsIconBig.png' %}" alt="Credits" class="inline-block h-4 -translate-y-[3px]">
-          Кредиты
-          {% if current_sort == 'credits' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
-        </a>
+            {# Опыт #}
+            <a class="btn btn--ghost {% if current_sort == 'xp' %}active{% endif %}"
+               href="?{{ page_qs_prefix }}sort=xp&dir={{ next_dir.xp }}"
+               title="Сортировать по опыту">
+              <img src="{% static 'style/images/wot/library/XpIconBig.png' %}" alt="XP" class="inline-block h-4 -translate-y-[3px]">
+              Опыт
+              {% if current_sort == 'xp' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
+            </a>
 
-        {# Опыт #}
-        <a class="btn btn--ghost {% if current_sort == 'xp' %}active{% endif %}"
-           href="?{{ page_qs_prefix }}sort=xp&dir={{ next_dir.xp }}"
-           title="Сортировать по опыту">
-          <img src="{% static 'style/images/wot/library/XpIconBig.png' %}" alt="XP" class="inline-block h-4 -translate-y-[3px]">
-          Опыт
-          {% if current_sort == 'xp' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
-        </a>
+            {# Фраги #}
+            <a class="btn btn--ghost {% if current_sort == 'kills' %}active{% endif %}"
+               href="?{{ page_qs_prefix }}sort=kills&dir={{ next_dir.kills }}"
+               title="Сортировать по фрагам">
+              <img src="{% static 'style/images/wot/buttons/Tank-ico.png' %}" alt="Kills" class="inline-block h-4 -translate-y-[3px]">
+              Фраги
+              {% if current_sort == 'kills' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
+            </a>
 
-        {# Фраги #}
-        <a class="btn btn--ghost {% if current_sort == 'kills' %}active{% endif %}"
-           href="?{{ page_qs_prefix }}sort=kills&dir={{ next_dir.kills }}"
-           title="Сортировать по фрагам">
-          <img src="{% static 'style/images/wot/buttons/Tank-ico.png' %}" alt="Kills" class="inline-block h-4 -translate-y-[3px]">
-          Фраги
-          {% if current_sort == 'kills' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
-        </a>
+            {# Ассист #}
+            <a class="btn btn--ghost {% if current_sort == 'assist' %}active{% endif %}"
+               href="?{{ page_qs_prefix }}sort=assist&dir={{ next_dir.assist }}"
+               title="Сортировать по ассисту">
+              <img src="{% static 'style/images/wot/buttons/assist.png' %}" alt="Assist" class="inline-block h-4 -translate-y-[3px]">
+              Ассист
+              {% if current_sort == 'assist' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
+            </a>
+          </div>
 
-        {# Ассист #}
-        <a class="btn btn--ghost {% if current_sort == 'assist' %}active{% endif %}"
-           href="?{{ page_qs_prefix }}sort=assist&dir={{ next_dir.assist }}"
-           title="Сортировать по ассисту">
-          <img src="{% static 'style/images/wot/buttons/assist.png' %}" alt="Assist" class="inline-block h-4 -translate-y-[3px]">
-          Ассист
-          {% if current_sort == 'assist' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
-        </a>
+          <!-- КНОПКА ЕЩЁ (слева вместе с сортировками) -->
+          <button @click="expanded = !expanded" class="btn btn--ghost" type="button">
+            <span x-text="expanded ? 'Скрыть' : 'Ещё'"></span>
+            <i class="fas fa-chevron-down text-xs transition-transform duration-200" :class="expanded && 'rotate-180'"></i>
+          </button>
+        </div>
 
+        <!-- КНОПКИ ФИЛЬТРОВ (справа) -->
+        <div class="flex gap-2.5 flex-shrink-0">
+          <a class="btn btn--ghost" href="{{ filters_url }}">
+            <i class="fas fa-filter text-red-600"></i>
+            Фильтры
+          </a>
+          {% if has_filters_applied %}
+            <a class="btn btn--ghost" href="{{ reset_url }}">Сбросить</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- СОРТИРОВКИ ВТОРОЙ РЯД (раскрывающийся) -->
+      <div x-show="expanded"
+           x-collapse
+           class="sorters grid grid-cols-5 gap-2">
         {# Заблокировано бронёй #}
         <a class="btn btn--ghost {% if current_sort == 'block' %}active{% endif %}"
            href="?{{ page_qs_prefix }}sort=block&dir={{ next_dir.block }}"
@@ -80,6 +169,15 @@
           <img src="{% static 'style/images/wot/buttons/blocked.png' %}" alt="Blocked" class="inline-block h-4 -translate-y-[3px]">
           Блок
           {% if current_sort == 'block' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
+        </a>
+
+        {# Дата загрузки #}
+        <a class="btn btn--ghost {% if current_sort == 'created_at' %}active{% endif %}"
+           href="?{{ page_qs_prefix }}sort=created_at&dir={{ next_dir.created_at }}"
+           title="Сортировать по дате загрузки">
+          <i class="far fa-clock inline-block text-base align-middle -translate-y-[2px]"></i>
+          Дата загрузки
+          {% if current_sort == 'created_at' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
         </a>
 
         {# Комментарии #}
@@ -108,14 +206,6 @@
           Скачивания
           {% if current_sort == 'download_count' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
         </a>
-      </div>
-
-      <!-- КНОПКИ ФИЛЬТРОВ (справа) -->
-      <div class="flex gap-2.5">
-        <a class="btn btn--accent" href="{{ filters_url }}">Фильтры</a>
-        {% if has_filters_applied %}
-          <a class="btn btn--ghost" href="{{ reset_url }}">Сбросить</a>
-        {% endif %}
       </div>
     </div>
 
