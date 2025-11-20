@@ -1,0 +1,42 @@
+{# replays/templates/replays/news_detail.html #}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ news.title }} - Новости{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <div class="mb-6">
+            <a href="{% url 'news_list' %}" class="inline-flex items-center text-gray-400 hover:text-white transition-colors">
+                <i class="fas fa-arrow-left mr-2 text-sm"></i>
+                Назад к новостям
+            </a>
+        </div>
+
+        <article class="bg-gray-800/50 rounded-2xl overflow-hidden shadow-xl border border-gray-700/50">
+            {% if news.image %}
+                <div class="relative h-64 md:h-96 w-full">
+                    <img src="{{ news.image.url }}" alt="{{ news.title }}" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent"></div>
+                </div>
+            {% endif %}
+
+            <div class="p-6 md:p-10">
+                <div class="flex items-center gap-4 mb-6 text-sm text-gray-400">
+                    <span class="flex items-center gap-2">
+                        <i class="far fa-calendar-alt"></i>
+                        {{ news.created_at|date:"d.m.Y H:i" }}
+                    </span>
+                </div>
+
+                <h1 class="text-3xl md:text-4xl font-bold text-white mb-8 leading-tight">
+                    {{ news.title }}
+                </h1>
+
+                <div class="prose prose-invert prose-lg max-w-none text-gray-300 leading-relaxed">
+                    {{ news.text|linebreaks }}
+                </div>
+            </div>
+        </article>
+    </div>
+{% endblock %}
