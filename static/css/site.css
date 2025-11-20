@@ -1174,3 +1174,312 @@ svg.icon {
 .ml-8 {
     margin-left: 8px;
 }
+
+/* ==============================================
+   New Filters Page Styles (Redesign)
+   ============================================== */
+
+.filters-card {
+    padding: 24px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.filters-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.filters-title h1 {
+    margin: 0 0 4px;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.filters-actions-top {
+    display: flex;
+    gap: 10px;
+}
+
+.filter-section {
+    margin-bottom: 24px;
+}
+
+.filter-section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0.9;
+}
+
+.filter-section-title i {
+    color: var(--accent);
+    opacity: 0.8;
+}
+
+.filter-divider {
+    border: 0;
+    border-top: 1px dashed var(--border);
+    margin: 24px 0;
+    opacity: 0.5;
+}
+
+.filter-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.filter-grid.grid-3 {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.filter-grid.grid-2 {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+}
+
+.field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field-group.span-3 {
+    grid-column: 1 / -1;
+}
+
+.field-group label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-wrapper i {
+    position: absolute;
+    left: 12px;
+    color: var(--muted);
+    opacity: 0.5;
+    pointer-events: none;
+    font-size: 14px;
+}
+
+.input-wrapper input[type="search"],
+.input-wrapper input[type="text"],
+.input-wrapper input[type="date"],
+.input-wrapper input[type="number"] {
+    width: 100%;
+    padding: 10px 12px 10px 36px; /* Space for icon */
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.input-wrapper input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.15);
+    background: var(--bg);
+}
+
+.input-wrapper input[type="date"] {
+    padding-left: 12px; /* No icon usually for date or custom styling */
+}
+/* If date has no icon in HTML, remove padding */
+.input-wrapper input:not([type="search"]):not(#owner_nick):not(#participant_nick):not(#owner_clan):not(#short_description) {
+     padding-left: 12px;
+}
+/* Specific fix for inputs with icons */
+#map_search, #owner_nick, #participant_nick, #owner_clan, #short_description, #tank-search, #gv-search {
+    padding-left: 36px !important;
+}
+
+.range-inputs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.range-inputs input {
+    width: 100%;
+    padding: 8px 10px;
+    text-align: center;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+}
+
+.range-inputs .separator {
+    color: var(--muted);
+}
+
+/* Chips */
+.chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.chip-radio, .chip-check {
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+}
+
+.chip-radio input, .chip-check input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.chip-radio span, .chip-check span {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--text);
+    transition: all 0.2s ease;
+}
+
+.chip-radio input:checked + span,
+.chip-check input:checked + span {
+    background: rgba(192, 57, 43, 0.15);
+    border-color: var(--accent);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(192, 57, 43, 0.2);
+}
+
+.chip-radio.win input:checked + span {
+    background: rgba(39, 174, 96, 0.15);
+    border-color: var(--success);
+    box-shadow: 0 2px 8px rgba(39, 174, 96, 0.2);
+}
+
+.chip-radio.loss input:checked + span {
+    background: rgba(192, 57, 43, 0.15);
+    border-color: var(--accent);
+}
+
+.chip-check:hover span {
+    background: var(--bg);
+    border-color: var(--muted);
+}
+
+/* Search Widget Lists */
+.search-list-container {
+    margin-top: 8px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.list-header {
+    padding: 8px 12px;
+    background: rgba(0,0,0,0.2);
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+}
+
+.search-list {
+    max-height: 240px;
+    overflow-y: auto;
+    padding: 4px;
+}
+
+.search-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.search-item:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.search-item input {
+    margin: 0;
+}
+
+.search-item .item-name {
+    flex: 1;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.search-item .item-meta {
+    font-size: 11px;
+    color: var(--muted);
+    background: rgba(0,0,0,0.3);
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+.filters-footer {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.btn--lg {
+    padding: 10px 24px;
+    font-size: 15px;
+}
+
+@media (max-width: 768px) {
+    .filters-card {
+        padding: 16px;
+    }
+    .filters-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    .filters-actions-top {
+        justify-content: stretch;
+    }
+    .filters-actions-top .btn {
+        flex: 1;
+    }
+    .filter-grid.grid-3, .filter-grid.grid-2 {
+        grid-template-columns: 1fr;
+    }
+    .filters-footer {
+        flex-direction: column-reverse;
+    }
+    .filters-footer .btn {
+        width: 100%;
+    }
+}
