@@ -231,6 +231,11 @@ class ReplayListView(ListView):
     context_object_name = 'items'
     paginate_by = 10
 
+    @staticmethod
+    def _get_news():
+        from .models import News
+        return News.objects.filter(is_active=True)[:5]
+
     SORTABLE_FIELDS = {
         'credits',
         'xp',
@@ -441,6 +446,7 @@ class ReplayListView(ListView):
     def get_context_data(self, **kwargs):
         try:
             ctx = super().get_context_data(**kwargs)
+            ctx["news_list"] = self._get_news()
 
             q = self.request.GET.copy()
             q.pop("page", None)
@@ -477,6 +483,7 @@ class ReplayListView(ListView):
                 "current_sort": current_sort,
                 "current_dir": current_dir,
                 "next_dir": next_dir,
+                "news_list": self._get_news(),
             })
 
             logger.debug(f"Context подготовлен успешно")
