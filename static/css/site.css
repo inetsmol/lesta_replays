@@ -1324,6 +1324,15 @@ svg.icon {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
+.pagination-link--active {
+    background: rgba(192, 57, 43, 0.15);
+    border-color: rgba(192, 57, 43, 0.4);
+    color: #e6e6e6;
+    box-shadow: none;
+    cursor: default;
+    pointer-events: none;
+}
+
 .input-wrapper input:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.15);

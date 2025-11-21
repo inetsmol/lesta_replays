@@ -435,7 +435,7 @@
                 <div class="py-1">
                   {% for size in allowed_page_sizes %}
                     <a href="?{% if base_qs_without_per_page %}{{ base_qs_without_per_page }}&{% endif %}per_page={{ size }}"
-                       class="block px-3 py-2 text-sm text-center text-text transition-colors duration-150 hover:bg-dark-700 {% if size == current_per_page %}bg-dark-700 font-semibold{% endif %}">
+                       class="block px-3 py-2 text-sm text-center transition-colors duration-150 {% if size == current_per_page %}bg-gradient-to-br from-accent-500 to-accent-600 text-white font-semibold{% else %}text-text hover:bg-dark-700{% endif %}">
                       {{ size }}
                     </a>
                   {% endfor %}

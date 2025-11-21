@@ -595,13 +595,13 @@
   }
 
   .pagination-link--active {
-    @apply bg-gradient-to-br from-accent-500 to-accent-600 border-accent-500/60;
-    @apply text-white shadow-lg shadow-accent-500/30;
+    @apply bg-dark-600 border-accent-500/40;
+    @apply text-accent-600;
     @apply cursor-default;
   }
 
   .pagination-link--active:hover {
-    @apply translate-y-0;
+    @apply translate-y-0 bg-dark-600;
   }
 
   .pagination-link--disabled {
