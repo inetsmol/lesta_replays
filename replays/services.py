@@ -290,6 +290,10 @@ class ReplayProcessingService:
             uploaded_file.seek(0)  # Сбрасываем указатель перед сохранением
             file_path = self.file_storage.save_file(uploaded_file)
 
+            # ВАЖНО: Обновляем file_name в replay_fields РЕАЛЬНЫМ именем файла после сохранения
+            # (файл мог быть переименован, если такое имя уже существовало)
+            replay_fields['file_name'] = file_path.name
+
             # Шаг 7: Создание реплея
             replay = self._create_replay(
                 user=user,
