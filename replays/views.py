@@ -223,43 +223,6 @@ class ReplayBatchUploadView(LoginRequiredMixin, View):
         return redirect('replay_list')
 
 
-class NewsListView(ListView):
-    """
-    Страница со списком всех новостей.
-    """
-    model = Replay  # Placeholder, will be overridden by get_queryset logic or model import
-    template_name = 'replays/news_list.html'
-    context_object_name = 'news_list'
-    paginate_by = 10
-
-    def get_queryset(self):
-        from .models import News
-        return News.objects.filter(is_active=True).order_by('-created_at')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['page_title'] = "Новости"
-        return context
-
-
-class NewsDetailView(DetailView):
-    """
-    Детальная страница новости.
-    """
-    model = Replay  # Placeholder
-    template_name = 'replays/news_detail.html'
-    context_object_name = 'news'
-
-    def get_queryset(self):
-        from .models import News
-        return News.objects.filter(is_active=True)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['page_title'] = self.object.title
-        return context
-
-
 class ReplayListView(ListView):
     """
     Представление списка реплеев с пагинацией и фильтрацией.
@@ -271,7 +234,7 @@ class ReplayListView(ListView):
 
     @staticmethod
     def _get_news():
-        from .models import News
+        from news.models import News
         return News.objects.filter(is_active=True)[:5]
 
     SORTABLE_FIELDS = {

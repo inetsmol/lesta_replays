@@ -5,6 +5,7 @@ db.sqlite3
 /media
 */migrations
 texts/
+.vscode/
 
 
 _static/
@@ -22,5 +23,6 @@ node_modules/
 .claude/
 static/favicon.png
 static/css/output.css
-replays/management/commands/update_credits_xp.py
+replays/management/commands/
 batle_result.json
+lesta_replays.session.sql

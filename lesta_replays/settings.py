@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     "django_comments",
 
     'replays',
+    'news',  # Модуль новостей
 ]
 
 MIDDLEWARE = [
