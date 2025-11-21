@@ -13,3 +13,4 @@ django-allauth~=65.3.0
 django-allauth[socialaccount]
 
 sentry-sdk[django]
+Pillow
