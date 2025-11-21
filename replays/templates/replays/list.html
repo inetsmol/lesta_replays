@@ -457,38 +457,16 @@
             </span>
           {% endif %}
 
-          {% comment %} Страницы 1-5 {% endcomment %}
-          {% for i in "12345" %}
-            {% if i|add:"0" <= page_obj.paginator.num_pages %}
-              {% if page_obj.number == i|add:"0" %}
-                <span class="pagination-link pagination-link--active">{{ i }}</span>
-              {% else %}
-                <a class="pagination-link" href="?{{ page_qs_prefix }}page={{ i }}">{{ i }}</a>
-              {% endif %}
+          {% get_page_range page_obj as page_range %}
+          {% for page_num in page_range %}
+            {% if page_num is None %}
+              <span class="pagination-link pagination-link--ellipsis">...</span>
+            {% elif page_num == page_obj.number %}
+              <span class="pagination-link pagination-link--active">{{ page_num }}</span>
+            {% else %}
+              <a class="pagination-link" href="?{{ page_qs_prefix }}page={{ page_num }}">{{ page_num }}</a>
             {% endif %}
           {% endfor %}
-
-          {% comment %} Многоточие (если есть разрыв) {% endcomment %}
-          {% if page_obj.paginator.num_pages > 8 %}
-            <span class="pagination-link pagination-link--ellipsis">...</span>
-          {% endif %}
-
-          {% comment %} Последние 3 страницы {% endcomment %}
-          {% if page_obj.paginator.num_pages > 5 %}
-            {% with total=page_obj.paginator.num_pages %}
-              {% for offset in "210" %}
-                {% with page_num=total|add:"-"|add:offset %}
-                  {% if page_num > 5 %}
-                    {% if page_obj.number == page_num %}
-                      <span class="pagination-link pagination-link--active">{{ page_num }}</span>
-                    {% else %}
-                      <a class="pagination-link" href="?{{ page_qs_prefix }}page={{ page_num }}">{{ page_num }}</a>
-                    {% endif %}
-                  {% endif %}
-                {% endwith %}
-              {% endfor %}
-            {% endwith %}
-          {% endif %}
 
           {% if page_obj.has_next %}
             <a class="pagination-link" href="?{{ page_qs_prefix }}page={{ page_obj.next_page_number }}" title="Следующая страница">
