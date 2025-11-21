@@ -55,6 +55,7 @@ urlpatterns = [
     path("comments/", include("django_comments_xtd.urls")),
     path("accounts/", include("allauth.urls")),
     path('adminn/', admin.site.urls),
+    path("news/", include("news.urls")),  # URL-ы новостей
     path("", include("replays.urls")),
     # path("donate/", donate, name="donate"),
     # path("donate/success/", donate_success, name="donate_success"),

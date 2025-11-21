@@ -162,6 +162,14 @@ Map
 
 ## Common Development Commands
 
+**⚠️ ВАЖНО - ЗАПРЕЩЕННЫЕ КОМАНДЫ:**
+
+**НИКОГДА** не запускайте следующие команды без явного разрешения пользователя:
+- `npm run watch:css` - может блокировать терминал и работать в фоновом режиме
+- `python manage.py runserver` - сервер разработки должен запускаться только по запросу пользователя
+
+Эти команды выполняются только когда пользователь явно их запросит.
+
 ### Setup & Run
 
 ```bash
@@ -182,7 +190,10 @@ python manage.py createsuperuser
 # Collect static files
 python manage.py collectstatic --noinput
 
-# Run development server
+# Build CSS (ТОЛЬКО build, НЕ watch!)
+npm run build:css
+
+# Run development server (ТОЛЬКО по явному запросу пользователя!)
 python manage.py runserver
 
 # Run with specific settings

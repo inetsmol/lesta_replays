@@ -451,9 +451,9 @@
   .tovabb {
     @apply block relative max-w-[1024px] cursor-pointer no-underline;
     @apply bg-gradient-to-br from-slate-700/40 to-slate-800/60;
-    @apply border border-slate-500/30 rounded-xl overflow-hidden;
+    @apply rounded-xl overflow-hidden;
     @apply transition-all duration-300 ease-out;
-    @apply shadow-[0_4px_6px_-1px_rgba(0,0,0,0.3),0_2px_4px_-1px_rgba(0,0,0,0.2)];
+    @apply shadow-xl;
     animation: fadeIn 0.3s ease-in-out;
   }
 
@@ -472,12 +472,12 @@
     content: '';
     @apply absolute inset-0 opacity-0 pointer-events-none z-[1];
     @apply transition-opacity duration-300;
-    background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+    background: radial-gradient(circle at top right, rgba(255, 107, 53, 0.1) 0%, transparent 60%);
   }
 
   .tovabb:hover {
-    @apply border-purple-500/40;
-    @apply shadow-[0_20px_25px_-5px_rgba(0,0,0,0.4),0_10px_10px_-5px_rgba(0,0,0,0.3),0_0_0_1px_rgba(139,92,246,0.1)];
+    @apply shadow-2xl;
+    @apply scale-[1.02];
   }
 
   .tovabb:hover::before {
@@ -578,14 +578,41 @@
     @apply mt-6 flex flex-col gap-3;
   }
 
+  .pagination-controls {
+    @apply flex flex-col gap-3;
+  }
+
   .pagination-links {
-    @apply flex items-center gap-3 flex-wrap;
+    @apply flex items-center justify-center gap-1.5 flex-wrap;
   }
 
   .pagination-link {
-    @apply px-3 py-2 border border-dark-600 rounded-custom-sm;
+    @apply min-w-[40px] h-[40px] flex items-center justify-center;
+    @apply px-3 py-2 border border-dark-600 rounded-lg;
     @apply bg-dark-700 text-text no-underline transition-all duration-200;
-    @apply hover:bg-dark-600;
+    @apply font-medium text-sm;
+    @apply hover:bg-dark-600 hover:border-accent-500/50 hover:-translate-y-0.5;
+  }
+
+  .pagination-link--active {
+    @apply bg-gradient-to-br from-accent-500 to-accent-600 border-accent-500/60;
+    @apply text-white shadow-lg shadow-accent-500/30;
+    @apply cursor-default;
+  }
+
+  .pagination-link--active:hover {
+    @apply translate-y-0;
+  }
+
+  .pagination-link--disabled {
+    @apply opacity-40 cursor-not-allowed;
+    @apply hover:bg-dark-700 hover:border-dark-600 hover:translate-y-0;
+  }
+
+  .pagination-link--ellipsis {
+    @apply min-w-[40px] h-[40px] flex items-center justify-center;
+    @apply px-3 py-2 text-text-muted;
+    @apply cursor-default pointer-events-none;
   }
 
   .current-page {
@@ -593,7 +620,22 @@
   }
 
   .pagination-info {
-    @apply text-text-muted text-xs mt-2;
+    @apply text-text-muted text-sm;
+  }
+
+  /* Mobile responsive for pagination */
+  @media (max-width: 640px) {
+    .pagination-link {
+      @apply min-w-[36px] h-[36px] px-2 py-1.5 text-xs;
+    }
+
+    .pagination-link--ellipsis {
+      @apply min-w-[36px] h-[36px];
+    }
+
+    .pagination-info {
+      @apply text-xs;
+    }
   }
 
   /* Mobile responsive for replay cards */

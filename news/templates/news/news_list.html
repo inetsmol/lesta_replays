@@ -1,0 +1,80 @@
+{# replays/templates/replays/news_list.html #}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"Новости" }}{% endblock %}
+
+{% block content %}
+    <div>
+        <h1 class="text-3xl font-bold text-white mb-8">{{ page_title }}</h1>
+
+        {% if news_list %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for news in news_list %}
+                    <a href="{% url 'news_detail' news.id %}" class="bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col h-full group block">
+                        {% if news.image %}
+                            <div class="relative h-48 overflow-hidden">
+                                <img src="{{ news.image.url }}" alt="{{ news.title }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                                <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent opacity-60"></div>
+                            </div>
+                        {% else %}
+                            <div class="h-48 bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">
+                                <i class="fas fa-newspaper text-gray-600 text-5xl"></i>
+                            </div>
+                        {% endif %}
+
+                        <div class="p-6 flex-1 flex flex-col">
+                            <div class="text-sm text-gray-400 mb-2">
+                                {{ news.created_at|date:"d.m.Y" }}
+                            </div>
+                            <h2 class="text-xl font-bold text-white mb-3 group-hover:text-yellow-400 transition-colors">
+                                {{ news.title }}
+                            </h2>
+                            <div class="text-gray-300 text-sm leading-relaxed mb-4 flex-1">
+                                {{ news.text|linebreaks|truncatewords:30 }}
+                            </div>
+                            
+                            <!-- Optional: Add a "Read more" link if you have a detail page, otherwise just show text -->
+                            <!-- 
+                            <span class="inline-flex items-center text-yellow-500 hover:text-yellow-400 font-medium transition-colors mt-auto">
+                                Читать далее <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                            </span>
+                            -->
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+                <div class="mt-12 flex justify-center">
+                    <nav class="flex items-center gap-2">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                                &laquo; Назад
+                            </a>
+                        {% endif %}
+
+                        <span class="px-4 py-2 text-gray-400">
+                            Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+                        </span>
+
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                                Вперед &raquo;
+                            </a>
+                        {% endif %}
+                    </nav>
+                </div>
+            {% endif %}
+
+        {% else %}
+            <div class="text-center py-12">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-800 mb-4">
+                    <i class="far fa-newspaper text-gray-500 text-2xl"></i>
+                </div>
+                <p class="text-gray-400 text-lg">Новостей пока нет.</p>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

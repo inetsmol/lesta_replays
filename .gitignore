@@ -9,6 +9,7 @@ db.sqlite3
 texts/
 replays/management/commands/
 lesta_replays.session.sql
+.vscode/
 
 _static/
 staticfiles/
@@ -25,5 +26,4 @@ node_modules/
 .claude/
 static/favicon.png
 static/css/output.css
-replays/management/commands/update_credits_xp.py
 batle_result.json

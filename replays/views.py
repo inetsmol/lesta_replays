@@ -218,6 +218,7 @@ class ReplayBatchUploadView(LoginRequiredMixin, View):
                 "redirect_url": reverse('replay_list')
             }, status=400)
 
+
         messages.error(request, message)
         return redirect('replay_list')
 
@@ -230,6 +231,27 @@ class ReplayListView(ListView):
     template_name = 'replays/list.html'
     context_object_name = 'items'
     paginate_by = 10
+
+    # Допустимые значения для количества элементов на странице
+    ALLOWED_PAGE_SIZES = [10, 25, 50, 100]
+
+    def get_paginate_by(self, queryset=None):
+        """
+        Возвращает количество элементов на странице из GET параметра 'per_page'.
+        По умолчанию - 10 элементов.
+        """
+        try:
+            per_page = int(self.request.GET.get('per_page', 10))
+            if per_page in self.ALLOWED_PAGE_SIZES:
+                return per_page
+        except (TypeError, ValueError):
+            pass
+        return self.paginate_by
+
+    @staticmethod
+    def _get_news():
+        from news.models import News
+        return News.objects.filter(is_active=True)[:5]
 
     SORTABLE_FIELDS = {
         'credits',
@@ -441,6 +463,7 @@ class ReplayListView(ListView):
     def get_context_data(self, **kwargs):
         try:
             ctx = super().get_context_data(**kwargs)
+            ctx["news_list"] = self._get_news()
 
             q = self.request.GET.copy()
             q.pop("page", None)
@@ -457,6 +480,15 @@ class ReplayListView(ListView):
             next_dir = {f: next_dir_for(f) for f in self.SORTABLE_FIELDS}
 
             tank_types = Tank.objects.values_list("type", flat=True).distinct().order_by("type")
+
+            # Получаем текущее значение per_page
+            current_per_page = self.get_paginate_by(None)
+
+            # Создаем QueryDict без параметров page и per_page для ссылок
+            q_without_page = self.request.GET.copy()
+            q_without_page.pop("page", None)
+            q_without_page.pop("per_page", None)
+            base_qs_without_per_page = q_without_page.urlencode()
 
             ctx.update({
                 "filter_data": {
@@ -477,6 +509,12 @@ class ReplayListView(ListView):
                 "current_sort": current_sort,
                 "current_dir": current_dir,
                 "next_dir": next_dir,
+                "news_list": self._get_news(),
+
+                # Параметры пагинации
+                "allowed_page_sizes": self.ALLOWED_PAGE_SIZES,
+                "current_per_page": current_per_page,
+                "base_qs_without_per_page": base_qs_without_per_page,
             })
 
             logger.debug(f"Context подготовлен успешно")
