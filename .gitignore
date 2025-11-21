@@ -3,7 +3,8 @@
 /.vscode
 .env
 db.sqlite3
-/media
+/media/
+/!_media/
 */migrations
 texts/
 replays/management/commands/

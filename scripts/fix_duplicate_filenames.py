@@ -27,7 +27,7 @@ from django.conf import settings
 from replays.models import Replay
 
 
-def find_renamed_file(original_name: str, media_root: Path) -> Optional[str]:
+def find_renamed_file(original_name: str, media_root: Path, replay_created_at=None) -> Optional[str]:
     """
     Ищет файл, который был переименован с добавлением timestamp.
 
@@ -36,10 +36,13 @@ def find_renamed_file(original_name: str, media_root: Path) -> Optional[str]:
     Args:
         original_name: Оригинальное имя файла
         media_root: Путь к папке media
+        replay_created_at: Время создания реплея в БД (для точного сопоставления)
 
     Returns:
         Новое имя файла или None, если не найдено
     """
+    from datetime import datetime
+
     # Разбираем имя файла
     path = Path(original_name)
     stem = path.stem  # имя без расширения
@@ -50,20 +53,36 @@ def find_renamed_file(original_name: str, media_root: Path) -> Optional[str]:
     pattern = re.escape(stem) + r'_(\d{14})' + re.escape(suffix)
 
     # Ищем все файлы в media_root
-    candidates: List[tuple[Path, str]] = []
+    candidates: List[tuple[Path, str, datetime]] = []
 
     for file_path in media_root.glob(f"*{suffix}"):
         match = re.match(pattern, file_path.name)
         if match:
-            timestamp = match.group(1)
-            candidates.append((file_path, timestamp))
+            timestamp_str = match.group(1)
+            # Парсим timestamp: YYYYMMDDHHMMSS -> datetime
+            try:
+                file_datetime = datetime.strptime(timestamp_str, "%Y%m%d%H%M%S")
+                candidates.append((file_path, timestamp_str, file_datetime))
+            except ValueError:
+                # Некорректный timestamp, пропускаем
+                continue
 
     if not candidates:
         return None
 
-    # Возвращаем файл с самым поздним timestamp (последний созданный)
-    candidates.sort(key=lambda x: x[1], reverse=True)
-    return candidates[0][0].name
+    # Если передан replay_created_at, ищем файл с ближайшим временем
+    if replay_created_at:
+        # Убираем timezone для корректного сравнения
+        if replay_created_at.tzinfo:
+            replay_created_at = replay_created_at.replace(tzinfo=None)
+
+        # Сортируем по разнице во времени (меньше = ближе)
+        candidates.sort(key=lambda x: abs((x[2] - replay_created_at).total_seconds()))
+        return candidates[0][0].name
+    else:
+        # Если времени нет, возвращаем файл с самым поздним timestamp (старое поведение)
+        candidates.sort(key=lambda x: x[1], reverse=True)
+        return candidates[0][0].name
 
 
 def fix_replay_filenames(dry_run: bool = True) -> None:
@@ -112,13 +131,15 @@ def fix_replay_filenames(dry_run: bool = True) -> None:
 
     # Пытаемся исправить
     for replay in broken_replays:
-        new_filename = find_renamed_file(replay.file_name, media_root)
+        # ВАЖНО: Передаем replay.created_at для точного сопоставления по времени
+        new_filename = find_renamed_file(replay.file_name, media_root, replay.created_at)
 
         if new_filename:
             fixed_replays.append((replay, new_filename))
             print(f"  ✅ ID {replay.id}:")
             print(f"     Старое: {replay.file_name}")
             print(f"     Новое:  {new_filename}")
+            print(f"     Создан: {replay.created_at}")
 
             if not dry_run:
                 replay.file_name = new_filename
@@ -128,6 +149,7 @@ def fix_replay_filenames(dry_run: bool = True) -> None:
             unfixable_replays.append(replay)
             print(f"  ⚠️  ID {replay.id}: переименованный файл НЕ найден")
             print(f"     Имя: {replay.file_name}")
+            print(f"     Создан: {replay.created_at}")
 
     # Итоговая статистика
     print("\n" + "=" * 80)
