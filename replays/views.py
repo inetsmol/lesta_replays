@@ -232,6 +232,22 @@ class ReplayListView(ListView):
     context_object_name = 'items'
     paginate_by = 10
 
+    # Допустимые значения для количества элементов на странице
+    ALLOWED_PAGE_SIZES = [10, 25, 50, 100]
+
+    def get_paginate_by(self, queryset=None):
+        """
+        Возвращает количество элементов на странице из GET параметра 'per_page'.
+        По умолчанию - 10 элементов.
+        """
+        try:
+            per_page = int(self.request.GET.get('per_page', 10))
+            if per_page in self.ALLOWED_PAGE_SIZES:
+                return per_page
+        except (TypeError, ValueError):
+            pass
+        return self.paginate_by
+
     @staticmethod
     def _get_news():
         from news.models import News
@@ -465,6 +481,15 @@ class ReplayListView(ListView):
 
             tank_types = Tank.objects.values_list("type", flat=True).distinct().order_by("type")
 
+            # Получаем текущее значение per_page
+            current_per_page = self.get_paginate_by(None)
+
+            # Создаем QueryDict без параметров page и per_page для ссылок
+            q_without_page = self.request.GET.copy()
+            q_without_page.pop("page", None)
+            q_without_page.pop("per_page", None)
+            base_qs_without_per_page = q_without_page.urlencode()
+
             ctx.update({
                 "filter_data": {
                     "tanks": Tank.objects.order_by("level", "name"),
@@ -485,6 +510,11 @@ class ReplayListView(ListView):
                 "current_dir": current_dir,
                 "next_dir": next_dir,
                 "news_list": self._get_news(),
+
+                # Параметры пагинации
+                "allowed_page_sizes": self.ALLOWED_PAGE_SIZES,
+                "current_per_page": current_per_page,
+                "base_qs_without_per_page": base_qs_without_per_page,
             })
 
             logger.debug(f"Context подготовлен успешно")

@@ -404,26 +404,102 @@
 
     <!-- Пагинация -->
     {% if is_paginated %}
-      <div class="pagination">
-        <span class="pagination-links">
+      <div class="pagination" x-data="{ showDropdown: false }">
+        <!-- Выбор количества элементов на странице -->
+        <div class="pagination-controls mb-3">
+          <div class="flex items-center justify-between gap-4 flex-wrap">
+            <span class="pagination-info text-sm text-gray-400">
+              Показаны {{ page_obj.start_index }}–{{ page_obj.end_index }} из {{ page_obj.paginator.count }} реплеев
+            </span>
+
+            <div class="relative">
+              <button
+                @click="showDropdown = !showDropdown"
+                @click.outside="showDropdown = false"
+                class="btn btn--ghost flex items-center gap-2"
+                type="button">
+                <span>На странице: {{ current_per_page }}</span>
+                <i class="fas fa-chevron-down text-xs transition-transform duration-200" :class="showDropdown && 'rotate-180'"></i>
+              </button>
+
+              <div
+                x-show="showDropdown"
+                x-transition:enter="transition ease-out duration-100"
+                x-transition:enter-start="transform opacity-0 scale-95"
+                x-transition:enter-end="transform opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-75"
+                x-transition:leave-start="transform opacity-100 scale-100"
+                x-transition:leave-end="transform opacity-0 scale-95"
+                class="absolute right-0 mt-2 w-20 rounded-lg bg-dark-800 border border-dark-600 shadow-xl z-10"
+                style="display: none;">
+                <div class="py-1">
+                  {% for size in allowed_page_sizes %}
+                    <a href="?{% if base_qs_without_per_page %}{{ base_qs_without_per_page }}&{% endif %}per_page={{ size }}"
+                       class="block px-3 py-2 text-sm text-center text-text transition-colors duration-150 hover:bg-dark-700 {% if size == current_per_page %}bg-dark-700 font-semibold{% endif %}">
+                      {{ size }}
+                    </a>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Кнопки навигации по страницам -->
+        <div class="pagination-links flex items-center justify-center gap-1 flex-wrap">
           {% if page_obj.has_previous %}
-            <a class="pagination-link" href="?{{ page_qs_prefix }}page=1">&laquo;&laquo; Первая</a>
-            <a class="pagination-link" href="?{{ page_qs_prefix }}page={{ page_obj.previous_page_number }}">&laquo; Назад</a>
+            <a class="pagination-link" href="?{{ page_qs_prefix }}page={{ page_obj.previous_page_number }}" title="Предыдущая страница">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+          {% else %}
+            <span class="pagination-link pagination-link--disabled">
+              <i class="fas fa-chevron-left"></i>
+            </span>
           {% endif %}
 
-          <span class="current-page">
-            Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
-          </span>
+          {% comment %} Страницы 1-5 {% endcomment %}
+          {% for i in "12345" %}
+            {% if i|add:"0" <= page_obj.paginator.num_pages %}
+              {% if page_obj.number == i|add:"0" %}
+                <span class="pagination-link pagination-link--active">{{ i }}</span>
+              {% else %}
+                <a class="pagination-link" href="?{{ page_qs_prefix }}page={{ i }}">{{ i }}</a>
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+
+          {% comment %} Многоточие (если есть разрыв) {% endcomment %}
+          {% if page_obj.paginator.num_pages > 8 %}
+            <span class="pagination-link pagination-link--ellipsis">...</span>
+          {% endif %}
+
+          {% comment %} Последние 3 страницы {% endcomment %}
+          {% if page_obj.paginator.num_pages > 5 %}
+            {% with total=page_obj.paginator.num_pages %}
+              {% for offset in "210" %}
+                {% with page_num=total|add:"-"|add:offset %}
+                  {% if page_num > 5 %}
+                    {% if page_obj.number == page_num %}
+                      <span class="pagination-link pagination-link--active">{{ page_num }}</span>
+                    {% else %}
+                      <a class="pagination-link" href="?{{ page_qs_prefix }}page={{ page_num }}">{{ page_num }}</a>
+                    {% endif %}
+                  {% endif %}
+                {% endwith %}
+              {% endfor %}
+            {% endwith %}
+          {% endif %}
 
           {% if page_obj.has_next %}
-            <a class="pagination-link" href="?{{ page_qs_prefix }}page={{ page_obj.next_page_number }}">Вперед &raquo;</a>
-            <a class="pagination-link" href="?{{ page_qs_prefix }}page={{ page_obj.paginator.num_pages }}">Последняя &raquo;&raquo;</a>
+            <a class="pagination-link" href="?{{ page_qs_prefix }}page={{ page_obj.next_page_number }}" title="Следующая страница">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          {% else %}
+            <span class="pagination-link pagination-link--disabled">
+              <i class="fas fa-chevron-right"></i>
+            </span>
           {% endif %}
-        </span>
-
-        <span class="pagination-info">
-          Показаны {{ page_obj.start_index }}–{{ page_obj.end_index }} из {{ page_obj.paginator.count }} реплеев
-        </span>
+        </div>
       </div>
     {% endif %}
 
