@@ -1,11 +1,13 @@
 /.venv
 /.idea
+/.vscode
 .env
 db.sqlite3
 /media
 */migrations
 texts/
-
+replays/management/commands/
+lesta_replays.session.sql
 
 _static/
 staticfiles/
