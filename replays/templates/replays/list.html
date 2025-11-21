@@ -215,7 +215,7 @@
                 {% if show_delete_button %}
                 <div class="relative">
                 {% endif %}
-                    <a class="tovabb group"
+                    <a class="tovabb replay-card group"
                         href="{% url 'replay_detail' replay.id %}?back={{ request.get_full_path|urlencode }}"
                         title="{{ replay.tank.name|default:'Неизвестный танк' }} - {{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}">
                         <div class="wrapper transform transition duration-200 ease-out group-hover:-translate-y-1 group-hover:scale-[1.02] group-hover:shadow-[0_18px_30px_-18px_rgba(0,0,0,0.75)] relative">
