@@ -66,6 +66,26 @@
               </div>
             {% endfor %}
 
+            {% if has_marks_on_gun %}
+              <div class="marks-on-gun">
+                {% if marks_image_url %}
+                  {% if 'http' in marks_image_url %}
+                    {# Внешний URL #}
+                    <img
+                      src="{{ marks_image_url }}"
+                      alt="{{ marks_data.name }}"
+                      title="&lt;div class='title'&gt;{{ marks_data.name|escape }}&lt;/div&gt;&lt;img src='{{ marks_image_url }}' style='width:80px!important;height:80px!important;'/&gt;&lt;div class='description'&gt;{{ marks_data.description|escape }}&lt;/div&gt;&lt;div class='stats'&gt;Процентиль урона: {{ damage_rating }}%&lt;/div&gt;{% if marks_data.general_condition %}&lt;div class='condition'&gt;{{ marks_data.general_condition|escape }}&lt;/div&gt;{% endif %}">
+                  {% else %}
+                    {# Локальный файл #}
+                    <img
+                      src="{% static marks_image_url %}"
+                      alt="{{ marks_data.name }}"
+                      title="&lt;div class='title'&gt;{{ marks_data.name|escape }}&lt;/div&gt;&lt;img src='{% static marks_image_url %}' style='width:80px!important;height:80px!important;'/&gt;&lt;div class='description'&gt;{{ marks_data.description|escape }}&lt;/div&gt;&lt;div class='stats'&gt;Процентиль урона: {{ damage_rating }}%&lt;/div&gt;{% if marks_data.general_condition %}&lt;div class='condition'&gt;{{ marks_data.general_condition|escape }}&lt;/div&gt;{% endif %}">
+                  {% endif %}
+                {% endif %}
+              </div>
+            {% endif %}
+
             {% if has_mastery %}
               <div class="mastery">
                 <img

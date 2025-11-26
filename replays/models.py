@@ -270,6 +270,78 @@ class Achievement(models.Model):
         return f"{self.name} (ID: {self.achievement_id}, section: {self.section})"
 
 
+class MarksOnGun(models.Model):
+    """
+    Модель для хранения информации об отметках на стволе.
+
+    Отметки на стволе (Marks of Excellence) - это особое достижение,
+    которое имеет 3 уровня (1, 2, 3 отметки) и зависит от нации танка.
+    """
+    # Уровень отметок (1, 2 или 3)
+    marks_count = models.PositiveSmallIntegerField(
+        unique=True,
+        verbose_name="Количество отметок",
+        help_text="1, 2 или 3 отметки"
+    )
+
+    # Основная информация
+    name = models.CharField(
+        max_length=200,
+        verbose_name="Название",
+        help_text="Например: '1 отличительная отметка'"
+    )
+    description = models.TextField(
+        blank=True,
+        verbose_name="Описание",
+        help_text="Условия получения данного уровня отметок"
+    )
+
+    # Общая информация (одинаковая для всех уровней)
+    general_condition = models.TextField(
+        blank=True,
+        verbose_name="Общие условия",
+        help_text="Общие правила получения отметок (из поля condition API)"
+    )
+    general_description = models.TextField(
+        blank=True,
+        verbose_name="Общее описание",
+        help_text="Общее описание системы отметок"
+    )
+
+    # JSON с изображениями по нациям
+    # Формат: {"usa": "url", "ussr": "url", "germany": "url", ...}
+    nation_images = models.JSONField(
+        default=dict,
+        verbose_name="Изображения по нациям",
+        help_text="Словарь URL изображений для каждой нации"
+    )
+
+    # Метаданные
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Отметка на стволе"
+        verbose_name_plural = "Отметки на стволе"
+        ordering = ['marks_count']
+
+    def __str__(self):
+        return f"{self.marks_count} отметка(и): {self.name}"
+
+    def get_image_for_nation(self, nation: str) -> str:
+        """
+        Получить URL изображения для указанной нации.
+
+        Args:
+            nation: код нации (usa, ussr, germany, france, etc.)
+
+        Returns:
+            URL изображения или пустая строка, если не найдено
+        """
+        return self.nation_images.get(nation, '')
+
+
 class Player(models.Model):
     """
     Игрок World of Tanks.

@@ -25,7 +25,7 @@ from django.views.generic import ListView, DetailView, TemplateView
 from django_comments.models import Comment
 
 from .error_handlers import ReplayErrorHandler
-from .models import Replay, Tank, Nation, Achievement
+from .models import Replay, Tank, Nation, Achievement, MarksOnGun
 from .parser.extractor import ExtractorV2
 from .services import ReplayProcessingService
 from .validators import BatchUploadValidator, ReplayFileValidator
@@ -665,21 +665,30 @@ class ReplayDetailView(DetailView):
 
         return tanks_cache
 
-    def _preload_achievements(self, cache) -> tuple:
+    def _preload_achievements(self, cache) -> dict:
         """
-        Предзагружает достижения текущего игрока одним запросом.
+        Предзагружает достижения текущего игрока и данные об отметках на стволе.
 
         Args:
             cache: ReplayDataCache с данными реплея
 
         Returns:
-            Кортеж (achievements_nonbattle, achievements_battle)
+            Словарь с ключами:
+            - 'achievements_nonbattle': список небоевых достижений
+            - 'achievements_battle': список боевых достижений
+            - 'marks_on_gun': количество отметок на стволе (0-3)
+            - 'damage_rating': процентиль урона (0-100)
         """
         achievement_ids = cache.get_achievements()
 
         if not achievement_ids:
             empty = Achievement.objects.none()
-            return empty, empty
+            return {
+                'achievements_nonbattle': empty,
+                'achievements_battle': empty,
+                'marks_on_gun': cache.get_marks_on_gun(),
+                'damage_rating': cache.get_damage_rating(),
+            }
 
         # Нормализуем ID
         ids = []
@@ -691,7 +700,12 @@ class ReplayDetailView(DetailView):
 
         if not ids:
             empty = Achievement.objects.none()
-            return empty, empty
+            return {
+                'achievements_nonbattle': empty,
+                'achievements_battle': empty,
+                'marks_on_gun': cache.get_marks_on_gun(),
+                'damage_rating': cache.get_damage_rating(),
+            }
 
         # Загружаем ВСЕ достижения одним запросом
         achievements = Achievement.objects.filter(
@@ -717,11 +731,21 @@ class ReplayDetailView(DetailView):
         ach_battle.sort(key=lambda a: (-getattr(a, 'weight', 0.0), a.name))
         ach_nonbattle.sort(key=lambda a: (-getattr(a, 'weight', 0.0), a.name))
 
+        # Получаем данные об отметках на стволе
+        marks_on_gun = cache.get_marks_on_gun()
+        damage_rating = cache.get_damage_rating()
+
         logger.debug(
-            f"Предзагружено достижений: {len(ach_nonbattle)} небоевых, {len(ach_battle)} боевых"
+            f"Предзагружено достижений: {len(ach_nonbattle)} небоевых, {len(ach_battle)} боевых, "
+            f"отметок на стволе: {marks_on_gun}, damageRating: {damage_rating}%"
         )
 
-        return ach_nonbattle, ach_battle
+        return {
+            'achievements_nonbattle': ach_nonbattle,
+            'achievements_battle': ach_battle,
+            'marks_on_gun': marks_on_gun,
+            'damage_rating': damage_rating,
+        }
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -753,7 +777,13 @@ class ReplayDetailView(DetailView):
             # ЭТАП 2: ПРЕДЗАГРУЗКА ДАННЫХ (минимум запросов к БД)
             # ============================================================
             tanks_cache = self._preload_tanks(cache)
-            achievements_nonbattle, achievements_battle = self._preload_achievements(cache)
+            achievements_data = self._preload_achievements(cache)
+
+            # Распаковываем данные достижений и отметок
+            achievements_nonbattle = achievements_data['achievements_nonbattle']
+            achievements_battle = achievements_data['achievements_battle']
+            marks_on_gun = achievements_data['marks_on_gun']
+            damage_rating = achievements_data['damage_rating']
 
             # Создаём контекст для кеширования промежуточных вычислений
             from replays.parser.extractor import ExtractorContext
@@ -761,7 +791,8 @@ class ReplayDetailView(DetailView):
 
             logger.debug(
                 f"Предзагружено: {len(tanks_cache)} танков, "
-                f"{len(achievements_nonbattle)} + {len(achievements_battle)} достижений"
+                f"{len(achievements_nonbattle)} + {len(achievements_battle)} достижений, "
+                f"отметок на стволе: {marks_on_gun}, damageRating: {damage_rating}%"
             )
 
             # ============================================================
@@ -787,8 +818,40 @@ class ReplayDetailView(DetailView):
             context['mastery'] = m
             context['mastery_label'] = label_map.get(m, "")
             context['mastery_image'] = f"style/images/wot/achievement/markOfMastery{m}.png" if m else ""
-            context['achievements_count_in_badges'] = len(achievements_nonbattle) + (1 if m > 0 else 0)
+
+            # Отметки на стволе
+            context['marks_on_gun'] = marks_on_gun
+            context['damage_rating'] = damage_rating
+            context['has_marks_on_gun'] = marks_on_gun > 0
+
+            # Подсчет значков (достижения + мастерство + отметки)
+            context['achievements_count_in_badges'] = (
+                len(achievements_nonbattle) +
+                (1 if m > 0 else 0) +
+                (1 if marks_on_gun > 0 else 0)
+            )
             context['achievements_battle_count'] = len(achievements_battle)
+
+            # Получить данные об отметках из БД (если есть)
+            marks_data = None
+            marks_image_url = ''
+            if marks_on_gun > 0:
+                try:
+                    marks_data = MarksOnGun.objects.get(marks_count=marks_on_gun)
+                    # Получить нацию танка для правильного изображения
+                    tank_nation = self.object.tank.nation if self.object.tank else None
+                    if tank_nation and marks_data:
+                        marks_image_url = marks_data.get_image_for_nation(tank_nation)
+
+                    logger.debug(
+                        f"Загружены данные об отметках: {marks_on_gun} отметка(и), "
+                        f"нация: {tank_nation}, изображение: {marks_image_url[:50] if marks_image_url else 'нет'}"
+                    )
+                except MarksOnGun.DoesNotExist:
+                    logger.warning(f"В БД не найдены данные для {marks_on_gun} отметок на стволе")
+
+            context['marks_data'] = marks_data
+            context['marks_image_url'] = marks_image_url
 
             # Детали боя (оптимизированная версия с cache)
             context['details'] = ExtractorV2.get_details_data(cache)

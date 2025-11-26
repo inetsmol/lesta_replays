@@ -381,6 +381,29 @@ class ReplayDataCache:
         """
         return list(self.personal.get("achievements") or [])
 
+    def get_marks_on_gun(self) -> int:
+        """
+        Количество отметок на стволе текущего игрока.
+
+        Returns:
+            Количество отметок (0-3), где:
+            0 = нет отметок
+            1 = 1 отметка (65%+)
+            2 = 2 отметки (85%+)
+            3 = 3 отметки (95%+)
+        """
+        return self.personal.get("marksOnGun", 0)
+
+    def get_damage_rating(self) -> int:
+        """
+        Процентиль урона игрока на этой технике (используется для отметок на стволе).
+
+        Returns:
+            Процент от 0 до 100, показывающий, в каком процентиле по урону
+            находится игрок на данной технике.
+        """
+        return self.personal.get("damageRating", 0)
+
     def __repr__(self) -> str:
         """Строковое представление объекта для отладки."""
         return (

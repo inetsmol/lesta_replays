@@ -6,20 +6,28 @@
 
 {% block content %}
     <div>
-        <h1 class="text-3xl font-bold text-white mb-8">{{ page_title }}</h1>
+        <div class="flex items-center justify-between mb-8">
+            <h1 class="text-3xl font-bold text-white">{{ page_title }}</h1>
+            {% if user.is_staff %}
+                <a href="{% url 'news:news_create' %}" class="btn btn--primary">
+                    <i class="fas fa-plus mr-2"></i>
+                    Добавить новость
+                </a>
+            {% endif %}
+        </div>
 
         {% if news_list %}
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {% for news in news_list %}
-                    <a href="{% url 'news_detail' news.id %}" class="bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col h-full group block">
+                    <a href="{% url 'news:news_detail' news.id %}" class="bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col group block" style="max-width: 280px;">
                         {% if news.image %}
-                            <div class="relative h-48 overflow-hidden">
+                            <div class="relative h-32 overflow-hidden">
                                 <img src="{{ news.image.url }}" alt="{{ news.title }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
                                 <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent opacity-60"></div>
                             </div>
                         {% else %}
-                            <div class="h-48 bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">
-                                <i class="fas fa-newspaper text-gray-600 text-5xl"></i>
+                            <div class="h-32 bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">
+                                <i class="fas fa-newspaper text-gray-600 text-4xl"></i>
                             </div>
                         {% endif %}
 

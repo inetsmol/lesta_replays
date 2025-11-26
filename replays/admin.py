@@ -1,6 +1,6 @@
 # replays/admin.py
 from django.contrib import admin
-from .models import Tank, Player, Replay, Map, UserProfile
+from .models import Tank, Player, Replay, Map, UserProfile, Achievement, MarksOnGun
 
 
 @admin.register(Tank)
@@ -35,4 +35,24 @@ class UserProfileAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "lesta_account_id", "created_at")
     search_fields = ("user__username", "lesta_account_id")
     list_filter = ("created_at",)
+    readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(Achievement)
+class AchievementAdmin(admin.ModelAdmin):
+    list_display = ("achievement_id", "name", "achievement_type", "section", "outdated")
+    list_display_links = ("achievement_id", "name")
+    search_fields = ("name", "token", "description")
+    list_filter = ("achievement_type", "section", "outdated")
+    ordering = ("section_order", "order", "name")
+    readonly_fields = ("achievement_id",)
+
+
+@admin.register(MarksOnGun)
+class MarksOnGunAdmin(admin.ModelAdmin):
+    list_display = ("marks_count", "name", "is_active", "updated_at")
+    list_display_links = ("marks_count", "name")
+    search_fields = ("name", "description")
+    list_filter = ("is_active",)
+    ordering = ("marks_count",)
     readonly_fields = ("created_at", "updated_at")
