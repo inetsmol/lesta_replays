@@ -318,6 +318,13 @@ class ReplayProcessingService:
             logger.info(f"Реплей отклонён (нет статистики боя): {uploaded_file.name}")
             raise
 
+        except ValidationError as e:
+            # ValidationError - это ожидаемые ошибки (дубликаты и т.п.)
+            # Не удаляем файл, т.к. он еще не сохранён (проверка дубликатов ДО сохранения)
+            # Не логируем как error - это нормальная ситуация
+            logger.debug(f"Реплей отклонён (validation): {uploaded_file.name} - {e}")
+            raise
+
         except (json.JSONDecodeError, ValueError) as e:
             if file_path:
                 self.file_storage.delete_file(file_path)

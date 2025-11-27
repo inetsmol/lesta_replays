@@ -405,13 +405,38 @@ if SENTRY_DSN:
 
         # 3) ValidationError с ожидаемыми сообщениями (дубликаты, файлы без статистики)
         if exc_type == "django.core.exceptions.ValidationError":
-            exc_value = str(exc[1]) if exc and exc[1] else ""
-            ignored_messages = (
-                "Такой реплей уже существует в базе данных",
-                "не содержит статистику боя",
-            )
-            if any(msg in exc_value for msg in ignored_messages):
-                return None
+            # ValidationError может хранить сообщения в разных форматах
+            exc_instance = exc[1] if exc and exc[1] else None
+            if exc_instance:
+                # Проверяем все возможные места где может быть текст ошибки
+                messages_to_check = []
+
+                # 1. Прямое преобразование в строку
+                messages_to_check.append(str(exc_instance))
+
+                # 2. Атрибут messages (список)
+                if hasattr(exc_instance, 'messages'):
+                    if isinstance(exc_instance.messages, list):
+                        messages_to_check.extend(str(m) for m in exc_instance.messages)
+                    else:
+                        messages_to_check.append(str(exc_instance.messages))
+
+                # 3. Атрибут message_dict (словарь полей)
+                if hasattr(exc_instance, 'message_dict'):
+                    for field_errors in exc_instance.message_dict.values():
+                        if isinstance(field_errors, list):
+                            messages_to_check.extend(str(e) for e in field_errors)
+                        else:
+                            messages_to_check.append(str(field_errors))
+
+                # Проверяем все собранные сообщения
+                ignored_messages = (
+                    "Такой реплей уже существует в базе данных",
+                    "не содержит статистику боя",
+                )
+                for msg in messages_to_check:
+                    if any(ignored_msg in msg for ignored_msg in ignored_messages):
+                        return None
 
         # 4) ParseError с ожидаемыми сообщениями (файлы без статистики)
         if exc_type == "replays.parser.parser.ParseError":
