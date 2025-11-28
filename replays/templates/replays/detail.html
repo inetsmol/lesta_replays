@@ -474,7 +474,11 @@
                 <td class="tanks-name" data-sort-value="{{ player.vehicle_display_name|default_if_none:'' }}">
                   <img class="tank new" src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ player.vehicle_tag }}.png" alt="">
                   <span>{{ player.vehicle_display_name }}</span>
-                  {% if player.achievements %}<div class="medal" title="Медали"></div>{% endif %}
+                  {% if player.medals.has_medals %}
+                  <div class="medal" title="{{ player.medals.title|safe }}">
+                    {% if player.medals.count > 1 %}<div class="num">{{ player.medals.count }}</div>{% endif %}
+                  </div>
+                  {% endif %}
                 </td>
                 <td class="damage sorting_1" data-sort-value="{{ player.damage_dealt|default_if_none:0 }}">{{ player.damage_dealt|floatformat:0 }}</td>
                 <td class="kills" data-sort-value="{{ player.kills|default_if_none:0 }}">{{ player.kills }}</td>

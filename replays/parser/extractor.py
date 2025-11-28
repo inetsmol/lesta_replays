@@ -1546,7 +1546,7 @@ class ExtractorV2:
             if valid_names:
                 result[avatar_id] = {
                     "count": len(valid_names),
-                    "title": "&lt;br&gt;".join(f"«{name}»" for name in valid_names),
+                    "title": "&lt;br&gt;".join(f"{name}" for name in valid_names),
                     "has_medals": True
                 }
             else:
@@ -1611,7 +1611,7 @@ class ExtractorV2:
                 }
 
             # Формируем title для tooltip
-            medal_names = [f"«{ach['name']}»" for ach in achievements]
+            medal_names = [f"{ach['name']}" for ach in achievements]
             title = "&lt;br&gt;".join(medal_names)
 
             return {
