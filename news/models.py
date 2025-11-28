@@ -33,6 +33,28 @@ class News(models.Model):
         help_text="Отображать ли новость на сайте"
     )
 
+    # New fields for RSS
+    link = models.URLField(
+        "Ссылка",
+        unique=True,
+        null=True,
+        blank=True,
+        help_text="Ссылка на оригинал новости"
+    )
+    published_at = models.DateTimeField(
+        "Дата публикации",
+        null=True,
+        blank=True,
+        help_text="Дата публикации новости в источнике"
+    )
+    category = models.CharField(
+        "Категория",
+        max_length=100,
+        null=True,
+        blank=True,
+        help_text="Категория новости"
+    )
+
     class Meta:
         verbose_name = "Новость"
         verbose_name_plural = "Новости"
