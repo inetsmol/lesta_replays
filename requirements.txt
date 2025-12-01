@@ -14,3 +14,4 @@ django-allauth[socialaccount]
 
 sentry-sdk[django]
 Pillow
+python-slugify
