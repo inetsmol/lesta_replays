@@ -881,7 +881,8 @@ class ExtractorV2:
             )
             crits_mask = int(d.get("crits") or 0)
             crits_count = crits_mask.bit_count() if hasattr(int, "bit_count") else bin(crits_mask).count("1")
-            damage_piercings = int(d.get("piercings") or 0)
+            damage_dealt = int(d.get("damageDealt") or 0)  # нанесенный урон
+            piercings = int(d.get("piercings") or 0)  # количество пробитий (для флага)
             target_kills = int(d.get("targetKills") or 0)
 
             # Обновляем суммарные счётчики (ЗА ОДИН ПРОХОД!)
@@ -892,7 +893,7 @@ class ExtractorV2:
             if blocked_events > 0:
                 blocked_count += 1
             crits_total += crits_count
-            piercings_total += damage_piercings
+            piercings_total += damage_dealt  # суммируем нанесенный урон
             if target_kills > 0:
                 destroyed_count += 1
 
@@ -915,7 +916,7 @@ class ExtractorV2:
                 "assist": assist_value > 0,
                 "blocked": blocked_events > 0,
                 "crits": crits_count > 0,
-                "damaged": damage_piercings > 0,
+                "damaged": damage_dealt > 0,  # флаг: было ли пробитие
                 "destroyed": target_kills > 0,
 
                 # Числовые значения для отображения
@@ -923,7 +924,8 @@ class ExtractorV2:
                 "assist_value": assist_value,
                 "blocked_events": blocked_events,
                 "crits_count": crits_count,
-                "damage_piercings": damage_piercings,
+                "damage_piercings": piercings,  # количество пробитий
+                "damage_dealt": damage_dealt,  # нанесённый урон
                 "destroyed_count": target_kills,
             })
 
@@ -944,7 +946,7 @@ class ExtractorV2:
         """
         Готовит строки для шаблона по деталям текущего игрока.
         Для каждой цели считает количества: засветы, ассист (сумма урона),
-        блок (события), криты (popcount), урон (пробития), уничтожения.
+        блок (события), криты (popcount), урон (damageDealt), уничтожения.
         """
         personal = ExtractorV2.get_personal_by_player_id(payload) or {}
         details = personal.get("details")
@@ -968,7 +970,8 @@ class ExtractorV2:
                 "blocked": False, "blocked_events": 0,  # рикошеты + непробития
                 # "blocked_damage" можно тоже добавить при желании
                 "crits": False, "crits_count": 0,  # popcount по битовой маске
-                "damaged": False, "damage_piercings": 0,  # кол-во пробитий по цели
+                "damaged": False, "damage_piercings": 0,  # количество пробитий
+                "damage_dealt": 0,  # нанесённый урон
                 "destroyed": False, "destroyed_count": 0,
             })
 
@@ -993,7 +996,8 @@ class ExtractorV2:
             # popcount (сколько бит установлено) — грубая оценка количества критов
             crits_count = crits_mask.bit_count() if hasattr(int, "bit_count") else bin(crits_mask).count("1")
 
-            damage_piercings = int(d.get("piercings") or 0)  # «всего пробитий»
+            damage_dealt = int(d.get("damageDealt") or 0)  # нанесенный урон
+            piercings = int(d.get("piercings") or 0)  # количество пробитий (для флага)
             target_kills = int(d.get("targetKills") or 0)
 
             # --- заполняем флаги + числа (накопительным образом на случай дублей ключей) ---
@@ -1013,9 +1017,10 @@ class ExtractorV2:
                 info["crits"] = True
                 info["crits_count"] += crits_count
 
-            if damage_piercings > 0:
+            if piercings > 0:  # флаг: было ли пробитие
                 info["damaged"] = True
-                info["damage_piercings"] += damage_piercings
+                info["damage_piercings"] += piercings  # накапливаем количество пробитий
+                info["damage_dealt"] += damage_dealt  # накапливаем нанесённый урон
 
             if target_kills > 0:
                 info["destroyed"] = True
@@ -1031,7 +1036,7 @@ class ExtractorV2:
         - assist_tanks: по скольким помог в уничтожении (ассист-урон > 0)
         - blocked_tanks: от скольких заблокировал урон (рик+непробития > 0)
         - crits_total: суммарное число критов (по popcount маски на целях)
-        - piercings_total: суммарное число пробитий (нанёс урон)
+        - piercings_total: суммарный нанесенный урон (damageDealt)
         - destroyed_tanks: сколько танков уничтожил
         """
         return {
