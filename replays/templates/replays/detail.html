@@ -65,7 +65,7 @@
                   title="&lt;div class='title'&gt;{{ ach.name|escape }}&lt;/div&gt;&lt;img src='{% static ach.image_big %}' /&gt; {{ ach.description|default_if_none:''|escape }}{% if ach.condition %}&lt;div class='condition'&gt;{{ ach.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}">
               </div>
             {% endfor %}
-
+<!-- 
             {% if has_marks_on_gun %}
               <div class="marks-on-gun">
                 {% if marks_image_url %}
@@ -84,7 +84,7 @@
                   {% endif %}
                 {% endif %}
               </div>
-            {% endif %}
+            {% endif %} -->
 
             {% if has_mastery %}
               <div class="mastery">
