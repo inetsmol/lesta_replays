@@ -37,7 +37,10 @@ class TestReplayDataCache(TestCase):
                             "credits": 50000,
                             "damageDealt": 2000,
                             "kills": 2,
-                            "achievements": [521, 39],
+                            "dossierLogRecords": [
+                                [521, 37410],
+                                [39, 2]
+                            ],
                             "details": {
                                 "(67890,0)": {
                                     "damageDealt": 500,
@@ -70,6 +73,16 @@ class TestReplayDataCache(TestCase):
                                 "accountDBID": 67890
                             }
                         ]
+                    },
+                    "avatars": {
+                        "12345": {
+                            "vehicleType": "ussr:R01_IS",
+                            "team": 1
+                        },
+                        "67890": {
+                            "vehicleType": "germany:G04_PzVI_Tiger_I",
+                            "team": 2
+                        }
                     }
                 },
                 {
@@ -214,7 +227,7 @@ class TestReplayDataCache(TestCase):
     def test_get_achievements_empty(self):
         """Тест получения достижений, когда их нет"""
         payload_no_achievements = self.sample_payload.copy()
-        payload_no_achievements[1][0]["personal"]["12345"].pop("achievements")
+        payload_no_achievements[1][0]["personal"]["12345"].pop("dossierLogRecords", None)
 
         cache = ReplayDataCache(payload_no_achievements)
         achievements = cache.get_achievements()

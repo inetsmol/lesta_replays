@@ -690,27 +690,33 @@ class Extractor:
     @staticmethod
     def get_achievements(payload: Dict[str, Any]) -> List[int]:
         """
-        Вернёт список ID достижений текущего игрока.
-        Берём прямо из payload['personal'][...]['achievements'].
+        Вернёт список ID достижений текущего игрока из dossierLogRecords.
+
+        Структура dossierLogRecords: [[achievement_id, value], ...]
+        где value может быть числом (количество) или булевым значением.
 
         Логика:
         - Находим запись в 'personal', где accountDBID == payload['playerID'].
-        - Возвращаем поле 'achievements' (если нет — пустой список).
+        - Извлекаем поле 'dossierLogRecords' (если нет — пустой список).
+        - Возвращаем список ID достижений (первый элемент каждой пары).
         """
-        player_id = payload.get("playerID")
-
         p = Extractor.get_personal_by_player_id(payload)
-        # print(f"personal: {p}")
         if not p:
             return []
-        ach = p.get("achievements") or []
-        # Нормализуем к int (на всякий случай)
+
+        dossier_records = p.get("dossierLogRecords") or []
         out: List[int] = []
-        for x in ach:
-            try:
-                out.append(int(x))
-            except (TypeError, ValueError):
-                continue
+
+        for record in dossier_records:
+            # Проверяем, что запись - это список/кортеж с минимум 1 элементом
+            if isinstance(record, (list, tuple)) and len(record) > 0:
+                try:
+                    # Первый элемент - ID достижения
+                    out.append(int(record[0]))
+                except (TypeError, ValueError):
+                    # Пропускаем некорректные записи
+                    continue
+
         return out
 
     @staticmethod

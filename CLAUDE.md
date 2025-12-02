@@ -8,6 +8,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **IMPORTANT**: Always communicate with the user ONLY in Russian. All responses, explanations, and comments must be in Russian.
 
+## Virtual Environment
+
+**КРИТИЧЕСКИ ВАЖНО**: Перед выполнением ЛЮБЫХ команд Python или Django ВСЕГДА активируйте виртуальное окружение!
+
+**Windows (PowerShell/CMD):**
+```bash
+.venv\Scripts\activate
+```
+
+**macOS/Linux:**
+```bash
+source .venv/bin/activate
+```
+
+**Проверка активации:**
+```bash
+# В активированном окружении в начале строки должен быть префикс (.venv)
+# Или проверьте путь к Python:
+python -c "import sys; print(sys.executable)"
+# Должен показать путь внутри .venv
+```
+
+**Важно**: Все команды `python`, `pip`, `django-admin`, `python manage.py` и т.д. должны выполняться ТОЛЬКО после активации окружения!
+
 ## Project Overview
 
 Django web application for uploading, parsing, and displaying World of Tanks game replays (.mtreplay files). Users can upload replay files, which are parsed to extract detailed battle statistics, and browse replays with advanced filtering and sorting capabilities.

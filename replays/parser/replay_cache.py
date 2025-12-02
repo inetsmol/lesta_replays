@@ -374,16 +374,36 @@ class ReplayDataCache:
 
     def get_achievements(self) -> list:
         """
-        Список ID достижений текущего игрока.
+        Список ID достижений текущего игрока из dossierLogRecords.
+
+        Структура dossierLogRecords: [[achievement_id, value], ...]
+        где value может быть числом (количество) или булевым значением.
 
         Returns:
             Список ID достижений (может быть пустым)
         """
-        return list(self.personal.get("achievements") or [])
+        dossier_records = self.personal.get("dossierLogRecords") or []
+        achievement_ids = []
+
+        for record in dossier_records:
+            # Проверяем, что запись - это список/кортеж с минимум 1 элементом
+            if isinstance(record, (list, tuple)) and len(record) > 0:
+                try:
+                    # Первый элемент - ID достижения
+                    aid = int(record[0])
+                    achievement_ids.append(aid)
+                except (ValueError, TypeError):
+                    # Пропускаем некорректные записи
+                    logger.warning(f"Некорректная запись в dossierLogRecords: {record}")
+                    continue
+
+        return achievement_ids
 
     def get_marks_on_gun(self) -> int:
         """
-        Количество отметок на стволе текущего игрока.
+        Количество отметок на стволе текущего игрока из dossierLogRecords.
+
+        Ищет запись с achievement_id = 295, значение которой - количество отметок.
 
         Returns:
             Количество отметок (0-3), где:
@@ -392,7 +412,27 @@ class ReplayDataCache:
             2 = 2 отметки (85%+)
             3 = 3 отметки (95%+)
         """
-        return self.personal.get("marksOnGun", 0)
+        dossier_records = self.personal.get("dossierLogRecords") or []
+
+        for record in dossier_records:
+            # Проверяем, что запись - это список/кортеж с 2 элементами
+            if isinstance(record, (list, tuple)) and len(record) >= 2:
+                try:
+                    # Ищем achievement_id = 295 (отметки на стволе)
+                    if int(record[0]) == 295:
+                        marks = int(record[1])
+                        # Валидация: отметок должно быть от 0 до 3
+                        if 0 <= marks <= 3:
+                            return marks
+                        else:
+                            logger.warning(f"Некорректное значение отметок на стволе: {marks}, ожидается 0-3")
+                            return 0
+                except (ValueError, TypeError):
+                    # Пропускаем некорректные записи
+                    continue
+
+        # Если записи с ID 295 нет, возвращаем 0
+        return 0
 
     def get_damage_rating(self) -> int:
         """

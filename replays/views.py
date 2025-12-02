@@ -680,6 +680,7 @@ class ReplayDetailView(DetailView):
             - 'damage_rating': процентиль урона (0-100)
         """
         achievement_ids = cache.get_achievements()
+        print(f"Предзагрузка достижений: {achievement_ids}")
 
         if not achievement_ids:
             empty = Achievement.objects.none()
