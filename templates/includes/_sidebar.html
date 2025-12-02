@@ -4,7 +4,7 @@
   Пример: ["includes/sidebar/_support.html", "includes/sidebar/_friends.html"]
 {% endcomment %}
 
-<aside class="hidden lg:grid grid-cols-1 w-[266px] flex-shrink-0 gap-3">
+<aside class="hidden lg:grid grid-cols-1 w-[266px] flex-shrink-0 gap-2" style="grid-auto-rows: min-content;">
   {% for tpl in widgets %}
     <div>
       {% include tpl %}
