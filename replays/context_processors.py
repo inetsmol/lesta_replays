@@ -7,6 +7,7 @@ def sidebar_widgets(request):
             # "includes/sidebar/_friends.html",
         ],
         "right_widgets": [
+            "includes/sidebar/_telegram.html",
             "includes/sidebar/_friends.html",
         ],
     }
