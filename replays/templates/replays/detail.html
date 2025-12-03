@@ -340,6 +340,16 @@
               </div>
             </div>
 
+            {% if player.medals.medals_list %}
+            <div class="medals">
+              {% for medal in player.medals.medals_list %}
+              <img src="{% static medal.image_big %}"
+                   alt="{{ medal.name }}"
+                   title="&lt;div class='title'&gt;{{ medal.name|escape }}&lt;/div&gt;&lt;img src='{% static medal.image_big %}'/&gt;{{ medal.description|default_if_none:''|escape }}{% if medal.condition %}&lt;div class='condition'&gt;{{ medal.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}">
+              {% endfor %}
+            </div>
+            {% endif %}
+
             <div class="data-wrapper">
               <div class="row">Произведено выстрелов<span class="right">{{ player.shots }}</span></div>
               <div class="row padding"> прямых попаданий/пробитий<span class="right">{{ player.direct_hits }}/{{ player.piercings }}</span></div>
@@ -427,6 +437,16 @@
                 <div>{{ player.death_text }}</div>
               </div>
             </div>
+
+            {% if player.medals.medals_list %}
+            <div class="medals">
+              {% for medal in player.medals.medals_list %}
+              <img src="{% static medal.image_big %}"
+                   alt="{{ medal.name }}"
+                   title="&lt;div class='title'&gt;{{ medal.name|escape }}&lt;/div&gt;&lt;img src='{% static medal.image_big %}'/&gt;{{ medal.description|default_if_none:''|escape }}{% if medal.condition %}&lt;div class='condition'&gt;{{ medal.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}">
+              {% endfor %}
+            </div>
+            {% endif %}
 
             <div class="data-wrapper">
               <div class="row">Произведено выстрелов<span class="right">{{ player.shots }}</span></div>
@@ -757,6 +777,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   initTeamScoreSorting();
   initDownloadButton();
+  initPlayerDataToggle();
 });
 
 function initDownloadButton() {
@@ -910,6 +931,67 @@ function initTeamScoreSorting() {
     });
   }
 }
+
+function initPlayerDataToggle() {
+  // Получаем все строки игроков в таблице командного результата
+  const playerRows = document.querySelectorAll('#tab-team table.tank-list tbody tr[data-player]');
+
+  playerRows.forEach(row => {
+    // Делаем строку кликабельной
+    row.style.cursor = 'pointer';
+
+    row.addEventListener('click', function(e) {
+      // Игнорируем клики по ссылкам внутри строки
+      if (e.target.tagName === 'A') return;
+
+      const playerId = this.getAttribute('data-player');
+      if (!playerId) return;
+
+      // Находим соответствующий блок personal-data
+      const personalDataBlock = document.querySelector(`.personal-data[data-player="${playerId}"]`);
+      if (!personalDataBlock) return;
+
+      // Переключаем видимость
+      personalDataBlock.classList.toggle('active');
+
+      // Реинициализируем тултипы для медалей в открытом окне
+      if (personalDataBlock.classList.contains('active') && window.jQuery && window.jQuery.ui) {
+        setTimeout(() => {
+          const medalImgs = personalDataBlock.querySelectorAll('.medals img');
+          medalImgs.forEach(img => {
+            const title = img.getAttribute('title');
+            if (title) {
+              window.jQuery(img).attr('data-title', title);
+              img.removeAttribute('title');
+            }
+          });
+        }, 50);
+      }
+    });
+  });
+
+  // Обработчик для кнопок "Закрыть" внутри personal-data
+  const closeButtons = document.querySelectorAll('.personal-data .close');
+  closeButtons.forEach(button => {
+    button.style.cursor = 'pointer';
+    button.addEventListener('click', function(e) {
+      e.stopPropagation(); // Предотвращаем всплытие события
+      const personalDataBlock = this.closest('.personal-data');
+      if (personalDataBlock) {
+        personalDataBlock.classList.remove('active');
+      }
+    });
+  });
+
+  // Закрытие по клику вне области personal-data
+  document.addEventListener('click', function(e) {
+    // Если клик не внутри personal-data и не на строке игрока
+    if (!e.target.closest('.personal-data') && !e.target.closest('table.tank-list tbody tr[data-player]')) {
+      const activeBlocks = document.querySelectorAll('.personal-data.active');
+      activeBlocks.forEach(block => block.classList.remove('active'));
+    }
+  });
+}
 </script>
 
 <!-- jQuery UI tooltips init (использует title с HTML-сущностями) -->
@@ -937,7 +1019,7 @@ function initTeamScoreSorting() {
     if (!window.jQuery) { console.warn("jQuery не загружен - тултипы не инициализированы"); return; }
     if (!$.ui || !$.ui.tooltip) { console.warn("jQuery UI Tooltip не загружен - тултипы не инициализированы"); return; }
 
-    var selector = ".achievements img, .dossier img, .tank-list .medal";
+    var selector = ".achievements img, .dossier img, .tank-list .medal, .personal-data .medals img";
 
     $(selector).each(function () {
       var $el = $(this);

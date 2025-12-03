@@ -1540,34 +1540,47 @@ class ExtractorV2:
             achievement_id__in=all_achievement_ids,
             is_active=True,
             achievement_type__in=['battle', 'epic']
-        ).values('achievement_id', 'name').order_by('name')
+        ).values('achievement_id', 'name', 'image_big', 'description', 'condition').order_by('name')
 
-        # Создаём lookup таблицу
-        ach_lookup = {ach['achievement_id']: ach['name'] for ach in achievements}
+        # Создаём lookup таблицу с полными данными
+        ach_lookup = {
+            ach['achievement_id']: {
+                'name': ach['name'],
+                'image_big': ach['image_big'],
+                'description': ach.get('description', ''),
+                'condition': ach.get('condition', '')
+            }
+            for ach in achievements
+        }
 
         # Формируем результат для каждого игрока
         result = {}
         for avatar_id, ach_ids in player_achievements.items():
+            valid_medals = []
             valid_names = []
             for aid in ach_ids:
                 try:
                     aid_int = int(aid)
                     if aid_int in ach_lookup:
-                        valid_names.append(ach_lookup[aid_int])
+                        medal_data = ach_lookup[aid_int]
+                        valid_medals.append(medal_data)
+                        valid_names.append(medal_data['name'])
                 except (TypeError, ValueError):
                     pass
 
-            if valid_names:
+            if valid_medals:
                 result[avatar_id] = {
-                    "count": len(valid_names),
+                    "count": len(valid_medals),
                     "title": "&lt;br&gt;".join(f"{name}" for name in valid_names),
-                    "has_medals": True
+                    "has_medals": True,
+                    "medals_list": valid_medals  # Список полных данных о медалях
                 }
             else:
                 result[avatar_id] = {
                     "count": 0,
                     "title": "",
-                    "has_medals": False
+                    "has_medals": False,
+                    "medals_list": []
                 }
 
         logger.debug(f"Предзагружено медалей для {len(result)} игроков из {len(player_achievements)} с достижениями")
@@ -1772,7 +1785,8 @@ class ExtractorV2:
         medals_data = medals_cache.get(avatar_id, {
             "count": 0,
             "title": "",
-            "has_medals": False
+            "has_medals": False,
+            "medals_list": []
         })
 
         # Определяем, является ли это текущим игроком (владельцем реплея)
