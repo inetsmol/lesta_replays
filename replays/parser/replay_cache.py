@@ -399,6 +399,34 @@ class ReplayDataCache:
 
         return achievement_ids
 
+    def get_achievements_with_values(self) -> dict:
+        """
+        Словарь достижений текущего игрока из dossierLogRecords с их значениями.
+
+        Структура dossierLogRecords: [[achievement_id, value], ...]
+        где value может быть числом (степень медали) или булевым значением.
+
+        Returns:
+            Словарь {achievement_id: value}, где value - степень медали или количество
+        """
+        dossier_records = self.personal.get("dossierLogRecords") or []
+        achievements = {}
+
+        for record in dossier_records:
+            # Проверяем, что запись - это список/кортеж с минимум 2 элементами
+            if isinstance(record, (list, tuple)) and len(record) >= 2:
+                try:
+                    # Первый элемент - ID достижения, второй - значение
+                    aid = int(record[0])
+                    value = record[1]
+                    achievements[aid] = value
+                except (ValueError, TypeError):
+                    # Пропускаем некорректные записи
+                    logger.warning(f"Некорректная запись в dossierLogRecords: {record}")
+                    continue
+
+        return achievements
+
     def get_marks_on_gun(self) -> int:
         """
         Количество отметок на стволе текущего игрока из dossierLogRecords.

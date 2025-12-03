@@ -679,10 +679,11 @@ class ReplayDetailView(DetailView):
             - 'marks_on_gun': количество отметок на стволе (0-3)
             - 'damage_rating': процентиль урона (0-100)
         """
-        achievement_ids = cache.get_achievements()
-        # print(f"Предзагрузка достижений: {achievement_ids}")
+        # Получаем достижения с их значениями (степенями)
+        achievements_with_values = cache.get_achievements_with_values()
+        # print(f"Предзагрузка достижений: {achievements_with_values}")
 
-        if not achievement_ids:
+        if not achievements_with_values:
             empty = Achievement.objects.none()
             return {
                 'achievements_nonbattle': empty,
@@ -691,22 +692,8 @@ class ReplayDetailView(DetailView):
                 'damage_rating': cache.get_damage_rating(),
             }
 
-        # Нормализуем ID
-        ids = []
-        for aid in achievement_ids:
-            try:
-                ids.append(int(aid))
-            except (TypeError, ValueError):
-                continue
-
-        if not ids:
-            empty = Achievement.objects.none()
-            return {
-                'achievements_nonbattle': empty,
-                'achievements_battle': empty,
-                'marks_on_gun': cache.get_marks_on_gun(),
-                'damage_rating': cache.get_damage_rating(),
-            }
+        # Получаем ID достижений
+        ids = list(achievements_with_values.keys())
 
         # Загружаем ВСЕ достижения одним запросом
         achievements = Achievement.objects.filter(
@@ -720,13 +707,64 @@ class ReplayDetailView(DetailView):
             )
         )
 
-        # Разделяем на battle и nonbattle
-        # ВАЖНО: Материализуем QuerySet в список, чтобы избежать повторных SQL запросов при .count()
-        battle_sections = ('battle', 'epic')
-        all_achievements = list(achievements)  # Материализуем один раз!
+        # Создаём словарь achievement_id -> Achievement для быстрого доступа
+        achievements_dict = {a.achievement_id: a for a in achievements}
 
-        ach_battle = [a for a in all_achievements if a.section in battle_sections]
-        ach_nonbattle = [a for a in all_achievements if a.section not in battle_sections]
+        # Класс-обёртка для Achievement с дополнительными атрибутами
+        class AchievementWithRank:
+            """Обёртка для Achievement с поддержкой степени медали."""
+            def __init__(self, achievement, rank=None):
+                self.achievement = achievement
+                self.rank = rank if isinstance(rank, int) and rank > 0 else None
+                # Словарь для перевода римских цифр
+                self._roman_numerals = {1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V'}
+
+            def __getattr__(self, name):
+                # Проксируем все атрибуты на базовый Achievement
+                # Исключаем name, чтобы обработать его отдельно
+                if name == 'name':
+                    return self.name_with_rank
+                return getattr(self.achievement, name)
+
+            @property
+            def name_with_rank(self):
+                """Возвращает название медали с подставленной степенью."""
+                base_name = self.achievement.name
+                if self.rank is not None and '%(rank)s' in base_name:
+                    # Преобразуем число в римскую цифру
+                    roman = self._roman_numerals.get(self.rank, str(self.rank))
+                    # Заменяем %(rank)s на "римская_цифра степени"
+                    return base_name.replace('%(rank)s', f'{roman} степени')
+                return base_name
+
+            @property
+            def image_big_with_rank(self):
+                """Возвращает путь к изображению с учётом степени медали."""
+                # Для медали Кея (ID 41) и других медалей со степенями
+                if self.rank is not None and self.achievement.achievement_id == 41:
+                    # medalKay.png -> medalKay4.png
+                    base_path = self.achievement.image_big
+                    if 'medalKay' in base_path:
+                        return base_path.replace('medalKay.png', f'medalKay{self.rank}.png')
+                return self.achievement.image_big
+
+        # Знак классности (ID 79) добавляется отдельно в шаблоне, исключаем его из списков
+        MASTERY_BADGE_ID = 79
+
+        # Создаём обёрнутые достижения (исключая знак классности)
+        wrapped_achievements = []
+        for aid, value in achievements_with_values.items():
+            if aid in achievements_dict and aid != MASTERY_BADGE_ID:
+                ach = achievements_dict[aid]
+                # Если value - это число больше 1, это степень медали
+                rank = value if isinstance(value, int) and value > 1 else None
+                wrapped_achievements.append(AchievementWithRank(ach, rank))
+
+        # Разделяем на battle и nonbattle
+        # Медали с section='class' отображаются вместе с боевыми
+        battle_sections = ('battle', 'epic', 'class')
+        ach_battle = [a for a in wrapped_achievements if a.section in battle_sections]
+        ach_nonbattle = [a for a in wrapped_achievements if a.section not in battle_sections]
 
         # Сортируем в Python (данные уже загружены)
         ach_battle.sort(key=lambda a: (-getattr(a, 'weight', 0.0), a.name))
