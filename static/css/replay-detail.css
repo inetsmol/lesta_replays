@@ -1352,7 +1352,13 @@ table.tank-list.score td.player-platoon .number {
     font-size: 9px;
     width: 31px;
     height: 24px;
-    background-image: url("../style/images/wot/eventBoards/tableIcons/platoon.png")
+    background-image: url("../style/images/wot/results/platoon.png");
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+table.tank-list.score td.player-platoon .number.own-platoon {
+    background-image: url("../style/images/wot/results/platoon_own.png");
 }
 
 table.tank-list.score tr.dead td.player-platoon .number {

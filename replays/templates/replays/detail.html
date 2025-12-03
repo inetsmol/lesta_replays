@@ -391,7 +391,7 @@
               <tbody>
               {% for player in team_results.allies_players %}
               <tr{% if player.is_current_player or not player.is_alive %} class="{% if player.is_current_player %}current-player{% endif %}{% if player.is_current_player and not player.is_alive %} {% endif %}{% if not player.is_alive %}dead{% endif %}"{% endif %} data-player="{{ player.avatar_id }}">
-                <td class="player-platoon" data-sort-value="{{ player.platoon_id|default_if_none:'' }}">{% if player.platoon_id %}<div class="number">{{ player.platoon_id }}</div>{% endif %}</td>
+                <td class="player-platoon" data-sort-value="{{ player.platoon_id|default_if_none:'' }}">{% if player.platoon_id %}<div class="number{% if player.is_own_platoon %} own-platoon{% endif %}">{{ player.platoon_id }}</div>{% endif %}</td>
                 <td class="player-names" data-sort-value="{{ player.display_name|default_if_none:'' }}">{{ player.display_name }}</td>
                 <td class="tanks-name" data-sort-value="{{ player.vehicle_display_name|default_if_none:'' }}">
                   <img class="tank new" src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ player.vehicle_tag }}.png" alt="">
@@ -489,7 +489,7 @@
               <tbody>
               {% for player in team_results.enemies_players %}
               <tr{% if not player.is_alive %} class="dead"{% endif %} data-player="{{ player.avatar_id }}">
-                <td class="player-platoon" data-sort-value="{{ player.platoon_id|default_if_none:'' }}">{% if player.platoon_id %}<div class="number">{{ player.platoon_id }}</div>{% endif %}</td>
+                <td class="player-platoon" data-sort-value="{{ player.platoon_id|default_if_none:'' }}">{% if player.platoon_id %}<div class="number{% if player.is_own_platoon %} own-platoon{% endif %}">{{ player.platoon_id }}</div>{% endif %}</td>
                 <td class="player-names" data-sort-value="{{ player.display_name|default_if_none:'' }}">{{ player.display_name }}</td>
                 <td class="tanks-name" data-sort-value="{{ player.vehicle_display_name|default_if_none:'' }}">
                   <img class="tank new" src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ player.vehicle_tag }}.png" alt="">

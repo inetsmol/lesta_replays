@@ -1852,20 +1852,53 @@ class ExtractorV2:
 
     @staticmethod
     def _get_platoon_id(avatar_id: str, cache: 'ReplayDataCache') -> Optional[int]:
-        """Определяет ID взвода игрока."""
-        # В реплеях информация о взводах может быть в разных местах
-        # Это примерная логика - нужно изучить конкретную структуру
+        """
+        Определяет prebattleID взвода игрока.
 
-        # Поиск в common.bots или других местах
-        bots = cache.common.get("bots") or {}
-        if avatar_id in bots:
-            bot_data = bots[avatar_id]
-            if isinstance(bot_data, list) and len(bot_data) > 0:
-                # Возможно здесь есть информация о группировке
-                pass
+        Алгоритм:
+        1. Из avatarSessionID получаем accountDBID через vehicles
+        2. Из accountDBID получаем prebattleID через players
+        3. Возвращаем prebattleID (0 = не в взводе)
 
-        # Пока возвращаем None - нужна дополнительная логика
-        return None
+        Args:
+            avatar_id: avatarSessionID игрока
+            cache: Кеш данных реплея
+
+        Returns:
+            prebattleID или None, если игрок не в взводе
+        """
+        try:
+            # 1. Получаем accountDBID из vehicles
+            vehicles_stats = cache.vehicles
+            vehicle_list = vehicles_stats.get(avatar_id, [])
+
+            if not isinstance(vehicle_list, list) or not vehicle_list:
+                return None
+
+            vstats = vehicle_list[0] if isinstance(vehicle_list[0], dict) else {}
+            account_id = vstats.get("accountDBID")
+
+            if not account_id:
+                return None
+
+            # 2. Получаем prebattleID из players
+            players_info = cache.players
+            player_info = players_info.get(str(account_id), {})
+
+            if not isinstance(player_info, dict):
+                player_info = players_info.get(int(account_id), {})
+
+            if not isinstance(player_info, dict):
+                return None
+
+            prebattle_id = player_info.get("prebattleID", 0)
+
+            # Возвращаем None для игроков не в взводе (prebattleID == 0)
+            return prebattle_id if prebattle_id != 0 else None
+
+        except Exception as e:
+            logger.debug(f"Ошибка при определении prebattleID для avatar {avatar_id}: {e}")
+            return None
 
     @staticmethod
     def get_team_results(cache: 'ReplayDataCache', tanks_cache: Dict[str, 'Tank']) -> Dict[str, Any]:
@@ -1927,7 +1960,55 @@ class ExtractorV2:
         allies_players.sort(key=lambda x: x.get("damage_dealt", 0), reverse=True)
         enemies_players.sort(key=lambda x: x.get("damage_dealt", 0), reverse=True)
 
+        # Присваиваем порядковые номера взводам ОТДЕЛЬНО для каждой команды
+
+        # Определяем prebattleID текущего игрока (владельца реплея)
+        current_player_prebattle_id = None
+        for player in allies_players:
+            if player.get("is_current_player"):
+                current_player_prebattle_id = player.get("platoon_id")  # Оригинальный prebattleID
+                break
+
+        # Союзники
+        allies_platoon_ids = set()
+        for player in allies_players:
+            platoon_id = player.get("platoon_id")
+            if platoon_id is not None:
+                allies_platoon_ids.add(platoon_id)
+
+        allies_platoon_mapping = {}
+        for idx, platoon_id in enumerate(sorted(allies_platoon_ids), start=1):
+            allies_platoon_mapping[platoon_id] = idx
+
+        for player in allies_players:
+            original_platoon_id = player.get("platoon_id")
+            if original_platoon_id is not None:
+                # Помечаем, если это взвод текущего игрока (сравниваем оригинальные ID)
+                player["is_own_platoon"] = (current_player_prebattle_id is not None and
+                                           original_platoon_id == current_player_prebattle_id)
+                # Заменяем на порядковый номер
+                player["platoon_id"] = allies_platoon_mapping[original_platoon_id]
+
+        # Противники
+        enemies_platoon_ids = set()
+        for player in enemies_players:
+            platoon_id = player.get("platoon_id")
+            if platoon_id is not None:
+                enemies_platoon_ids.add(platoon_id)
+
+        enemies_platoon_mapping = {}
+        for idx, platoon_id in enumerate(sorted(enemies_platoon_ids), start=1):
+            enemies_platoon_mapping[platoon_id] = idx
+
+        for player in enemies_players:
+            original_platoon_id = player.get("platoon_id")
+            if original_platoon_id is not None:
+                player["is_own_platoon"] = False  # Противники всегда не в нашем взводе
+                player["platoon_id"] = enemies_platoon_mapping[original_platoon_id]
+
         logger.debug(f"Обработано игроков: {len(allies_players)} союзников, {len(enemies_players)} противников")
+        logger.debug(f"Взводов союзников: {len(allies_platoon_mapping)}, маппинг: {allies_platoon_mapping}")
+        logger.debug(f"Взводов противников: {len(enemies_platoon_mapping)}, маппинг: {enemies_platoon_mapping}")
 
         return {
             'allies_players': allies_players,
