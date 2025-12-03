@@ -951,8 +951,17 @@ function initPlayerDataToggle() {
       const personalDataBlock = document.querySelector(`.personal-data[data-player="${playerId}"]`);
       if (!personalDataBlock) return;
 
-      // Переключаем видимость
-      personalDataBlock.classList.toggle('active');
+      // Проверяем, открыто ли уже это окно
+      const isAlreadyOpen = personalDataBlock.classList.contains('active');
+
+      // Закрываем все открытые окна
+      const allPersonalData = document.querySelectorAll('.personal-data.active');
+      allPersonalData.forEach(block => block.classList.remove('active'));
+
+      // Если окно не было открыто, открываем его
+      if (!isAlreadyOpen) {
+        personalDataBlock.classList.add('active');
+      }
 
       // Реинициализируем тултипы для медалей в открытом окне
       if (personalDataBlock.classList.contains('active') && window.jQuery && window.jQuery.ui) {
