@@ -375,34 +375,6 @@
     }
   }
 
-  /* Site Banner (Dev Banner) */
-  .site-banner {
-    @apply flex items-center justify-center gap-3 px-3.5 py-2.5 border-b border-black/[0.08] text-[13px];
-  }
-
-  .site-banner--dev {
-    @apply bg-[#fff6d6] text-[#4a3b00];
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .site-banner--dev {
-      @apply bg-[#3b3420] text-[#ffe9a6] border-b-white/10;
-    }
-  }
-
-  .site-banner--dev a {
-    @apply text-inherit underline;
-  }
-
-  .site-banner__inner {
-    @apply pr-2;
-  }
-
-  .site-banner__close {
-    @apply appearance-none border-0 bg-transparent text-[22px] leading-none;
-    @apply cursor-pointer text-inherit opacity-60 hover:opacity-100;
-  }
-
   /* Messages (Django messages framework) */
   .message {
     @apply px-3 py-2.5 rounded-lg border border-dark-600 bg-dark-800;
