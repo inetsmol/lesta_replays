@@ -1519,6 +1519,7 @@ class ExtractorV2:
         # Собираем все достижения всех игроков
         all_achievement_ids = set()
         player_achievements = {}  # {avatar_id: [achievement_ids]}
+        player_achievement_values = {}  # {avatar_id: {achievement_id: value}} - для степеней медалей
 
         for avatar_id, vstats_list in cache.vehicles.items():
             if isinstance(vstats_list, list) and vstats_list:
@@ -1532,14 +1533,45 @@ class ExtractorV2:
                         except (TypeError, ValueError):
                             pass
 
+        # Для владельца реплея добавляем достижения из dossierLogRecords
+        # (там хранятся медали с классом, например Медаль Кея)
+        owner_account_id = cache.player_id
+        achievements_with_values = cache.get_achievements_with_values()
+
+        if achievements_with_values:
+            # Находим avatarSessionID владельца по accountDBID
+            owner_session_id = None
+            for session_id, vstats_list in cache.vehicles.items():
+                if isinstance(vstats_list, list) and vstats_list:
+                    vstats = vstats_list[0] if isinstance(vstats_list[0], dict) else {}
+                    if vstats.get('accountDBID') == owner_account_id:
+                        owner_session_id = session_id
+                        break
+
+            if owner_session_id:
+                # Объединяем с существующими достижениями владельца
+                if owner_session_id not in player_achievements:
+                    player_achievements[owner_session_id] = []
+
+                # Сохраняем значения (степени) для владельца
+                player_achievement_values[owner_session_id] = achievements_with_values
+
+                # Добавляем ID достижений из dossierLogRecords
+                for aid, value in achievements_with_values.items():
+                    all_achievement_ids.add(aid)
+                    # Добавляем в список достижений владельца, если его там нет
+                    if aid not in player_achievements[owner_session_id]:
+                        player_achievements[owner_session_id].append(aid)
+
         if not all_achievement_ids:
             return {}
 
         # ОДИН запрос для ВСЕХ достижений ВСЕХ игроков!
+        # Включаем все боевые достижения: battle, epic, class (но исключаем mastery - он добавляется отдельно)
         achievements = Achievement.objects.filter(
             achievement_id__in=all_achievement_ids,
             is_active=True,
-            achievement_type__in=['battle', 'epic']
+            achievement_type__in=['battle', 'epic', 'class']
         ).values('achievement_id', 'name', 'image_big', 'description', 'condition').order_by('name')
 
         # Создаём lookup таблицу с полными данными
@@ -1553,16 +1585,53 @@ class ExtractorV2:
             for ach in achievements
         }
 
+        # Римские цифры для степеней медалей
+        roman_numerals = {1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V'}
+
+        # ID медалей со степенями
+        RANKED_MEDALS = {41, 42, 43, 44, 45, 46, 47, 48}
+
         # Формируем результат для каждого игрока
         result = {}
         for avatar_id, ach_ids in player_achievements.items():
             valid_medals = []
             valid_names = []
+
+            # Получаем значения достижений для этого игрока (если есть)
+            ach_values = player_achievement_values.get(avatar_id, {})
+
             for aid in ach_ids:
                 try:
                     aid_int = int(aid)
                     if aid_int in ach_lookup:
-                        medal_data = ach_lookup[aid_int]
+                        medal_data = ach_lookup[aid_int].copy()
+
+                        # Если у медали есть степень (rank)
+                        rank = ach_values.get(aid_int)
+                        if rank is not None and isinstance(rank, int) and rank > 0:
+                            medal_data['rank'] = rank
+
+                            # Обновляем имя медали, если есть %(rank)s
+                            if '%(rank)s' in medal_data['name']:
+                                roman = roman_numerals.get(rank, str(rank))
+                                medal_data['name'] = medal_data['name'].replace('%(rank)s', f'{roman} степени')
+
+                            # Обновляем путь к изображению для медалей со степенями
+                            if aid_int in RANKED_MEDALS:
+                                image_big = medal_data['image_big']
+                                # Заменяем базовое имя на имя с степенью
+                                # Например: medalKay.png -> medalKay4.png
+                                for medal_id, base_name in {
+                                    41: 'medalKay', 42: 'medalSamokhin', 43: 'medalGudz',
+                                    44: 'medalPoppel', 45: 'medalAbrams', 46: 'medalLeClerc',
+                                    47: 'medalLavrinenko', 48: 'medalEkins'
+                                }.items():
+                                    if medal_id == aid_int and base_name in image_big:
+                                        medal_data['image_big'] = image_big.replace(
+                                            f'{base_name}.png', f'{base_name}{rank}.png'
+                                        )
+                                        break
+
                         valid_medals.append(medal_data)
                         valid_names.append(medal_data['name'])
                 except (TypeError, ValueError):

@@ -740,12 +740,30 @@ class ReplayDetailView(DetailView):
             @property
             def image_big_with_rank(self):
                 """Возвращает путь к изображению с учётом степени медали."""
-                # Для медали Кея (ID 41) и других медалей со степенями
-                if self.rank is not None and self.achievement.achievement_id == 41:
-                    # medalKay.png -> medalKay4.png
+                if self.rank is None:
+                    return self.achievement.image_big
+
+                # Словарь медалей со степенями: ID -> базовое имя файла
+                RANKED_MEDALS = {
+                    41: 'medalKay',      # Медаль Кея
+                    42: 'medalSamokhin', # Медаль Самохина
+                    43: 'medalGudz',     # Медаль Гудзя
+                    44: 'medalPoppel',   # Медаль Попеля
+                    45: 'medalAbrams',   # Медаль Абрамса
+                    46: 'medalLeClerc',  # Медаль Леклерка
+                    47: 'medalLavrinenko', # Медаль Лавриненко
+                    48: 'medalEkins',    # Медаль Экинса
+                }
+
+                medal_id = self.achievement.achievement_id
+                if medal_id in RANKED_MEDALS:
+                    base_name = RANKED_MEDALS[medal_id]
                     base_path = self.achievement.image_big
-                    if 'medalKay' in base_path:
-                        return base_path.replace('medalKay.png', f'medalKay{self.rank}.png')
+                    # Заменяем базовое имя на имя со степенью
+                    # medalKay.png -> medalKay4.png
+                    if base_name in base_path:
+                        return base_path.replace(f'{base_name}.png', f'{base_name}{self.rank}.png')
+
                 return self.achievement.image_big
 
         # Знак классности (ID 79) добавляется отдельно в шаблоне, исключаем его из списков

@@ -343,9 +343,9 @@
             {% if player.medals.medals_list %}
             <div class="medals">
               {% for medal in player.medals.medals_list %}
-              <img src="{% static medal.image_big_with_rank|default:medal.image_big %}"
+              <img src="{% static medal.image_big %}"
                    alt="{{ medal.name }}"
-                   title="&lt;div class='title'&gt;{{ medal.name|escape }}&lt;/div&gt;&lt;img src='{% static medal.image_big_with_rank|default:medal.image_big %}'/&gt;{{ medal.description|default_if_none:''|escape }}{% if medal.condition %}&lt;div class='condition'&gt;{{ medal.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}">
+                   title="&lt;div class='title'&gt;{{ medal.name|escape }}&lt;/div&gt;&lt;img src='{% static medal.image_big %}'/&gt;{{ medal.description|default_if_none:''|escape }}{% if medal.condition %}&lt;div class='condition'&gt;{{ medal.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}">
               {% endfor %}
             </div>
             {% endif %}
@@ -441,9 +441,9 @@
             {% if player.medals.medals_list %}
             <div class="medals">
               {% for medal in player.medals.medals_list %}
-              <img src="{% static medal.image_big_with_rank|default:medal.image_big %}"
+              <img src="{% static medal.image_big %}"
                    alt="{{ medal.name }}"
-                   title="&lt;div class='title'&gt;{{ medal.name|escape }}&lt;/div&gt;&lt;img src='{% static medal.image_big_with_rank|default:medal.image_big %}'/&gt;{{ medal.description|default_if_none:''|escape }}{% if medal.condition %}&lt;div class='condition'&gt;{{ medal.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}">
+                   title="&lt;div class='title'&gt;{{ medal.name|escape }}&lt;/div&gt;&lt;img src='{% static medal.image_big %}'/&gt;{{ medal.description|default_if_none:''|escape }}{% if medal.condition %}&lt;div class='condition'&gt;{{ medal.condition|linebreaksbr|escape }}&lt;/div&gt;{% endif %}">
               {% endfor %}
             </div>
             {% endif %}
