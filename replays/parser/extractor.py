@@ -851,8 +851,9 @@ class ExtractorV2:
             if not aid:
                 continue
 
-            # Получаем информацию об аватаре из metadata_vehicles
-            avatar_data = cache.metadata_vehicles.get(aid, {})
+            # ИСПРАВЛЕНИЕ: Используем extended_vehicle_info вместо metadata_vehicles
+            # extended_vehicle_info содержит данные ОБЕИХ команд
+            avatar_data = cache.extended_vehicle_info.get(aid, {})
             vehicle_type = str(avatar_data.get("vehicleType", ""))
 
             if ":" in vehicle_type:
@@ -906,9 +907,25 @@ class ExtractorV2:
             if target_kills > 0:
                 destroyed_count += 1
 
-            # Получаем имя игрока (приоритет: realName > name)
-            player_info = cache.players.get(str(aid), {})
-            player_real_name = player_info.get("realName") if isinstance(player_info, dict) else None
+            # Получаем имя игрока
+            # aid - это avatarSessionID, нужно получить accountDBID из vehicles
+            vehicle_stats = cache.vehicles.get(aid, [])
+            account_id = None
+            if isinstance(vehicle_stats, list) and vehicle_stats:
+                vstats = vehicle_stats[0] if isinstance(vehicle_stats[0], dict) else {}
+                account_id = vstats.get("accountDBID")
+
+            # Получаем данные игрока из players по accountDBID
+            player_info = {}
+            if account_id:
+                player_info = cache.players.get(str(account_id), {})
+                if not isinstance(player_info, dict):
+                    player_info = cache.players.get(int(account_id), {})
+                if not isinstance(player_info, dict):
+                    player_info = {}
+
+            # Приоритет: realName из players > name из extended_vehicle_info > avatarSessionID
+            player_real_name = player_info.get("realName") if player_info else None
             player_name = player_real_name or avatar_data.get("name") or aid
 
             # Формируем строку
