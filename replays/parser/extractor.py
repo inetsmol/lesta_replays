@@ -2003,10 +2003,12 @@ class ExtractorV2:
         allies_players = []
         enemies_players = []
 
-        # Обходим всех участников (игроков + ботов) из metadata.vehicles
-        metadata_vehicles = cache.metadata_vehicles
+        # ИСПРАВЛЕНИЕ: Используем extended_vehicle_info вместо metadata_vehicles
+        # extended_vehicle_info ВСЕГДА содержит ВСЕ команды, в отличие от metadata_vehicles,
+        # который может содержать только одну команду в некоторых режимах (Натиск)
+        all_vehicles = cache.extended_vehicle_info
 
-        for avatar_id, raw in metadata_vehicles.items():
+        for avatar_id, raw in all_vehicles.items():
             if not (isinstance(avatar_id, str) and avatar_id.isdigit() and isinstance(raw, Mapping)):
                 continue
             if "vehicleType" not in raw:

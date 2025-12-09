@@ -646,8 +646,8 @@ class ReplayDetailView(DetailView):
                     _, tag = vehicle_type.split(":", 1)
                     tank_tags.add(tag)
 
-        # Танки из metadata_vehicles (используется в get_team_results)
-        for avatar_id, vehicle_data in cache.metadata_vehicles.items():
+        # Танки из extended_vehicle_info (содержит ВСЕ команды!)
+        for avatar_id, vehicle_data in cache.extended_vehicle_info.items():
             if isinstance(vehicle_data, dict):
                 vehicle_type = vehicle_data.get("vehicleType", "")
                 if ":" in vehicle_type:

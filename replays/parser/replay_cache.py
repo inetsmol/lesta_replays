@@ -102,6 +102,7 @@ class ReplayDataCache:
         self._vehicles: Optional[Dict[str, Any]] = None
         self._avatars: Optional[Dict[str, Any]] = None
         self._metadata_vehicles: Optional[Dict[str, Any]] = None
+        self._extended_vehicle_info: Optional[Dict[str, Any]] = None
         self._player_id: Optional[int] = None
         self._player_team: Optional[int] = None
 
@@ -274,6 +275,10 @@ class ReplayDataCache:
         """
         Базовая информация об участниках из metadata (payload[0]['vehicles']).
 
+        ВАЖНО: В некоторых режимах боя (например, Натиск) может содержать только
+        игроков ОДНОЙ команды! Для получения данных ВСЕХ участников используйте
+        extended_vehicle_info.
+
         Содержит информацию о ВСЕХ участниках (игроки + боты). Ключ - avatarSessionID.
 
         Структура: {avatarSessionID: {
@@ -295,6 +300,42 @@ class ReplayDataCache:
         if self._metadata_vehicles is None:
             self._metadata_vehicles = self.first_block.get('vehicles', {})
         return self._metadata_vehicles
+
+    @property
+    def extended_vehicle_info(self) -> Dict[str, Any]:
+        """
+        Расширенная информация о технике ВСЕХ участников из payload[1][1].
+
+        ВАЖНО: Этот источник ВСЕГДА содержит данные ОБЕИХ команд, в отличие от
+        metadata_vehicles, который может содержать только одну команду в некоторых
+        режимах боя (Натиск).
+
+        Структура идентична metadata_vehicles: {avatarSessionID: {
+            "name": "player_real_name" или "bot_display_name",
+            "fakeName": "player_battle_name" или "BotCrew_...",
+            "vehicleType": "nation:vehicleId",
+            "team": 1 или 2,
+            "maxHealth": 1500,
+            ...
+        }}
+
+        Используйте этот источник для получения полных данных об участниках обеих команд.
+
+        Returns:
+            Словарь с информацией об участниках или пустой словарь
+        """
+        if self._extended_vehicle_info is None:
+            if isinstance(self.second_block, (list, tuple)) and len(self.second_block) > 1:
+                extended_info = self.second_block[1]
+                if isinstance(extended_info, dict):
+                    self._extended_vehicle_info = extended_info
+                else:
+                    logger.warning(f"second_block[1] не является словарём: {type(extended_info)}")
+                    self._extended_vehicle_info = {}
+            else:
+                logger.warning("second_block[1] отсутствует")
+                self._extended_vehicle_info = {}
+        return self._extended_vehicle_info
 
     @property
     def avatar_data(self) -> Dict[str, Any]:
