@@ -165,6 +165,45 @@ class Replay(models.Model):
         # если детальная страница по pk:
         return reverse("replay_detail", kwargs={"pk": self.pk})
 
+    def get_gameplay_display(self) -> str:
+        """
+        Возвращает читаемое название режима игры на основе gameplay_id.
+
+        Returns:
+            str: Название режима игры или пустую строку, если не определено
+        """
+        if not self.gameplay_id:
+            return ""
+
+        gameplay_map = {
+            "assault": "Штурм",
+            "ctf": "Стандартный бой",
+            "ctf2": "Завоевание",
+            "ctf30x30": "Генеральное сражение",
+            "comp7": "Натиск",
+            "comp7_1": "Натиск (Защита баз)",
+            "comp7_2": "Натиск (Атака)",
+            "domination": "Встречный бой",
+            "domination3": "Столкновение",
+            "domination30x30": "Генеральное сражение",
+            "epic": "Линия фронта",
+            "escort": "Эскорт",
+            "fallout": "«Стальная охота»",
+            "fallout1": "«Стальная охота»",
+            "fallout2": "«Стальная охота»",
+            "fallout3": "«Стальная охота»",
+            "fallout4": "«Превосходство»",
+            "fallout5": "«Превосходство»",
+            "fallout6": "«Превосходство»",
+            "maps_training": "Топография",
+            "nations": "Противостояние",
+            "rts": "Искусство стратегии",
+            "rts_bootcamp": "Искусство стратегии",
+            "winback": "Разминка"
+        }
+
+        return gameplay_map.get(self.gameplay_id, "")
+
     class Meta:
         verbose_name = "Реплей"
         verbose_name_plural = "Реплеи"

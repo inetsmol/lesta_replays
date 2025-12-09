@@ -341,6 +341,9 @@
                                 <div class="flex flex-wrap items-center justify-between gap-2">
                                     <div class="upload-info text-sm font-semibold text-[#ddd]">
                                         {{ replay.battle_date|default_if_none:replay.created_at|localtime|date:"d.m.Y H:i" }}
+                                        {% if replay.get_gameplay_display %}
+                                            <span class="text-[#999] font-normal"> • {{ replay.get_gameplay_display }}</span>
+                                        {% endif %}
                                     </div>
                                     <div class="flex flex-wrap items-center gap-3 text-sm text-[#ddd]">
                                         <span class="inline-flex items-center gap-1">
