@@ -32,6 +32,27 @@ python -c "import sys; print(sys.executable)"
 
 **Важно**: Все команды `python`, `pip`, `django-admin`, `python manage.py` и т.д. должны выполняться ТОЛЬКО после активации окружения!
 
+## Django Settings Module
+
+**КРИТИЧЕСКИ ВАЖНО**: Для всех скриптов, использующих Django (импорты моделей, ORM и т.д.), нужно правильно настроить окружение:
+
+```python
+import os
+import sys
+import django
+
+# Настройка Django окружения
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lesta_replays.settings')
+django.setup()
+
+# Теперь можно импортировать модели и использовать ORM
+from django.contrib.auth import get_user_model
+from replays.models import Replay
+```
+
+**Правильный модуль настроек**: `lesta_replays.settings` (НЕ `wotreplay_site.settings`!)
+
 ## Project Overview
 
 Django web application for uploading, parsing, and displaying World of Tanks game replays (.mtreplay files). Users can upload replay files, which are parsed to extract detailed battle statistics, and browse replays with advanced filtering and sorting capabilities.
@@ -680,3 +701,53 @@ LESTA_API_BASE_URL = "https://api.tanki.su/wot/auth"
 2. Зарегистрировать redirect_uri на https://developers.lesta.ru/
 3. Убедиться что HTTPS включен (`SECURE_SSL_REDIRECT = True`)
 4. Добавить домен в `ALLOWED_HOSTS` и `CSRF_TRUSTED_ORIGINS`
+
+### Username Generation from Email (2025-02)
+
+Автоматическое извлечение username из email-адреса при регистрации через OAuth.
+
+**Проблема:**
+- При регистрации через OAuth (Google, Yandex) django-allauth может использовать полный email как username
+- Это создаёт длинные и неудобные для отображения имена пользователей
+
+**Решение:**
+- При регистрации через **форму**: пользователь сам вводит username (настройка `ACCOUNT_USERNAME_REQUIRED = True`)
+- При регистрации через **OAuth**: автоматически извлекается часть email до @ (например, `user@example.com` → `user`)
+- При конфликтах добавляется числовой суффикс (`user1`, `user2`, etc.)
+
+**Реализация:**
+
+**LestaSocialAccountAdapter** ([replays/allauth_providers/lesta/adapter.py](replays/allauth_providers/lesta/adapter.py))
+- Обрабатывает регистрацию через OAuth (Google, Yandex, Lesta)
+- Метод `populate_user()` извлекает username из email
+- Проверяет уникальность и генерирует числовой суффикс при необходимости
+
+**Настройки в settings.py:**
+
+```python
+# Обычная регистрация - пользователь вводит username сам
+ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*", "username"]
+
+# OAuth регистрация - автоматическая генерация username из email
+SOCIALACCOUNT_ADAPTER = 'replays.allauth_providers.lesta.adapter.LestaSocialAccountAdapter'
+```
+
+**Миграция существующих данных:**
+
+```bash
+# Сначала проверить что будет изменено (dry run)
+python scripts/fix_email_usernames.py
+
+# Применить изменения
+python scripts/fix_email_usernames.py --apply
+
+# Проверить результат
+python scripts/check_users.py
+```
+
+**Тестирование:**
+
+```bash
+python scripts/test_username_generation.py
+```

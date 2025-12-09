@@ -3,8 +3,11 @@
 
 import logging
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from django.contrib.auth import get_user_model
 
 logger = logging.getLogger(__name__)
+
+User = get_user_model()
 
 
 class LestaSocialAccountAdapter(DefaultSocialAccountAdapter):
@@ -44,3 +47,36 @@ class LestaSocialAccountAdapter(DefaultSocialAccountAdapter):
             # Автоматически связываем sociallogin с текущим пользователем
             sociallogin.connect(request, request.user)
             return
+
+    def populate_user(self, request, sociallogin, data):
+        """
+        Заполняет данные пользователя из данных социального провайдера.
+
+        Исправляет username: использует часть до @ вместо полного email.
+        """
+        user = super().populate_user(request, sociallogin, data)
+
+        # Если username совпадает с email или содержит @, берем только часть до @
+        if user.username and '@' in user.username:
+            base_username = user.username.split('@')[0]
+
+            # Проверяем уникальность
+            if User.objects.filter(username=base_username).exists():
+                # Генерируем уникальный username
+                counter = 1
+                new_username = f"{base_username}{counter}"
+                while User.objects.filter(username=new_username).exists():
+                    counter += 1
+                    new_username = f"{base_username}{counter}"
+                user.username = new_username
+                logger.info(
+                    f"Username '{base_username}' already exists. "
+                    f"Using '{new_username}' instead."
+                )
+            else:
+                user.username = base_username
+                logger.info(
+                    f"Generated username '{base_username}' from email '{user.email}'"
+                )
+
+        return user
