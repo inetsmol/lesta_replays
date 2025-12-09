@@ -31,13 +31,20 @@
     </div>
 
     <div class="right-ajax">
-      <div class="replay-download">
+      <div class="replay-download" style="display: flex; gap: 10px;">
         <button id="download-replay-btn"
                 type="button"
                 class="big-red-button"
                 data-authenticated="{{ user.is_authenticated|lower }}"
-                data-download-url="{% url 'replay_download' replay.pk %}">
+                data-download-url="{% url 'replay_download' replay.pk %}"
+                style="display: flex; align-items: center; justify-content: center;">
           Скачать
+        </button>
+        <button id="share-replay-btn"
+                type="button"
+                class="big-red-button"
+                style="background: #4a5568; padding: 10px 20px; display: flex; align-items: center; justify-content: center;">
+          Поделиться
         </button>
       </div>
     </div>
@@ -777,6 +784,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   initTeamScoreSorting();
   initDownloadButton();
+  initShareButton();
   initPlayerDataToggle();
 });
 
@@ -800,6 +808,61 @@ function initDownloadButton() {
     const downloadUrl = downloadBtn.dataset.downloadUrl;
     if (downloadUrl) {
       window.open(downloadUrl, '_blank');
+    }
+  });
+}
+
+function initShareButton() {
+  const shareBtn = document.getElementById('share-replay-btn');
+  if (!shareBtn) return;
+
+  shareBtn.addEventListener('click', async function(e) {
+    e.preventDefault();
+
+    // Формируем чистый URL без GET-параметров
+    const cleanUrl = window.location.origin + window.location.pathname;
+
+    try {
+      // Пробуем использовать современный Clipboard API
+      await navigator.clipboard.writeText(cleanUrl);
+
+      // Показываем уведомление об успехе
+      const originalText = shareBtn.textContent;
+      shareBtn.textContent = 'Скопировано!';
+      shareBtn.style.background = '#2d7a4f'; // Приглушенный зелёный
+
+      setTimeout(() => {
+        shareBtn.textContent = originalText;
+        shareBtn.style.background = '#4a5568'; // Возвращаем серо-синий
+      }, 2000);
+
+    } catch (err) {
+      // Fallback для старых браузеров
+      const textArea = document.createElement('textarea');
+      textArea.value = cleanUrl;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      try {
+        document.execCommand('copy');
+
+        const originalText = shareBtn.textContent;
+        shareBtn.textContent = 'Скопировано!';
+        shareBtn.style.background = '#2d7a4f';
+
+        setTimeout(() => {
+          shareBtn.textContent = originalText;
+          shareBtn.style.background = '#4a5568';
+        }, 2000);
+
+      } catch (err) {
+        alert('Не удалось скопировать ссылку');
+      }
+
+      document.body.removeChild(textArea);
     }
   });
 }
