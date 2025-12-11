@@ -3381,3 +3381,79 @@ body.screenshot .replay-tab-wrapper, body.screenshot header .wrapper > a:first-c
 #tab-team table.tank-list tbody tr[data-player] {
     transition: background-color 0.2s ease;
 }
+
+/* Стили для кнопки лайка */
+.like-container {
+    display: inline-block;
+    margin-right: 20px;
+    vertical-align: middle;
+}
+
+.like-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 0px;
+    padding-left: 12px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    font-size: 13px;
+    color: #888;
+}
+
+.like-btn:hover:not(.disabled) {
+    background: rgba(255, 68, 88, 0.1);
+    transform: scale(1.05);
+}
+
+.like-btn.liked {
+    color: #ff4458;
+}
+
+.like-btn.disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.like-btn svg {
+    transition: all 0.3s ease;
+}
+
+.like-btn:active:not(.disabled) svg {
+    transform: scale(0.9);
+}
+
+.like-btn span {
+    font-weight: 600;
+}
+
+/* Стили для статистики реплея */
+.replay-stats-container {
+    display: inline-block;
+    margin-right: 20px;
+    vertical-align: middle;
+}
+
+.stat-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #888;
+    font-size: 13px;
+    transition: color 0.2s ease;
+}
+
+.stat-item:hover {
+    color: #aaa;
+}
+
+.stat-item i {
+    font-size: 16px;
+}
+
+.stat-item span {
+    font-weight: 500;
+}

@@ -2,11 +2,12 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
+from vote.models import VoteModel
 
 User = get_user_model()
 
 
-class Replay(models.Model):
+class Replay(VoteModel, models.Model):
     """
     Модель для хранения реплеев МИР ТАНКОВ с подробной статистикой боя.
     """

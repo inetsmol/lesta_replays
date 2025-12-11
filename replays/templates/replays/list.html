@@ -350,6 +350,12 @@
                                     </div>
                                     <div class="flex flex-wrap items-center gap-3 text-sm text-[#ddd]">
                                         <span class="inline-flex items-center gap-1">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8c8c8c" stroke-width="2" class="inline-block align-middle">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                            </svg>
+                                            <span class="align-middle text-sm text-[#ddd]">{{ replay.num_vote_up|default:"0" }}</span>
+                                        </span>
+                                        <span class="inline-flex items-center gap-1">
                                             <i class="far fa-comments inline-block text-base text-[#8c8c8c]"></i>
                                             <span class="align-middle text-sm text-[#ddd]">{{ comment_count|default:"0" }}</span>
                                         </span>

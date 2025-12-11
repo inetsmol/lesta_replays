@@ -889,6 +889,7 @@ class ExtractorV2:
                 int(d.get("rickochetsReceived") or 0) +
                 int(d.get("noDamageDirectHitsReceived") or 0)
             )
+            blocked_damage = int(d.get("damageBlockedByArmor") or 0)
             crits_mask = int(d.get("crits") or 0)
             crits_count = crits_mask.bit_count() if hasattr(int, "bit_count") else bin(crits_mask).count("1")
             damage_dealt = int(d.get("damageDealt") or 0)  # нанесенный урон
@@ -949,6 +950,7 @@ class ExtractorV2:
                 "spotted_count": spotted,
                 "assist_value": assist_value,
                 "blocked_events": blocked_events,
+                "blocked_damage": blocked_damage,  # урон, заблокированный бронёй
                 "crits_count": crits_count,
                 "damage_piercings": piercings,  # количество пробитий
                 "damage_dealt": damage_dealt,  # нанесённый урон

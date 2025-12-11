@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "replays.allauth_providers.lesta",  # Lesta Games provider
     "django_comments_xtd",
     "django_comments",
+    "vote",  # django-vote
 
     'replays',
     'news',  # Модуль новостей

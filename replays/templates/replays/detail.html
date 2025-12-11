@@ -244,27 +244,27 @@
                 <td class="table-title" style="width: 147.5px; max-width: 147.5px; text-align: padding-right: 5px; line-height: 28px; color: #bcbdbe; font-weight: bold; text-shadow: 1px 1px 2px #000; padding-top: 3px;">Игрок</td>
                 <td class="table-title" style="width: 153px; max-width: 153px; padding-left: 5px; line-height: 28px; color: #bcbdbe; font-weight: bold; text-shadow: 1px 1px 2px #000; padding-top: 3px;">Техника</td>
 
-                <td class="spotted" style="width: 33px; max-width: 33px; text-align: center;" title="Обнаруженные танки">
+                <td class="spotted summary-header" style="width: 33px; max-width: 33px; text-align: center;" title="Обнаружение&lt;br&gt;Количество танков противника, которых вы обнаружили">
                   {{ interactions_summary.spotted_tanks }}
                 </td>
 
-                <td class="assits" style="width: 33px; max-width: 33px; text-align: center;" title="Помощь в уничтожении">
+                <td class="assits summary-header" style="width: 33px; max-width: 33px; text-align: center;" title="Урон по засвету&lt;br&gt;Суммарный урон по целям, обнаруженным или оглушённым вами">
                   {{ detailed_report.battle_stats.assist_total }}
                 </td>
 
-                <td class="assits" style="width: 33px; max-width: 33px; text-align: center;" title="Урон, заблокированный бронёй">
+                <td class="assits summary-header" style="width: 33px; max-width: 33px; text-align: center;" title="Заблокированный урон&lt;br&gt;Урон, заблокированный бронёй вашего танка">
                   {{ detailed_report.battle_stats.damage_blocked }}
                 </td>
 
-                <td class="crits" style="width: 33px; max-width: 33px; text-align: center;" title="Критические попадания">
+                <td class="crits summary-header" style="width: 33px; max-width: 33px; text-align: center;" title="Критические попадания&lt;br&gt;Количество критов по модулям и экипажу">
                   {{ interactions_summary.crits_total }}
                 </td>
 
-                <td class="damage" style="width: 33px; max-width: 33px; text-align: center;" title="Нанесённый урон">
+                <td class="damage summary-header" style="width: 33px; max-width: 33px; text-align: center;" title="Нанесённый урон&lt;br&gt;Суммарный урон по всем целям">
                   {{ interactions_summary.piercings_total }}
                 </td>
 
-                <td class="kill" style="width: 34px; max-width: 34px; text-align: center;" title="Уничтоженные танки">
+                <td class="kill summary-header" style="width: 34px; max-width: 34px; text-align: center;" title="Уничтожение&lt;br&gt;Количество уничтоженных вами танков">
                   {{ interactions_summary.destroyed_tanks }}
                 </td>
               </tr>
@@ -290,11 +290,14 @@
                 </td>
                 <td class="assist">
                   <img {% if not row.assist %}style="opacity:0.1;"{% endif %}
-                       src="{% static 'style/images/wot/battleresults/battleResults-25.png' %}">
+                       src="{% static 'style/images/wot/battleresults/battleResults-25.png' %}"
+                       class="interaction-icon"
+                       title="Урон по засвету: {% if row.assist_value %}{{ row.assist_value|intcomma }}{% else %}0{% endif %}">
                 </td>
                 <td class="assist">
-                  <img class="bigger" {% if not row.blocked %}style="opacity:0.1;"{% endif %}
-                       src="{% static 'style/images/wot/battleresults/teamStatsComponents-12.png' %}">
+                  <img class="bigger interaction-icon" {% if not row.blocked %}style="opacity:0.1;"{% endif %}
+                       src="{% static 'style/images/wot/battleresults/teamStatsComponents-12.png' %}"
+                       title="Урон, заблокированный бронёй: {% if row.blocked_damage %}{{ row.blocked_damage|intcomma }}{% else %}0{% endif %}">
                 </td>
                 <td class="crits">
                   <img {% if not row.crits %}style="opacity:0.1;"{% endif %}
@@ -303,7 +306,9 @@
                 </td>
                 <td class="damage">
                   <img {% if not row.damaged %}style="opacity:0.1;"{% endif %}
-                       src="{% static 'style/images/wot/battleresults/battleResults-20.png' %}">
+                       src="{% static 'style/images/wot/battleresults/battleResults-20.png' %}"
+                       class="interaction-icon"
+                       title="Нанесённый урон: {% if row.damage_dealt %}{{ row.damage_dealt|intcomma }}{% else %}0{% endif %}">
                   {% if row.damage_piercings %}<div class="info">{{ row.damage_piercings }}</div>{% endif %}
                 </td>
                 <td class="kill">
@@ -714,6 +719,46 @@
 
       </div> <!-- /personal-data tab -->
     </div> <!-- /tab-detailed -->
+        <!-- Stats container -->
+        <div class="replay-stats-container" style="display: inline-block; margin-right: 20px; vertical-align: middle;">
+          <div style="display: inline-flex; align-items: center; gap: 12px;">
+            <!-- Like button -->
+            {% if user.is_authenticated %}
+              <button id="like-button" class="like-btn {% if user_has_liked %}liked{% endif %}" data-replay-id="{{ replay.id }}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="{% if user_has_liked %}#ff4458{% else %}none{% endif %}" stroke="{% if user_has_liked %}#ff4458{% else %}#888{% endif %}" stroke-width="2">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                <span id="likes-count">{{ likes_count }}</span>
+              </button>
+            {% else %}
+              <span class="like-btn disabled" title="Войдите, чтобы поставить лайк">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                <span>{{ likes_count }}</span>
+              </span>
+            {% endif %}
+
+            <!-- Comments -->
+            {% get_comment_count for replay as comment_count %}
+            <span class="stat-item" style="display: inline-flex; align-items: center; gap: 4px; color: #888; font-size: 13px;">
+              <i class="far fa-comments" style="font-size: 16px;"></i>
+              <span>{{ comment_count|default:"0" }}</span>
+            </span>
+
+            <!-- Views -->
+            <span class="stat-item" style="display: inline-flex; align-items: center; gap: 4px; color: #888; font-size: 13px;">
+              <i class="far fa-eye" style="font-size: 16px;"></i>
+              <span>{{ replay.view_count|intcomma }}</span>
+            </span>
+
+            <!-- Downloads -->
+            <span class="stat-item" style="display: inline-flex; align-items: center; gap: 4px; color: #888; font-size: 13px;">
+              <i class="fas fa-download" style="font-size: 16px;"></i>
+              <span>{{ replay.download_count|intcomma }}</span>
+            </span>
+          </div>
+        </div>
         <div class="right down-info">
           <span class="gray">Сервер:</span>{{ details.serverName }}
           <span class="gray">Режим боя:</span>{{ details.battleModeLabel }}
@@ -725,7 +770,7 @@
         </div>
   </div> <!-- /replay-wrapper -->
 
-  <div class="card" style="margin-top: 2rem; background: #14120e; padding: 20px; border-radius: 5px;">
+  <div class="card" style="margin-top: 0.5rem; background: #14120e; padding: 20px; border-radius: 5px;">
     <div class="card-body">
                 {% if replay.short_description %}
                     <div class="title text-lg font-semibold text-white" style="margin-bottom: 2rem;">{{ replay.short_description }}</div>
@@ -736,8 +781,6 @@
                 {% endif %}
       <h2 class="card-title" style="color: #c3c3c3; margin-bottom: 1rem; font-size: 1.75rem; font-weight: bold; margin-top: 1.5rem;">Комментарии</h2>
       <hr style="border-color: #333;"/>
-      {% get_comment_count for replay as comment_count %}
-      <p style="color: #999;">Всего комментариев: {{ comment_count }}</p>
 
       <div class="comment-form-wrapper" style="margin-top: 1.5rem;">
         {% if user.is_authenticated %}
@@ -1092,7 +1135,7 @@ function initPlayerDataToggle() {
     if (!window.jQuery) { console.warn("jQuery не загружен - тултипы не инициализированы"); return; }
     if (!$.ui || !$.ui.tooltip) { console.warn("jQuery UI Tooltip не загружен - тултипы не инициализированы"); return; }
 
-    var selector = ".achievements img, .dossier img, .tank-list .medal, .personal-data .medals img";
+    var selector = ".achievements img, .dossier img, .tank-list .medal, .personal-data .medals img, .interaction-icon, .summary-header";
 
     $(selector).each(function () {
       var $el = $(this);
@@ -1124,6 +1167,70 @@ function initPlayerDataToggle() {
     document.addEventListener("DOMContentLoaded", initAchiTooltips);
   } else {
     initAchiTooltips();
+  }
+})();
+</script>
+
+<script>
+// Обработка лайков
+(function() {
+  const likeButton = document.getElementById('like-button');
+
+  if (!likeButton) {
+    return; // Кнопка отсутствует (пользователь не авторизован)
+  }
+
+  likeButton.addEventListener('click', function() {
+    const replayId = this.dataset.replayId;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+    // Если нет CSRF токена в форме комментариев, получаем из cookie
+    const token = csrfToken || getCookie('csrftoken');
+
+    fetch(`/replays/${replayId}/vote/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': token
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Обновляем счетчик
+      document.getElementById('likes-count').textContent = data.likes_count;
+
+      // Обновляем визуальное состояние кнопки
+      const svg = likeButton.querySelector('svg');
+      if (data.liked) {
+        likeButton.classList.add('liked');
+        svg.setAttribute('fill', '#ff4458');
+        svg.setAttribute('stroke', '#ff4458');
+      } else {
+        likeButton.classList.remove('liked');
+        svg.setAttribute('fill', 'none');
+        svg.setAttribute('stroke', '#888');
+      }
+    })
+    .catch(error => {
+      console.error('Ошибка при обработке лайка:', error);
+      alert('Произошла ошибка. Пожалуйста, попробуйте позже.');
+    });
+  });
+
+  // Функция для получения cookie
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
   }
 })();
 </script>

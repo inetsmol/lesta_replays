@@ -942,6 +942,12 @@ class ReplayDetailView(DetailView):
             logger.error(f"Ошибка парсинга реплея {self.object.id}: {str(e)}", exc_info=True)
             context['parse_error'] = f"Ошибка обработки данных реплея: {str(e)}"
 
+        # Добавляем информацию о лайках
+        context['likes_count'] = self.object.votes.count()
+        context['user_has_liked'] = False
+        if self.request.user.is_authenticated:
+            context['user_has_liked'] = self.object.votes.exists(self.request.user.id)
+
         return context
 
 
@@ -1211,3 +1217,28 @@ def donate_success(request):
         "notification_type": notification_type,
     }
     return render(request, "donations/donate_success.html", context)
+
+
+class ReplayVoteView(LoginRequiredMixin, View):
+    """
+    API endpoint для лайков реплеев.
+    Переключает лайк пользователя (добавить/убрать).
+    """
+    def post(self, request, pk):
+        replay = get_object_or_404(Replay, pk=pk)
+
+        # Проверяем, есть ли уже лайк от этого пользователя
+        if replay.votes.exists(request.user.id):
+            # Если лайк есть - удаляем (снимаем лайк)
+            replay.votes.delete(request.user.id)
+            liked = False
+        else:
+            # Если лайка нет - добавляем
+            replay.votes.up(request.user.id)
+            liked = True
+
+        # Возвращаем JSON с обновленными данными
+        return JsonResponse({
+            'liked': liked,
+            'likes_count': replay.votes.count()
+        })
