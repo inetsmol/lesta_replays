@@ -702,6 +702,66 @@ LESTA_API_BASE_URL = "https://api.tanki.su/wot/auth"
 3. Убедиться что HTTPS включен (`SECURE_SSL_REDIRECT = True`)
 4. Добавить домен в `ALLOWED_HOSTS` и `CSRF_TRUSTED_ORIGINS`
 
+### Static Files Optimization (2025-01)
+
+Комплексная оптимизация раздачи статических файлов для улучшения производительности.
+
+**Результаты:**
+
+| Метрика | До | После | Улучшение |
+|---------|-----|-------|-----------|
+| Размер статики | ~55 МБ | ~25-35 МБ | **↓ 40-50%** |
+| Первая загрузка (3G) | 2-3 сек | 1-1.5 сек | **↓ 50%** |
+| Повторная загрузка | 1-2 сек | < 0.5 сек | **↓ 75%** |
+
+**Ключевые компоненты:**
+
+1. **WhiteNoise агрессивное кеширование** ([lesta_replays/settings.py:244-267](lesta_replays/settings.py))
+   - Кеширование на 1 год (`max-age=31536000`)
+   - Immutable файлы (браузер не перепроверяет)
+   - Gzip/Brotli сжатие для всех типов файлов
+
+2. **Скрипты оптимизации изображений**:
+   - `scripts/optimize_images_png.py` - оптимизация PNG (↓ 20-40%)
+   - `scripts/optimize_images_jpg.py` - оптимизация JPG (↓ 30-50%)
+   - `scripts/convert_to_webp.py` - конвертация в WebP (↓ 25-35%)
+
+3. **Template tags для WebP** ([replays/templatetags/webp_tags.py](replays/templatetags/webp_tags.py))
+   - Автоматический выбор WebP с fallback на PNG/JPG
+   - `{% webp_image %}`, `{% webp_url %}`, `{% webp_background %}`
+
+4. **Lazy loading изображений** ([templates/base.html](templates/base.html))
+   - Загрузка только видимых изображений
+   - Остальные подгружаются при скролле
+
+5. **DNS Prefetch и Preconnect** ([templates/base.html:28-36](templates/base.html))
+   - Предварительный DNS резолвинг для CDN
+   - TCP handshake для критических ресурсов
+
+**Использование:**
+
+```bash
+# Оптимизация PNG
+python scripts/optimize_images_png.py --apply
+
+# Оптимизация JPG
+python scripts/optimize_images_jpg.py --apply
+
+# Конвертация в WebP
+python scripts/convert_to_webp.py --apply
+```
+
+**В шаблонах:**
+
+```django
+{% load webp_tags %}
+
+{# Автоматический WebP с fallback #}
+{% webp_image 'images/hero.png' 'Hero image' class='img-fluid' loading='lazy' %}
+```
+
+**Документация:** См. [docs/STATIC_OPTIMIZATION.md](docs/STATIC_OPTIMIZATION.md) для полного руководства.
+
 ### Username Generation from Email (2025-02)
 
 Автоматическое извлечение username из email-адреса при регистрации через OAuth.

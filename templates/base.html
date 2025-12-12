@@ -25,6 +25,20 @@
     <link rel="shortcut icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
     <link rel="apple-touch-icon" href="{% static 'favicon.ico' %}">
 
+    <!-- DNS Prefetch для ускорения загрузки с CDN -->
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="//unpkg.com">
+    <link rel="dns-prefetch" href="//code.jquery.com">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+
+    <!-- Preconnect для критических CDN -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+
+    {% block preload_images %}
+    {# Блок для preload критических изображений на конкретных страницах #}
+    {% endblock %}
+
     <!-- Tailwind CSS (локальная сборка) -->
     <link rel="stylesheet" href="{% static 'css/output.css' %}">
     <!-- Временно оставляем старые CSS для постепенной миграции -->

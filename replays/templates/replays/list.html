@@ -4,6 +4,7 @@
 {% load custom_comments_tags %}
 {% load tz %}
 {% load comments %}
+{% load webp_tags %}
 {% block body_class %}replays index{% endblock %}
 {#{% block content_mod %}content--solo{% endblock %}#}
 {% block content %}
@@ -31,7 +32,7 @@
                     <!-- Первая новость - занимает 2/3 ширины и 2 ряда -->
                     <a href="{% url 'news:news_detail' news.id %}" class="md:col-span-2 md:row-span-2 group relative overflow-hidden rounded-2xl shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.02]">
                         {% if news.image %}
-                            <img src="{{ news.image.url }}" alt="{{ news.title }}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                            <img src="{{ news.image.url }}" alt="{{ news.title }}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="eager">
                         {% else %}
                             <div class="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
                                 <i class="fas fa-newspaper text-gray-700 text-6xl"></i>
@@ -61,7 +62,7 @@
                     <!-- Вторая и третья новости - занимают 1/3 ширины -->
                     <a href="{% url 'news:news_detail' news.id %}" class="group relative overflow-hidden rounded-2xl shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.02]">
                         {% if news.image %}
-                            <img src="{{ news.image.url }}" alt="{{ news.title }}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                            <img src="{{ news.image.url }}" alt="{{ news.title }}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy">
                         {% else %}
                             <div class="absolute inset-0 bg-gradient-to-br from-blue-900 to-blue-800 flex items-center justify-center">
                                 <i class="fas fa-newspaper text-blue-700 text-5xl"></i>
@@ -97,7 +98,7 @@
             <a class="btn btn--ghost {% if current_sort == 'damage' %}active{% endif %}"
                href="?{{ page_qs_prefix }}sort=damage&dir={{ next_dir.damage }}"
                title="Сортировать по урону">
-              <img src="{% static 'style/images/wot/library/BattleResultIcon-1.png' %}" alt="Damage" class="inline-block h-4 -translate-y-[3px]">
+              {% webp_image 'style/images/wot/library/BattleResultIcon-1.png' 'Damage' class='inline-block h-4 -translate-y-[3px]' %}
               Урон
               {% if current_sort == 'damage' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
             </a>
@@ -106,7 +107,7 @@
             <a class="btn btn--ghost {% if current_sort == 'credits' %}active{% endif %}"
                href="?{{ page_qs_prefix }}sort=credits&dir={{ next_dir.credits }}"
                title="Сортировать по кредитам">
-              <img src="{% static 'style/images/wot/library/CreditsIconBig.png' %}" alt="Credits" class="inline-block h-4 -translate-y-[3px]">
+              {% webp_image 'style/images/wot/library/CreditsIconBig.png' 'Credits' class='inline-block h-4 -translate-y-[3px]' %}
               Кредиты
               {% if current_sort == 'credits' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
             </a>
@@ -115,7 +116,7 @@
             <a class="btn btn--ghost {% if current_sort == 'xp' %}active{% endif %}"
                href="?{{ page_qs_prefix }}sort=xp&dir={{ next_dir.xp }}"
                title="Сортировать по опыту">
-              <img src="{% static 'style/images/wot/library/XpIconBig.png' %}" alt="XP" class="inline-block h-4 -translate-y-[3px]">
+              {% webp_image 'style/images/wot/library/XpIconBig.png' 'XP' class='inline-block h-4 -translate-y-[3px]' %}
               Опыт
               {% if current_sort == 'xp' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
             </a>
@@ -124,7 +125,7 @@
             <a class="btn btn--ghost {% if current_sort == 'kills' %}active{% endif %}"
                href="?{{ page_qs_prefix }}sort=kills&dir={{ next_dir.kills }}"
                title="Сортировать по фрагам">
-              <img src="{% static 'style/images/wot/buttons/Tank-ico.png' %}" alt="Kills" class="inline-block h-4 -translate-y-[3px]">
+              {% webp_image 'style/images/wot/buttons/Tank-ico.png' 'Kills' class='inline-block h-4 -translate-y-[3px]' %}
               Фраги
               {% if current_sort == 'kills' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
             </a>
@@ -133,7 +134,7 @@
             <a class="btn btn--ghost {% if current_sort == 'assist' %}active{% endif %}"
                href="?{{ page_qs_prefix }}sort=assist&dir={{ next_dir.assist }}"
                title="Сортировать по ассисту">
-              <img src="{% static 'style/images/wot/buttons/assist.png' %}" alt="Assist" class="inline-block h-4 -translate-y-[3px]">
+              {% webp_image 'style/images/wot/buttons/assist.png' 'Assist' class='inline-block h-4 -translate-y-[3px]' %}
               Ассист
               {% if current_sort == 'assist' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
             </a>
@@ -166,7 +167,7 @@
         <a class="btn btn--ghost {% if current_sort == 'block' %}active{% endif %}"
            href="?{{ page_qs_prefix }}sort=block&dir={{ next_dir.block }}"
            title="Сортировать по заблокированному урону">
-          <img src="{% static 'style/images/wot/buttons/blocked.png' %}" alt="Blocked" class="inline-block h-4 -translate-y-[3px]">
+          {% webp_image 'style/images/wot/buttons/blocked.png' 'Blocked' class='inline-block h-4 -translate-y-[3px]' %}
           Блок
           {% if current_sort == 'block' %}{% if current_dir == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
         </a>
@@ -235,22 +236,16 @@
                             {% endif %}
 
                         <div class="img-container">
-                            <!-- КАРТА -->
+                            <!-- КАРТА с WebP оптимизацией -->
                             {% if replay.map %}
-                                <img class="map"
-                                     src="{% static 'style/images/wot/map/stats/' %}{{ replay.map.map_name }}.png"
-                                     alt="{{ replay.map.map_display_name|default:replay.map.map_name }}"/>
+                                {% webp_image 'style/images/wot/map/stats/'|add:replay.map.map_name|add:'.png' replay.map.map_display_name|default:replay.map.map_name class='map' loading='lazy' %}
                             {% else %}
-                                <img class="map"
-                                     src="{% static 'maps/map_placeholder.jpg' %}"
-                                     alt="Неизвестная карта"/>
+                                {% webp_image 'maps/map_placeholder.jpg' 'Неизвестная карта' class='map' loading='lazy' %}
                             {% endif %}
 
-                            <!-- ТАНК -->
+                            <!-- ТАНК с WebP оптимизацией -->
                             {% if replay.tank %}
-                                <img class="tank"
-                                     src="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ replay.tank.vehicleId }}.png"
-                                     alt="{{ replay.tank.name }}"/>
+                                {% webp_image 'style/images/wot/shop/vehicles/180x135/'|add:replay.tank.vehicleId|add:'.png' replay.tank.name class='tank' loading='lazy' %}
                             {% endif %}
 
                             <span class="map-name">{{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}</span>
@@ -261,68 +256,20 @@
                             {% if replay.tank.type or replay.tank.level %}
                                 <div class="absolute right-2 top-2 flex items-center justify-end gap-1.5 z-[6]">
                                     {% if replay.tank.type %}
-                                        <span class="relative inline-flex h-[30px] w-[30px]">
-                                            <img
-                                                class="pointer-events-none absolute inset-0 h-full w-full select-none brightness-125 contrast-125 drop-shadow-[0_0_45px_rgba(0,0,0,1),0_0_28px_rgba(0,0,0,0.98),0_6px_22px_rgba(0,0,0,0.95)]"
-                                                src="{% static 'style/images/wot/vehicleTypes/' %}{{ replay.tank.type }}.png"
-                                                alt=""
-                                                aria-hidden="true"
-                                            />
-                                            <img
-                                                class="pointer-events-none absolute inset-0 h-full w-full select-none brightness-[150%] contrast-[145%] drop-shadow-[0_0_45px_rgba(0,0,0,1),0_0_28px_rgba(0,0,0,0.98),0_6px_22px_rgba(0,0,0,0.95)]"
-                                                src="{% static 'style/images/wot/vehicleTypes/' %}{{ replay.tank.type }}.png"
-                                                alt=""
-                                                aria-hidden="true"
-                                            />
-                                            <img
-                                                class="pointer-events-none absolute inset-0 h-full w-full select-none brightness-[135%] contrast-[140%] drop-shadow-[0_0_45px_rgba(0,0,0,1),0_0_28px_rgba(0,0,0,0.98),0_6px_22px_rgba(0,0,0,0.95)]"
-                                                src="{% static 'style/images/wot/vehicleTypes/' %}{{ replay.tank.type }}.png"
-                                                alt=""
-                                                aria-hidden="true"
-                                            />
-                                            <img
-                                                class="relative h-full w-full brightness-125 contrast-125 drop-shadow-[0_0_45px_rgba(0,0,0,1),0_0_28px_rgba(0,0,0,0.98),0_6px_22px_rgba(0,0,0,0.95)]"
-                                                src="{% static 'style/images/wot/vehicleTypes/' %}{{ replay.tank.type }}.png"
-                                                alt="Vehicle type"
-                                            />
-                                        </span>
+                                        {% webp_image 'style/images/wot/vehicleTypes/'|add:replay.tank.type|add:'.png' 'Vehicle type' class='h-[30px] w-[30px] brightness-125 contrast-125' style='filter: brightness(1.25) contrast(1.25) drop-shadow(0 0 45px rgba(0,0,0,1)) drop-shadow(0 0 28px rgba(0,0,0,0.98)) drop-shadow(0 6px 22px rgba(0,0,0,0.95));' loading='lazy' %}
                                     {% endif %}
-                                    {% if replay.tank.level %}
-                                        <span class="relative inline-flex h-[30px] w-[30px]">
-                                            <img
-                                                class="pointer-events-none absolute inset-0 h-full w-full select-none brightness-125 contrast-125 drop-shadow-[0_0_45px_rgba(0,0,0,1),0_0_28px_rgba(0,0,0,0.98),0_6px_22px_rgba(0,0,0,0.95)]"
-                                                src="{% static 'style/images/wot/levels/tank_level_' %}{{ replay.tank.level }}.png"
-                                                alt=""
-                                                aria-hidden="true"
-                                            />
-                                            <img
-                                                class="pointer-events-none absolute inset-0 h-full w-full select-none brightness-[150%] contrast-[145%] drop-shadow-[0_0_45px_rgba(0,0,0,1),0_0_28px_rgba(0,0,0,0.98),0_6px_22px_rgba(0,0,0,0.95)]"
-                                                src="{% static 'style/images/wot/levels/tank_level_' %}{{ replay.tank.level }}.png"
-                                                alt=""
-                                                aria-hidden="true"
-                                            />
-                                            <img
-                                                class="pointer-events-none absolute inset-0 h-full w-full select-none brightness-[135%] contrast-[140%] drop-shadow-[0_0_45px_rgba(0,0,0,1),0_0_28px_rgba(0,0,0,0.98),0_6px_22px_rgba(0,0,0,0.95)]"
-                                                src="{% static 'style/images/wot/levels/tank_level_' %}{{ replay.tank.level }}.png"
-                                                alt=""
-                                                aria-hidden="true"
-                                            />
-                                            <img
-                                                class="relative h-full w-full brightness-125 contrast-125 drop-shadow-[0_0_45px_rgba(0,0,0,1),0_0_28px_rgba(0,0,0,0.98),0_6px_22px_rgba(0,0,0,0.95)]"
-                                                src="{% static 'style/images/wot/levels/tank_level_' %}{{ replay.tank.level }}.png"
-                                                alt="Level {{ replay.tank.level }}"
-                                            />
-                                        </span>
-                                    {% endif %}
+                                    <picture>
+                                        <source srcset="{% static 'style/images/wot/levels/tank_level_' %}{{ replay.tank.level }}.webp" type="image/webp">
+                                        <img src="{% static 'style/images/wot/levels/tank_level_' %}{{ replay.tank.level }}.png" alt="Level {{ replay.tank.level }}" class="h-[30px] w-[30px] brightness-125 contrast-125" style="filter: brightness(1.25) contrast(1.25) drop-shadow(0 0 45px rgba(0,0,0,1)) drop-shadow(0 0 28px rgba(0,0,0,0.98)) drop-shadow(0 6px 22px rgba(0,0,0,0.95));" loading="lazy">
+                                    </picture>
                                 </div>
                             {% endif %}
 
-                            {% if replay.mastery %}
-                                <img
-                                    class="absolute left-1.5 bottom-1.5 h-12 w-12 md:h-14 md:w-14 drop-shadow-[0_4px_10px_rgba(0,0,0,0.85)] z-[6]"
-                                    src="{% static 'style/images/wot/library/proficiency/class_icons_' %}{{ replay.mastery }}.png"
-                                    alt="Mastery {{ replay.mastery }}"
-                                />
+                            {% if replay.mastery and replay.mastery != '0' and replay.mastery != 0 %}
+                                <picture>
+                                    <source srcset="{% static 'style/images/wot/library/proficiency/class_icons_' %}{{ replay.mastery }}.webp" type="image/webp">
+                                    <img src="{% static 'style/images/wot/library/proficiency/class_icons_' %}{{ replay.mastery }}.png" alt="Mastery {{ replay.mastery }}" class="absolute left-1.5 bottom-1.5 h-12 w-12 md:h-14 md:w-14 drop-shadow-[0_4px_10px_rgba(0,0,0,0.85)] z-[6]" loading="lazy">
+                                </picture>
                             {% endif %}
 
                             <!-- Убираю battleType пока нет этого поля в модели -->
@@ -374,29 +321,27 @@
                             <div class="table">
                                 <!-- Статистика из модели -->
                                 <div class="cell flex items-center gap-1">
-                                    <img src="{% static 'style/images/wot/library/CreditsIconBig.png' %}"
-                                         alt="Credits"/>
+                                    {% webp_image 'style/images/wot/library/CreditsIconBig.png' 'Credits' %}
                                     <span class="ml-0.5 inline-block w-16 text-left tabular-nums text-sm">{{ replay.credits|intcomma }}</span>
                                 </div>
                                 <div class="cell flex items-center gap-1">
-                                    <img src="{% static 'style/images/wot/library/XpIconBig.png' %}" alt="XP"/>
+                                    {% webp_image 'style/images/wot/library/XpIconBig.png' 'XP' %}
                                     <span class="ml-0.5 inline-block w-14 text-left tabular-nums text-sm">{{ replay.xp|intcomma }}</span>
                                 </div>
                                 <div class="cell flex items-center gap-1">
-                                    <img src="{% static 'style/images/wot/buttons/Tank-ico.png' %}" alt="Kills"/>
+                                    {% webp_image 'style/images/wot/buttons/Tank-ico.png' 'Kills' %}
                                     <span class="ml-0.5 inline-block w-6 text-left tabular-nums text-sm">{{ replay.kills }}</span>
                                 </div>
                                 <div class="cell flex items-center gap-1">
-                                    <img src="{% static 'style/images/wot/library/BattleResultIcon-1.png' %}"
-                                         alt="Damage"/>
+                                    {% webp_image 'style/images/wot/library/BattleResultIcon-1.png' 'Damage' %}
                                     <span class="ml-0.5 inline-block w-14 text-left tabular-nums text-sm">{{ replay.damage|intcomma }}</span>
                                 </div>
                                 <div class="cell flex items-center gap-1">
-                                    <img src="{% static 'style/images/wot/buttons/assist.png' %}" alt="Assist"/>
+                                    {% webp_image 'style/images/wot/buttons/assist.png' 'Assist' %}
                                     <span class="ml-0.5 inline-block w-14 text-left tabular-nums text-sm">{{ replay.assist|intcomma }}</span>
                                 </div>
                                 <div class="cell flex items-center gap-1">
-                                    <img src="{% static 'style/images/wot/buttons/blocked.png' %}" alt="Blocked"/>
+                                    {% webp_image 'style/images/wot/buttons/blocked.png' 'Blocked' %}
                                     <span class="ml-0.5 inline-block w-14 text-left tabular-nums text-sm">{{ replay.block|intcomma }}</span>
                                 </div>
                             </div>

@@ -621,7 +621,7 @@ img {
 }
 
 .tanks-image.win .battle-records {
-    background: url(../style/images/wot/battleresults/linewin.png) no-repeat center;
+    background: url(../style/images/wot/battleresults/linewin.webp) no-repeat center;
     background-size: 105% 100%
 }
 
@@ -810,7 +810,7 @@ img {
 }
 
 .tanks-image.win {
-    background: url(../style/images/wot/battleresults/win.png)
+    background: url(../style/images/wot/battleresults/win.webp)
 }
 
 .tanks-image.defeat {
@@ -1815,12 +1815,12 @@ table.tank-list.score th.xp div {
 }
 
 .hit-list table .row td {
-    background-image: url(../style/images/wot/battleresults/hit-list-bg.png);
+    background-image: url(../style/images/wot/battleresults/hit-list-bg.webp);
     background-repeat: no-repeat
 }
 
 .hit-list table .row.dead td {
-    background-image: url(../style/images/wot/battleresults/hit-list-bg-dead.png);
+    background-image: url(../style/images/wot/battleresults/hit-list-bg-dead.webp);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap

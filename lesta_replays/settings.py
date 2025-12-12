@@ -240,7 +240,31 @@ STORAGES = {
         "BACKEND": "lesta_replays.storage.ForgivingManifestStaticFilesStorage",
     },
 }
+
+# ===========================================================================
+# WHITENOISE ОПТИМИЗАЦИЯ - АГРЕССИВНОЕ КЕШИРОВАНИЕ СТАТИКИ
+# ===========================================================================
 WHITENOISE_MANIFEST_STRICT = False
+
+# Кеширование на 1 год (31536000 секунд) для всех статических файлов с хешами
+# WhiteNoise автоматически добавляет хеши к именам файлов, поэтому можно кешировать навсегда
+WHITENOISE_MAX_AGE = 31536000 if not DEBUG else 0
+
+# Immutable файлы - браузер никогда не будет перепроверять (Cache-Control: immutable)
+# None = все файлы с хешами считаются immutable
+WHITENOISE_IMMUTABLE_FILE_TEST = None
+
+# В продакшене не использовать Django finders (только collectstatic файлы)
+WHITENOISE_USE_FINDERS = DEBUG
+
+# Auto-refresh только в dev режиме (автоматическое обновление без collectstatic)
+WHITENOISE_AUTOREFRESH = DEBUG
+
+# Поддержка index.html файлов
+WHITENOISE_INDEX_FILE = True
+
+# Разрешить сжатие (gzip/brotli) для всех типов файлов
+WHITENOISE_SKIP_COMPRESS_EXTENSIONS = []
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]  # для dev
