@@ -118,6 +118,12 @@ class ReplayDataCache:
         """
         if self._player_id is None:
             self._player_id = self.first_block.get("playerID")
+            
+            # Если ID игрока 0, пробуем найти реальный ID в personal
+            if self._player_id == 0:
+                personal_data = self.personal
+                if personal_data:
+                    self._player_id = personal_data.get("accountDBID", 0)
         return self._player_id
 
     @property
@@ -160,8 +166,17 @@ class ReplayDataCache:
                     personal = first_result.get('personal', {})
                     if isinstance(personal, dict):
                         # Ищем данные текущего игрока
-                        player_id = self.player_id
-                        if player_id is not None:
+                        player_id = self.first_block.get("playerID")
+                        
+                        # Если playerID=0, берем первый доступный блок (кроме avatar)
+                        if player_id == 0:
+                            for key, value in personal.items():
+                                if key == 'avatar':
+                                    continue
+                                if isinstance(value, dict) and "accountDBID" in value:
+                                    self._personal = value
+                                    break
+                        elif player_id is not None:
                             # Проверяем плоскую структуру
                             if "accountDBID" in personal and personal.get("accountDBID") == player_id:
                                 self._personal = personal

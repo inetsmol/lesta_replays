@@ -182,6 +182,12 @@ def extract_replay_data(json_data: Union[str, dict]) -> dict:
         if not personal_section:
             return None
 
+        # Если ID игрока 0, берем первый попавшийся блок данных (кроме 'avatar')
+        if target_player_id == 0:
+            for key, data in personal_section.items():
+                if key != 'avatar' and isinstance(data, dict):
+                    return data
+
         # Ищем данные по accountDBID в каждом разделе personal
         for key, data in personal_section.items():
             if key == 'avatar':  # пропускаем секцию avatar
@@ -196,7 +202,7 @@ def extract_replay_data(json_data: Union[str, dict]) -> dict:
 
     # Находим ID игрока
     player_id = safe_get(data, 'playerID')
-    if not player_id:
+    if player_id is None:
         raise ValueError("Не найден playerID в данных реплея")
 
     personal_section = safe_get(data, 'personal', {})
@@ -206,6 +212,10 @@ def extract_replay_data(json_data: Union[str, dict]) -> dict:
     player_data = find_player_data(personal_section, player_id)
     if not player_data:
         raise ValueError(f"Не найдены персональные данные для игрока {player_id}")
+
+    # Если ID игрока был 0, берем реальный ID из персональных данных
+    if player_id == 0:
+        player_id = safe_get(player_data, 'accountDBID', 0)
 
     # Получаем дополнительные данные
     common_data = safe_get(data, 'common', {})

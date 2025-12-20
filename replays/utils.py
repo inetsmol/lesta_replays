@@ -119,7 +119,10 @@ def summarize_credits(data: Dict[str, Any]) -> Dict[str, Any]:
     comp = int(data.get("creditsContributionIn", 0))
 
     order_credits = int(data.get("orderCredits", 0)) # Боевые выплаты (сумма с премом?)
-    base_order_credits = order_credits * 100 // premium_credits_factor100
+    if premium_credits_factor100 > 0:
+        base_order_credits = order_credits * 100 // premium_credits_factor100
+    else:
+        base_order_credits = order_credits
 
     event_credits = int(data.get("eventCredits", 0)) # Бонус за боевые задачи и события
 

@@ -332,8 +332,11 @@ class ExtractorV2:
         # 3) Ищем персональные данные текущего игрока во втором элементе
         personal_data = None
         for p in ExtractorV2._iter_personal_blocks(personal_array):
-            if p.get("accountDBID") == player_id:
+            if player_id == 0 or p.get("accountDBID") == player_id:
                 personal_data = p
+                # Если ID игрока был 0, берем реальный ID из персональных данных
+                if player_id == 0:
+                    player_id = personal_data.get("accountDBID", 0)
                 break
 
         if not personal_data:
@@ -356,6 +359,7 @@ class ExtractorV2:
             "damage": personal_data.get("damageDealt", 0),
             "assist": ExtractorV2._calculate_total_assist(personal_data),
             "block": personal_data.get("damageBlockedByArmor", 0),
+            "player_id": player_id,
         }
         return fields
 
@@ -480,9 +484,15 @@ class ExtractorV2:
 
             # Получаем playerID - это и есть accountDBID владельца
             player_id = metadata.get('playerID')
-            if not player_id:
+            if player_id is None:
                 logger.warning("В metadata отсутствует playerID")
                 return {"accountDBID": 0, "real_name": "", "fake_name": "", "clan_tag": ""}
+
+            # Если playerID=0, попробуем взять реальный ID из персональных данных
+            if player_id == 0:
+                personal_data = ExtractorV2.get_personal_by_player_id(payload)
+                if personal_data:
+                    player_id = personal_data.get('accountDBID', 0)
 
             try:
                 account_id_int = int(player_id)
@@ -2231,7 +2241,7 @@ class ExtractorV2:
 
         # === ОПЫТ ===
         # первая победа
-        daily_xp_factor10 =  int(int(personal.get('dailyXPFactor10')) / 10)
+        daily_xp_factor10 =  int(int(personal.get('dailyXPFactor10', 10)) / 10)
         original_xp = int(personal.get('originalXP', 0))
         original_free_xp = int(personal.get('originalFreeXP', 0))
         event_xp = int(personal.get('eventXP', 0))
