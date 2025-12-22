@@ -784,9 +784,10 @@ class ReplayDetailView(DetailView):
         ach_battle = [a for a in wrapped_achievements if a.section in battle_sections]
         ach_nonbattle = [a for a in wrapped_achievements if a.section not in battle_sections]
 
-        # Сортируем в Python (данные уже загружены)
-        ach_battle.sort(key=lambda a: (-getattr(a, 'weight', 0.0), a.name))
-        ach_nonbattle.sort(key=lambda a: (-getattr(a, 'weight', 0.0), a.name))
+        # Сортируем по Order (Active achievements)
+        # Если order is None, ставим в конец (9999)
+        ach_battle.sort(key=lambda a: (getattr(a, 'order', 9999) or 9999, getattr(a, 'weight', 0.0), a.name))
+        ach_nonbattle.sort(key=lambda a: (getattr(a, 'order', 9999) or 9999, getattr(a, 'weight', 0.0), a.name))
 
         # Получаем данные об отметках на стволе
         marks_on_gun = cache.get_marks_on_gun()
@@ -846,22 +847,12 @@ class ReplayDetailView(DetailView):
             from replays.parser.extractor import ExtractorContext
             extractor_context = ExtractorContext(cache)
 
-            logger.debug(
-                f"Предзагружено: {len(tanks_cache)} танков, "
-                f"{len(achievements_nonbattle)} + {len(achievements_battle)} достижений, "
-                f"отметок на стволе: {marks_on_gun}, damageRating: {damage_rating}%"
-            )
-
             # ============================================================
             # ЭТАП 3: ИЗВЛЕЧЕНИЕ ДАННЫХ (с использованием кеша)
             # ============================================================
 
             # Персональные данные (минимальный набор полей)
             context['personal_data'] = ExtractorV2.get_personal_data_minimal(cache)
-
-            # Достижения
-            context['achievements_nonbattle'] = achievements_nonbattle
-            context['achievements_battle'] = achievements_battle
 
             # Мастерство
             m = int(self.object.mastery or 0)
@@ -881,12 +872,21 @@ class ReplayDetailView(DetailView):
             context['damage_rating'] = damage_rating
             context['has_marks_on_gun'] = marks_on_gun > 0
 
+            # ЛОГИКА ОГРАНИЧЕНИЙ
+            # Максимум 7 элементов: мастерство (0-1) + отметки на стволе (0-1) + обычные награды
+            limit_left = 7 - int(context['has_mastery']) - int(context['has_marks_on_gun'])
+            context['achievements_nonbattle'] = achievements_nonbattle[:limit_left]
+
+            # Справа показываем строго 6 наград
+            context['achievements_battle'] = achievements_battle[:6]
+
             # Подсчет значков (достижения + мастерство + отметки)
             context['achievements_count_in_badges'] = (
                 len(achievements_nonbattle) +
                 (1 if m > 0 else 0) +
                 (1 if marks_on_gun > 0 else 0)
             )
+            # Кол-во боевых (справа)
             context['achievements_battle_count'] = len(achievements_battle)
 
             # Получить данные об отметках из БД (если есть)
@@ -899,13 +899,8 @@ class ReplayDetailView(DetailView):
                     tank_nation = self.object.tank.nation if self.object.tank else None
                     if tank_nation and marks_data:
                         marks_image_url = marks_data.get_image_for_nation(tank_nation)
-
-                    logger.debug(
-                        f"Загружены данные об отметках: {marks_on_gun} отметка(и), "
-                        f"нация: {tank_nation}, изображение: {marks_image_url[:50] if marks_image_url else 'нет'}"
-                    )
                 except MarksOnGun.DoesNotExist:
-                    logger.warning(f"В БД не найдены данные для {marks_on_gun} отметок на стволе")
+                    pass
 
             context['marks_data'] = marks_data
             context['marks_image_url'] = marks_image_url
