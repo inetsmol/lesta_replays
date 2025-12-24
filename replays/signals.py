@@ -46,7 +46,7 @@ def sync_lesta_player(sender, request, sociallogin, **kwargs):
             accountDBID=account_id,
             defaults={
                 'real_name': nickname,
-                'name': nickname,  # Используем nickname как name (login)
+                'fake_name': nickname,  # Используем nickname как name (login)
             }
         )
 
