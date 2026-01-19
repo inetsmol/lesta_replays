@@ -22,6 +22,11 @@ from django.utils.encoding import escape_uri_path
 from django.views import View
 from django.views.generic import ListView, DetailView, TemplateView
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+
 from django_comments.models import Comment
 
 from .error_handlers import ReplayErrorHandler
@@ -1247,3 +1252,48 @@ class ReplayVoteView(LoginRequiredMixin, View):
             'liked': liked,
             'likes_count': replay.votes.count()
         })
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_replay_info(request):
+    """
+    API endpoint that returns replay information by URL.
+    Expects 'url' query parameter.
+    """
+    url = request.GET.get('url')
+    if not url:
+        return Response({"error": "URL parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    video_id = None
+    # Attempt to parse ID from URL like https://lesta-replays.ru/replays/13941/
+    try:
+        if '/replays/' in url:
+            parts = url.strip('/').split('/')
+            for part in reversed(parts):
+                if part.isdigit():
+                    video_id = int(part)
+                    break
+    except Exception:
+        pass
+
+    if not video_id:
+        return Response({"error": "Could not parse Replay ID from URL"}, status=status.HTTP_400_BAD_REQUEST)
+
+    replay = get_object_or_404(Replay, pk=video_id)
+
+    map_name = replay.map_display_name
+    if not map_name and replay.map:
+        map_name = replay.map.map_display_name
+
+    data = {
+        "id": replay.id,
+        "damage": replay.damage,
+        "kills": replay.kills,
+        "xp": replay.xp,
+        "credits": replay.credits,
+        "player_name": replay.owner.real_name if replay.owner else "Unknown",
+        "player_id": replay.owner.accountDBID if replay.owner else None,
+        "vehicle": replay.tank.name if replay.tank else "Unknown",
+        "map": map_name,
+        "battle_date": replay.battle_date,
+    }
+    return Response(data)

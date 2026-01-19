@@ -16,3 +16,6 @@ sentry-sdk[django]
 Pillow
 python-slugify
 django-vote
+
+djangorestframework
+djangorestframework-simplejwt

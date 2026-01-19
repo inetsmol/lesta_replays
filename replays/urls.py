@@ -3,7 +3,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from .views import ReplayListView, ReplayDetailView, ReplayDownloadView, AboutView, ReplayFiltersView, \
-    health, ReplayBatchUploadView, MyReplaysView, ReplayDeleteView, ReplayVoteView
+    health, ReplayBatchUploadView, MyReplaysView, ReplayDeleteView, ReplayVoteView, get_replay_info
 
 urlpatterns = [
     path('', ReplayListView.as_view(), name='replay_list'),
@@ -13,6 +13,7 @@ urlpatterns = [
     path('replays/<int:pk>/vote/', ReplayVoteView.as_view(), name='replay_vote'),
     path("replays/filters/", ReplayFiltersView.as_view(), name="replay_filters"),
     path('replays/upload/', ReplayBatchUploadView.as_view(), name='replay_upload'),
+    path('api/replay/', get_replay_info, name='api_replay_info'),
     path('<int:pk>/download/', ReplayDownloadView.as_view(), name='replay_download'),
     path("about/", AboutView.as_view(), name="about"),
     path('health/', health, name='health'),
