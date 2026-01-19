@@ -321,10 +321,6 @@
                             <div class="table">
                                 <!-- Статистика из модели -->
                                 <div class="cell flex items-center gap-1">
-                                    {% webp_image 'style/images/wot/library/CreditsIconBig.png' 'Credits' %}
-                                    <span class="ml-0.5 inline-block w-16 text-left tabular-nums text-sm">{{ replay.credits|intcomma }}</span>
-                                </div>
-                                <div class="cell flex items-center gap-1">
                                     {% webp_image 'style/images/wot/library/XpIconBig.png' 'XP' %}
                                     <span class="ml-0.5 inline-block w-14 text-left tabular-nums text-sm">{{ replay.xp|intcomma }}</span>
                                 </div>
@@ -343,6 +339,10 @@
                                 <div class="cell flex items-center gap-1">
                                     {% webp_image 'style/images/wot/buttons/blocked.png' 'Blocked' %}
                                     <span class="ml-0.5 inline-block w-14 text-left tabular-nums text-sm">{{ replay.block|intcomma }}</span>
+                                </div>
+                                <div class="cell flex items-center gap-1">
+                                    {% webp_image 'style/images/wot/library/CreditsIconBig.png' 'Credits' %}
+                                    <span class="ml-0.5 inline-block w-16 text-left tabular-nums text-sm">{{ replay.credits|intcomma }}</span>
                                 </div>
                             </div>
 
