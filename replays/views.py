@@ -25,7 +25,7 @@ from django.views.generic import ListView, DetailView, TemplateView
 from django_comments.models import Comment
 
 from .error_handlers import ReplayErrorHandler
-from .models import Replay, Tank, Nation, Achievement, MarksOnGun
+from .models import Replay, Tank, Nation, Achievement, MarksOnGun, Map
 from .parser.extractor import ExtractorV2
 from .services import ReplayProcessingService
 from .validators import BatchUploadValidator, ReplayFileValidator
@@ -368,7 +368,16 @@ class ReplayListView(ListView):
             # map search
             if map_search := self.request.GET.get("map_search"):
                 queryset = queryset.filter(map__map_display_name__icontains=map_search)
-                logger.debug(f"Фильтр по карте: {map_search}")
+            # map search (text)
+            if map_search := self.request.GET.get("map_search"):
+                queryset = queryset.filter(map__map_display_name__icontains=map_search)
+                logger.debug(f"Фильтр по карте (текст): {map_search}")
+
+            # maps (multi - checkbox)
+            map_ids = _to_int_set(_getlist("map"))
+            if map_ids:
+                queryset = queryset.filter(map_id__in=map_ids)
+                logger.debug(f"Фильтр по картам (ID): {map_ids}")
 
             # numeric ranges
             numeric = ["damage", "xp", "kills", "credits", "assist", "block"]
@@ -586,6 +595,7 @@ class ReplayFiltersView(TemplateView):
         ctx.update({
             "filter_data": {
                 "tanks": Tank.objects.order_by("level", "name"),
+                "maps": Map.objects.order_by("map_display_name"),
                 "nations": Nation.choices,
                 "tank_types": tank_types,
                 "levels": Tank.objects.order_by('level').values_list('level', flat=True).distinct(),

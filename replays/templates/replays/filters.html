@@ -24,13 +24,93 @@
             <div class="filter-section">
                 <h3 class="filter-section-title"><i class="fas fa-info-circle"></i> Основное</h3>
                 <div class="filter-grid grid-3">
-                    <div class="field-group">
-                        <label for="map_search">Карта</label>
+
+<style>
+    /* Стили для выпадающего списка карт */
+    .map-dropdown-wrapper {
+        position: relative;
+    }
+    .map-dropdown-container {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background-color: var(--surface-2, #2a2a32); /* Адаптация под темную тему */
+        border: 1px solid var(--border-color, #3f3f46);
+        border-radius: 0 0 8px 8px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        z-index: 1000;
+        display: none;
+        flex-direction: column;
+        max-height: 400px;
+        margin-top: 4px;
+    }
+    .map-dropdown-container.active {
+        display: flex;
+    }
+    .map-dropdown-container .list-header {
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border-color, #3f3f46);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: var(--surface-3, #32323a);
+    }
+    .map-dropdown-container .search-list {
+        overflow-y: auto;
+        padding: 4px 0;
+        max-height: 300px;
+    }
+    .map-dropdown-container .search-item {
+        padding: 6px 12px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .map-dropdown-container .search-item:hover {
+        background-color: rgba(255,255,255,0.05);
+    }
+    .btn-reset-sm {
+        background: none;
+        border: none;
+        color: var(--text-muted, #9ca3af);
+        cursor: pointer;
+        font-size: 0.85rem;
+        padding: 2px 6px;
+    }
+    .btn-reset-sm:hover {
+        color: var(--color-accent, #eab308);
+    }
+</style>
+
+                    <div class="field-group map-dropdown-wrapper">
+                        <label for="map_search_input">Карта</label>
                         <div class="input-wrapper">
                             <i class="fas fa-map"></i>
-                            <input type="search" id="map_search" name="map_search"
-                                   value="{{ current_filters.map_search.0|default_if_none:'' }}"
-                                   placeholder="Название карты...">
+                            <input type="search" id="map_search_input" placeholder="Выберите карты..." autocomplete="off">
+                            <i class="fas fa-chevron-down" style="position: absolute; right: 12px; pointer-events: none; opacity: 0.5;"></i>
+                        </div>
+                        
+                        <!-- Dropdown Container -->
+                        <div id="map-dropdown" class="map-dropdown-container">
+                            <div class="list-header">
+                                <span class="text-muted-sm">Всего: <span class="map-count">{{ filter_data.maps|length }}</span></span>
+                                <button type="button" class="btn-reset-sm" id="map-reset-btn">Сбросить</button>
+                            </div>
+                            {% with selected=current_filters.map|default:"" %}
+                            <div id="map-list" class="search-list scroller">
+                                {% for m in filter_data.maps %}
+                                    {% with mid=m.id|stringformat:"s" %}
+                                    <label class="search-item map-item" data-name="{{ m.map_display_name|lower }}">
+                                        <input type="checkbox" name="map" value="{{ mid }}"
+                                               {% if mid in selected %}checked{% endif %}>
+                                        <span class="item-name">{{ m.map_display_name }}</span>
+                                    </label>
+                                    {% endwith %}
+                                {% endfor %}
+                            </div>
+                            {% endwith %}
                         </div>
                     </div>
                     <div class="field-group">
@@ -300,6 +380,84 @@
     </section>
 
 <script>
+    // Логика выпадающего списка карт (Map Dropdown)
+    (function() {
+        const input = document.getElementById('map_search_input');
+        const dropdown = document.getElementById('map-dropdown');
+        const list = document.getElementById('map-list');
+        const count = document.querySelector('.map-count');
+        const resetBtn = document.getElementById('map-reset-btn');
+        if (!input || !dropdown || !list) return;
+
+        const items = Array.from(list.querySelectorAll('.map-item'));
+
+        // Функция обновления видимости элементов
+        const updateList = () => {
+            const q = input.value.trim().toLowerCase();
+            let visible = 0;
+            items.forEach(it => {
+                const name = it.dataset.name || '';
+                const ok = !q || name.includes(q);
+                it.style.display = ok ? 'flex' : 'none';
+                if (ok) visible++;
+            });
+            if (count) count.textContent = String(visible);
+        };
+
+        // Открытие дропдауна
+        const openDropdown = () => {
+            dropdown.classList.add('active');
+        };
+
+        // Закрытие дропдауна
+        const closeDropdown = () => {
+            dropdown.classList.remove('active');
+        };
+
+        // Тоггл по клику на инпут
+        input.addEventListener('focus', openDropdown);
+        input.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openDropdown();
+        });
+
+        // Фильтрация при вводе
+        input.addEventListener('input', () => {
+            updateList();
+            openDropdown();
+        });
+
+        // Закрытие при клике вне
+        document.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target) && e.target !== input) {
+                closeDropdown();
+            }
+        });
+
+        // Сброс выбора
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                items.forEach(it => {
+                    const cb = it.querySelector('input[type="checkbox"]');
+                    if (cb) cb.checked = false;
+                });
+                input.value = '';
+                updateList();
+            });
+        }
+        
+        // Предотвращение сабмита формы при Enter в инпуте карт
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                closeDropdown();
+            }
+        });
+
+        // Инициализация
+        updateList();
+    })();
+
     // Простой поиск по списку техники
     (function () {
         const search = document.getElementById('tank-search');
@@ -343,3 +501,4 @@
     })();
 </script>
 {% endblock %}
+
