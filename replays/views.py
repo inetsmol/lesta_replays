@@ -379,10 +379,27 @@ class ReplayListView(ListView):
                 logger.debug(f"Фильтр по карте (текст): {map_search}")
 
             # maps (multi - checkbox)
-            map_ids = _to_int_set(_getlist("map"))
-            if map_ids:
-                queryset = queryset.filter(map_id__in=map_ids)
-                logger.debug(f"Фильтр по картам (ID): {map_ids}")
+            # Support both ID (legacy) and Name (new)
+            map_values = _getlist("map")
+            if map_values:
+                map_ids = set()
+                map_names = set()
+                for v in map_values:
+                    # If it looks like ID (digit), treat as ID, otherwise assume name
+                    # Note: map names are strings, IDs are ints
+                    if v.isdigit():
+                        map_ids.add(int(v))
+                    else:
+                        map_names.add(v)
+                
+                q_maps = Q()
+                if map_ids:
+                    q_maps |= Q(map_id__in=map_ids)
+                if map_names:
+                    q_maps |= Q(map__map_display_name__in=map_names)
+                
+                queryset = queryset.filter(q_maps)
+                logger.debug(f"Фильтр по картам: IDs={map_ids}, Names={map_names}")
 
             # numeric ranges
             numeric = ["damage", "xp", "kills", "credits", "assist", "block"]
@@ -597,22 +614,44 @@ class ReplayFiltersView(TemplateView):
         ctx = super().get_context_data(**kwargs)
         tank_types = Tank.objects.values_list("type", flat=True).distinct().order_by("type")
 
+        # Получаем все версии и сортируем их в Python
+        # Deduplicate using set + strip to avoid duplicates like "1.26.0.0" vs "1.26.0.0 "
+        raw_versions_qs = (Replay.objects.values_list("game_version", flat=True)
+                          .exclude(game_version__isnull=True)
+                          .exclude(game_version__exact=""))
+        
+        raw_versions = set(v.strip() for v in raw_versions_qs if v and v.strip())
+
+        def version_key(v):
+            try:
+                # Преобразуем "1.26.0.0" -> [1, 26, 0, 0] для корректной сортировки
+                return [int(p) for p in v.split('.')]
+            except ValueError:
+                return [0]
+
+        game_versions = sorted(raw_versions, key=version_key)
+
+        current_filters = dict(self.request.GET.lists())
+
+        # Если фильтр по версиям не задан, выбираем последнюю (максимальную)
+        if 'game_version' not in current_filters and game_versions:
+            latest = game_versions[-1]
+            current_filters['game_version'] = [latest]
+
         ctx.update({
             "filter_data": {
                 "tanks": Tank.objects.order_by("level", "name"),
-                "maps": Map.objects.order_by("map_display_name"),
+                "maps": Map.objects.exclude(map_display_name="").values_list("map_display_name", flat=True).distinct().order_by("map_display_name"),
                 "nations": Nation.choices,
                 "tank_types": tank_types,
                 "levels": Tank.objects.order_by('level').values_list('level', flat=True).distinct(),
                 "mastery_choices": [(i, f"Знак {i}") for i in range(5)],
-                "game_versions": (Replay.objects.values_list("game_version", flat=True)
-                                  .exclude(game_version__isnull=True).exclude(game_version__exact="")
-                                  .distinct().order_by("game_version")),
+                "game_versions": game_versions,
                 "battle_types": (Replay.objects.values_list("battle_type", flat=True)
                                  .exclude(battle_type__isnull=True).exclude(battle_type__exact="")
                                  .distinct().order_by("battle_type")),
             },
-            "current_filters": dict(self.request.GET.lists()),  # если пришли из списка с префиллом
+            "current_filters": current_filters,
             "list_url": reverse("replay_list"),
         })
         return ctx

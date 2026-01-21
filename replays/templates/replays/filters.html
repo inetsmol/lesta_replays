@@ -23,14 +23,29 @@
             <!-- Основная информация -->
             <div class="filter-section">
                 <h3 class="filter-section-title"><i class="fas fa-info-circle"></i> Основное</h3>
-                <div class="filter-grid grid-3">
+                <div class="filter-grid grid-4">
 
 <style>
-    /* Стили для выпадающего списка карт */
-    .map-dropdown-wrapper {
+    /* Grid 4 columns */
+    .filter-grid.grid-4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    @media (max-width: 1200px) {
+        .filter-grid.grid-4 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    @media (max-width: 640px) {
+        .filter-grid.grid-4 {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Стили для выпадающего списка (Dropdown) */
+    .search-dropdown-wrapper {
         position: relative;
     }
-    .map-dropdown-container {
+    .search-dropdown-container {
         position: absolute;
         top: 100%;
         left: 0;
@@ -45,10 +60,10 @@
         max-height: 400px;
         margin-top: 4px;
     }
-    .map-dropdown-container.active {
+    .search-dropdown-container.active {
         display: flex;
     }
-    .map-dropdown-container .list-header {
+    .search-dropdown-container .list-header {
         padding: 8px 12px;
         border-bottom: 1px solid var(--border-color, #3f3f46);
         display: flex;
@@ -56,19 +71,19 @@
         align-items: center;
         background-color: var(--surface-3, #32323a);
     }
-    .map-dropdown-container .search-list {
+    .search-dropdown-container .search-list {
         overflow-y: auto;
         padding: 4px 0;
         max-height: 300px;
     }
-    .map-dropdown-container .search-item {
+    .search-dropdown-container .search-item {
         padding: 6px 12px;
         display: flex;
         align-items: center;
         cursor: pointer;
         transition: background-color 0.2s;
     }
-    .map-dropdown-container .search-item:hover {
+    .search-dropdown-container .search-item:hover {
         background-color: rgba(255,255,255,0.05);
     }
     .btn-reset-sm {
@@ -84,7 +99,7 @@
     }
 </style>
 
-                    <div class="field-group map-dropdown-wrapper">
+                    <div class="field-group search-dropdown-wrapper">
                         <label for="map_search_input">Карта</label>
                         <div class="input-wrapper">
                             <i class="fas fa-map"></i>
@@ -93,26 +108,57 @@
                         </div>
                         
                         <!-- Dropdown Container -->
-                        <div id="map-dropdown" class="map-dropdown-container">
+                        <div id="map-dropdown" class="search-dropdown-container">
                             <div class="list-header">
-                                <span class="text-muted-sm">Всего: <span class="map-count">{{ filter_data.maps|length }}</span></span>
+                                <span class="text-muted-sm">Всего: <span id="map-count" class="item-count">{{ filter_data.maps|length }}</span></span>
                                 <button type="button" class="btn-reset-sm" id="map-reset-btn">Сбросить</button>
                             </div>
                             {% with selected=current_filters.map|default:"" %}
                             <div id="map-list" class="search-list scroller">
-                                {% for m in filter_data.maps %}
-                                    {% with mid=m.id|stringformat:"s" %}
-                                    <label class="search-item map-item" data-name="{{ m.map_display_name|lower }}">
-                                        <input type="checkbox" name="map" value="{{ mid }}"
-                                               {% if mid in selected %}checked{% endif %}>
-                                        <span class="item-name">{{ m.map_display_name }}</span>
+                                {% for map_name in filter_data.maps %}
+                                    <label class="search-item map-item" data-name="{{ map_name|lower }}">
+                                        <input type="checkbox" name="map" value="{{ map_name }}"
+                                               {% if map_name in selected %}checked{% endif %}>
+                                        <span class="item-name">{{ map_name }}</span>
                                     </label>
+                                {% endfor %}
+                            </div>
+                            {% endwith %}
+                        </div>
+                    </div>
+
+                    <!-- Версия игры (Dropdown) -->
+                    <div class="field-group search-dropdown-wrapper">
+                        <label for="gv_search_input">Версия клиента</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-code-branch"></i>
+                            <input type="search" id="gv_search_input" placeholder="Выберите версии..." autocomplete="off"
+                                   {% if current_filters.game_version|length == 1 %}value="{{ current_filters.game_version.0 }}"{% endif %}>
+                            <i class="fas fa-chevron-down" style="position: absolute; right: 12px; pointer-events: none; opacity: 0.5;"></i>
+                        </div>
+                        
+                        <!-- Dropdown Container -->
+                        <div id="gv-dropdown" class="search-dropdown-container">
+                            <div class="list-header">
+                                <span class="text-muted-sm">Всего: <span id="gv-count" class="item-count">{{ filter_data.game_versions|length }}</span></span>
+                                <button type="button" class="btn-reset-sm" id="gv-reset-btn">Сбросить</button>
+                            </div>
+                            {% with selected=current_filters.game_version|default:"" %}
+                            <div id="gv-list" class="search-list scroller">
+                                {% for v in filter_data.game_versions %}
+                                    {% with sv=v|stringformat:"s" %}
+                                        <label class="search-item gv-item" data-name="{{ v|lower }}">
+                                            <input type="checkbox" name="game_version" value="{{ sv }}"
+                                                   {% if sv in selected %}checked{% endif %}>
+                                            <span class="item-name">{{ v }}</span>
+                                        </label>
                                     {% endwith %}
                                 {% endfor %}
                             </div>
                             {% endwith %}
                         </div>
                     </div>
+
                     <div class="field-group">
                         <label for="date_from">Дата боя (с)</label>
                         <div class="input-wrapper">
@@ -126,120 +172,6 @@
                             <input type="date" id="date_to" name="date_to"
                                    value="{{ current_filters.date_to.0|default_if_none:'' }}">
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <hr class="filter-divider">
-
-            <!-- Игроки и Описание -->
-            <div class="filter-section">
-                <h3 class="filter-section-title"><i class="fas fa-users"></i> Участники и Описание</h3>
-                <div class="filter-grid grid-3">
-                    <div class="field-group">
-                        <label for="owner_nick">Ник владельца</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-user"></i>
-                            <input type="search" id="owner_nick" name="owner_nick"
-                                   value="{{ current_filters.owner_nick.0|default_if_none:'' }}"
-                                   placeholder="Напр.: unknowns2002">
-                        </div>
-                    </div>
-                    <div class="field-group">
-                        <label for="participant_nick">Ник участника</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-user-friends"></i>
-                            <input type="search" id="participant_nick" name="participant_nick"
-                                   value="{{ current_filters.participant_nick.0|default_if_none:'' }}"
-                                   placeholder="Любой игрок...">
-                        </div>
-                        <div class="help-text">Поиск по всем участникам боя</div>
-                    </div>
-                    <div class="field-group">
-                        <label for="owner_clan">Клан игрока</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-shield-alt"></i>
-                            <input type="search" id="owner_clan" name="owner_clan"
-                                   value="{{ current_filters.owner_clan.0|default_if_none:'' }}"
-                                   placeholder="Напр.: RED">
-                        </div>
-                    </div>
-                    <div class="field-group span-3">
-                        <label for="short_description">Описание</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-align-left"></i>
-                            <input type="search" id="short_description" name="short_description"
-                                   value="{{ current_filters.short_description.0|default_if_none:'' }}"
-                                   placeholder="Текст из описания реплея...">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <hr class="filter-divider">
-
-            <!-- Результаты боя -->
-            <div class="filter-section">
-                <h3 class="filter-section-title"><i class="fas fa-trophy"></i> Результаты</h3>
-                <div class="filter-grid grid-3">
-                    <div class="field-group">
-                        <label>Урон</label>
-                        <div class="range-inputs">
-                            <input type="number" name="damage_min" placeholder="От"
-                                   value="{{ current_filters.damage_min.0|default_if_none:'' }}">
-                            <span class="separator">—</span>
-                            <input type="number" name="damage_max" placeholder="До"
-                                   value="{{ current_filters.damage_max.0|default_if_none:'' }}">
-                        </div>
-                    </div>
-                    <div class="field-group">
-                        <label>Фраги</label>
-                        <div class="range-inputs">
-                            <input type="number" name="kills_min" placeholder="От"
-                                   value="{{ current_filters.kills_min.0|default_if_none:'' }}">
-                            <span class="separator">—</span>
-                            <input type="number" name="kills_max" placeholder="До"
-                                   value="{{ current_filters.kills_max.0|default_if_none:'' }}">
-                        </div>
-                    </div>
-                    
-                    {% with vic=current_filters.victory.0 %}
-                    <div class="field-group">
-                        <label>Исход боя</label>
-                        <div class="chip-group">
-                            <label class="chip-radio">
-                                <input type="radio" name="victory" value="" {% if not vic %}checked{% endif %}>
-                                <span>Любой</span>
-                            </label>
-                            <label class="chip-radio win">
-                                <input type="radio" name="victory" value="win" {% if vic == 'win' %}checked{% endif %}>
-                                <span>Победа</span>
-                            </label>
-                            <label class="chip-radio loss">
-                                <input type="radio" name="victory" value="loss" {% if vic == 'loss' %}checked{% endif %}>
-                                <span>Поражение</span>
-                            </label>
-                        </div>
-                    </div>
-                    {% endwith %}
-
-                    <div class="field-group span-3">
-                        <label>Знак классности</label>
-                        {% with selected=current_filters.mastery|default:"" %}
-                        <div class="chip-group">
-                            {% for val,label in filter_data.mastery_choices %}
-                                {% with sval=val|stringformat:"s" %}
-                                    <label class="chip-check mastery-{{ val }}">
-                                        <input type="checkbox" name="mastery" value="{{ sval }}"
-                                               {% if sval in selected %}checked{% endif %}>
-                                        <span>
-                                            {% if val == 4 %}Мастер{% elif val == 3 %}1 степень{% elif val == 2 %}2 степень{% elif val == 1 %}3 степень{% else %}Без знака{% endif %}
-                                        </span>
-                                    </label>
-                                {% endwith %}
-                            {% endfor %}
-                        </div>
-                        {% endwith %}
                     </div>
                 </div>
             </div>
@@ -339,33 +271,118 @@
                             {% endwith %}
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <!-- Версия игры -->
-                    <div class="field-group search-widget">
-                        <label for="gv-search">Версия клиента</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-code-branch"></i>
-                            <input type="search" id="gv-search" placeholder="Поиск версии..."
-                                   value="{{ current_filters.game_version_search.0|default_if_none:'' }}"
-                                   name="game_version_search">
+            <hr class="filter-divider">
+
+            <!-- Результаты боя -->
+            <div class="filter-section">
+                <h3 class="filter-section-title"><i class="fas fa-trophy"></i> Результаты</h3>
+                <div class="filter-grid grid-3">
+                    <div class="field-group">
+                        <label>Урон</label>
+                        <div class="range-inputs">
+                            <input type="number" name="damage_min" placeholder="От"
+                                   value="{{ current_filters.damage_min.0|default_if_none:'' }}">
+                            <span class="separator">—</span>
+                            <input type="number" name="damage_max" placeholder="До"
+                                   value="{{ current_filters.damage_max.0|default_if_none:'' }}">
                         </div>
-                        <div class="search-list-container">
-                            <div class="list-header">
-                                <span class="text-muted-sm">Всего: <span class="gv-count">{{ filter_data.game_versions|length }}</span></span>
-                            </div>
-                            {% with selected=current_filters.game_version|default:"" %}
-                            <div id="gv-list" class="search-list">
-                                {% for v in filter_data.game_versions %}
-                                    {% with sv=v|stringformat:"s" %}
-                                        <label class="search-item gv-item" data-name="{{ v|lower }}">
-                                            <input type="checkbox" name="game_version" value="{{ sv }}"
-                                                   {% if sv in selected %}checked{% endif %}>
-                                            <span class="item-name">{{ v }}</span>
-                                        </label>
-                                    {% endwith %}
-                                {% endfor %}
-                            </div>
-                            {% endwith %}
+                    </div>
+                    <div class="field-group">
+                        <label>Фраги</label>
+                        <div class="range-inputs">
+                            <input type="number" name="kills_min" placeholder="От"
+                                   value="{{ current_filters.kills_min.0|default_if_none:'' }}">
+                            <span class="separator">—</span>
+                            <input type="number" name="kills_max" placeholder="До"
+                                   value="{{ current_filters.kills_max.0|default_if_none:'' }}">
+                        </div>
+                    </div>
+                    
+                    {% with vic=current_filters.victory.0 %}
+                    <div class="field-group">
+                        <label>Исход боя</label>
+                        <div class="chip-group">
+                            <label class="chip-radio">
+                                <input type="radio" name="victory" value="" {% if not vic %}checked{% endif %}>
+                                <span>Любой</span>
+                            </label>
+                            <label class="chip-radio win">
+                                <input type="radio" name="victory" value="win" {% if vic == 'win' %}checked{% endif %}>
+                                <span>Победа</span>
+                            </label>
+                            <label class="chip-radio loss">
+                                <input type="radio" name="victory" value="loss" {% if vic == 'loss' %}checked{% endif %}>
+                                <span>Поражение</span>
+                            </label>
+                        </div>
+                    </div>
+                    {% endwith %}
+
+                    <div class="field-group span-3">
+                        <label>Знак классности</label>
+                        {% with selected=current_filters.mastery|default:"" %}
+                        <div class="chip-group">
+                            {% for val,label in filter_data.mastery_choices %}
+                                {% with sval=val|stringformat:"s" %}
+                                    <label class="chip-check mastery-{{ val }}">
+                                        <input type="checkbox" name="mastery" value="{{ sval }}"
+                                               {% if sval in selected %}checked{% endif %}>
+                                        <span>
+                                            {% if val == 4 %}Мастер{% elif val == 3 %}1 степень{% elif val == 2 %}2 степень{% elif val == 1 %}3 степень{% else %}Без знака{% endif %}
+                                        </span>
+                                    </label>
+                                {% endwith %}
+                            {% endfor %}
+                        </div>
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+
+            <hr class="filter-divider">
+
+            <!-- Игроки и Описание -->
+            <div class="filter-section">
+                <h3 class="filter-section-title"><i class="fas fa-users"></i> Участники и Описание</h3>
+                <div class="filter-grid grid-3">
+                    <div class="field-group">
+                        <label for="owner_nick">Ник владельца</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user"></i>
+                            <input type="search" id="owner_nick" name="owner_nick"
+                                   value="{{ current_filters.owner_nick.0|default_if_none:'' }}"
+                                   placeholder="Напр.: unknowns2002">
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label for="participant_nick">Ник участника</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user-friends"></i>
+                            <input type="search" id="participant_nick" name="participant_nick"
+                                   value="{{ current_filters.participant_nick.0|default_if_none:'' }}"
+                                   placeholder="Любой игрок...">
+                        </div>
+                        <div class="help-text">Поиск по всем участникам боя</div>
+                    </div>
+                    <div class="field-group">
+                        <label for="owner_clan">Клан игрока</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-shield-alt"></i>
+                            <input type="search" id="owner_clan" name="owner_clan"
+                                   value="{{ current_filters.owner_clan.0|default_if_none:'' }}"
+                                   placeholder="Напр.: RED">
+                        </div>
+                    </div>
+                    <div class="field-group span-3">
+                        <label for="short_description">Описание</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-align-left"></i>
+                            <input type="search" id="short_description" name="short_description"
+                                   value="{{ current_filters.short_description.0|default_if_none:'' }}"
+                                   placeholder="Текст из описания реплея...">
                         </div>
                     </div>
                 </div>
@@ -380,16 +397,26 @@
     </section>
 
 <script>
-    // Логика выпадающего списка карт (Map Dropdown)
-    (function() {
-        const input = document.getElementById('map_search_input');
-        const dropdown = document.getElementById('map-dropdown');
-        const list = document.getElementById('map-list');
-        const count = document.querySelector('.map-count');
-        const resetBtn = document.getElementById('map-reset-btn');
+    // Универсальная логика для выпадающих списков (Dropdowns)
+    function initDropdown(opts) {
+        const {
+            inputId,
+            dropdownId,
+            listId,
+            countId,
+            resetBtnId,
+            itemSelector
+        } = opts;
+
+        const input = document.getElementById(inputId);
+        const dropdown = document.getElementById(dropdownId);
+        const list = document.getElementById(listId);
+        const count = document.getElementById(countId);
+        const resetBtn = document.getElementById(resetBtnId);
+
         if (!input || !dropdown || !list) return;
 
-        const items = Array.from(list.querySelectorAll('.map-item'));
+        const items = Array.from(list.querySelectorAll(itemSelector));
 
         // Функция обновления видимости элементов
         const updateList = () => {
@@ -446,7 +473,7 @@
             });
         }
         
-        // Предотвращение сабмита формы при Enter в инпуте карт
+        // Предотвращение сабмита формы при Enter в инпуте
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -456,49 +483,89 @@
 
         // Инициализация
         updateList();
-    })();
+    }
 
-    // Простой поиск по списку техники
+    // Инициализация карты
+    initDropdown({
+        inputId: 'map_search_input',
+        dropdownId: 'map-dropdown',
+        listId: 'map-list',
+        countId: 'map-count',
+        resetBtnId: 'map-reset-btn',
+        itemSelector: '.map-item'
+    });
+
+    // Инициализация версии клиента
+    initDropdown({
+        inputId: 'gv_search_input',
+        dropdownId: 'gv-dropdown',
+        listId: 'gv-list',
+        countId: 'gv-count',
+        resetBtnId: 'gv-reset-btn',
+        itemSelector: '.gv-item'
+    });
+
+
+    // Комплексная фильтрация списка техники
     (function () {
-        const search = document.getElementById('tank-search');
+        const searchInput = document.getElementById('tank-search');
         const list = document.getElementById('tank-list');
         const count = document.querySelector('.tank-count');
-        if (!search || !list) return;
-        const items = Array.from(list.querySelectorAll('.tank-item'));
-        const update = () => {
-            const q = search.value.trim().toLowerCase();
-            let visible = 0;
-            items.forEach(it => {
-                const ok = !q || (it.dataset.name || '').includes(q);
-                it.style.display = ok ? 'flex' : 'none';
-                if (ok) visible++;
-            });
-            if (count) count.textContent = String(visible);
-        };
-        search.addEventListener('input', update);
-        update();
-    })();
 
-    // Фильтр по списку версий клиента
-    (function () {
-        const search = document.getElementById('gv-search');
-        const list = document.getElementById('gv-list');
-        const count = document.querySelector('.gv-count');
-        if (!search || !list) return;
-        const items = Array.from(list.querySelectorAll('.gv-item'));
-        const update = () => {
-            const q = (search.value || '').trim().toLowerCase();
-            let visible = 0;
-            items.forEach(it => {
-                const ok = !q || (it.dataset.name || '').includes(q);
-                it.style.display = ok ? 'flex' : 'none';
-                if (ok) visible++;
+        if (!searchInput || !list) return;
+
+        const items = Array.from(list.querySelectorAll('.tank-item'));
+
+        // Селекторы фильтров: нация, уровень, тип
+        // Они находятся вне формы, но мы можем найти их по name
+        const getNations = () => Array.from(document.querySelectorAll('input[name="nation"]:checked')).map(el => el.value);
+        const getLevels = () => Array.from(document.querySelectorAll('input[name="level"]:checked')).map(el => el.value);
+        const getTypes = () => Array.from(document.querySelectorAll('input[name="type"]:checked')).map(el => el.value);
+
+        const updateList = () => {
+            const query = searchInput.value.trim().toLowerCase();
+            const selectedNations = getNations();
+            const selectedLevels = getLevels();
+            const selectedTypes = getTypes();
+
+            let visibleCount = 0;
+
+            items.forEach(item => {
+                const name = (item.dataset.name || '').toLowerCase();
+                const nation = item.dataset.nation || '';
+                const level = item.dataset.level || '';
+                const type = item.dataset.type || '';
+
+                // Проверка по текстовому поиску
+                const matchesSearch = !query || name.includes(query);
+
+                // Проверка по фильтрам (если фильтр не выбран — подходит всё)
+                const matchesNation = selectedNations.length === 0 || selectedNations.includes(nation);
+                const matchesLevel = selectedLevels.length === 0 || selectedLevels.includes(level);
+                // Типы в базе могут отличаться от фильтров, но здесь мы используем точное совпадение значений
+                const matchesType = selectedTypes.length === 0 || selectedTypes.includes(type);
+
+                const isVisible = matchesSearch && matchesNation && matchesLevel && matchesType;
+                
+                item.style.display = isVisible ? 'flex' : 'none';
+                if (isVisible) visibleCount++;
             });
-            if (count) count.textContent = String(visible);
+
+            if (count) count.textContent = String(visibleCount);
         };
-        search.addEventListener('input', update);
-        update();
+
+        // Слушаем изменения в текстовом поле
+        searchInput.addEventListener('input', updateList);
+
+        // Слушаем изменения в чекбоксах фильтров
+        // Находим все чекбоксы групп
+        const filterInputs = document.querySelectorAll('input[name="nation"], input[name="level"], input[name="type"]');
+        filterInputs.forEach(input => {
+            input.addEventListener('change', updateList);
+        });
+
+        // Инициализация при загрузке
+        updateList();
     })();
 </script>
 {% endblock %}
-
