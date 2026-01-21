@@ -633,11 +633,6 @@ class ReplayFiltersView(TemplateView):
 
         current_filters = dict(self.request.GET.lists())
 
-        # Если фильтр по версиям не задан, выбираем последнюю (максимальную)
-        if 'game_version' not in current_filters and game_versions:
-            latest = game_versions[-1]
-            current_filters['game_version'] = [latest]
-
         ctx.update({
             "filter_data": {
                 "tanks": Tank.objects.order_by("level", "name"),
