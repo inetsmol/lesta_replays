@@ -822,13 +822,104 @@
 
   <div class="card" style="margin-top: 0.5rem; background: #14120e; padding: 20px; border-radius: 5px;">
     <div class="card-body">
-                {% if replay.short_description %}
-                    <div class="title text-lg font-semibold text-white" style="margin-bottom: 2rem;">{{ replay.short_description }}</div>
-                {% else %}
-                    <div class="title text-lg font-semibold text-white" style="margin-bottom: 2rem;">
-                        {{ replay.tank.name|default:'Неизвестный танк' }} • {{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}
+                <div class="description-header" style="margin-bottom: 2rem;">
+                    <div id="desc-container">
+                        {% if replay.short_description %}
+                            <div class="title text-lg font-semibold text-white">{{ replay.short_description }}</div>
+                        {% else %}
+                            <div class="title text-lg font-semibold text-white">
+                                {{ replay.tank.name|default:'Неизвестный танк' }} • {{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}
+                            </div>
+                        {% endif %}
                     </div>
-                {% endif %}
+
+                    {% if user == replay.user %}
+                        <div style="margin-top: 0.5rem;">
+                            <button id="edit-desc-btn" class="btn btn--ghost btn--small" style="padding: 4px 12px; font-size: 13px; opacity: 0.8;">
+                                {% if replay.short_description %}
+                                    <i class="fas fa-pencil-alt"></i> Редактировать описание
+                                {% else %}
+                                    <i class="fas fa-plus"></i> Добавить описание
+                                {% endif %}
+                            </button>
+                        </div>
+
+                        <div id="edit-desc-form" style="display:none; margin-top: 10px; max-width: 600px;">
+                            <input type="text" id="desc-input" class="form-control" 
+                                   value="{{ replay.short_description|default:'' }}" 
+                                   maxlength="60"
+                                   placeholder="Введите краткое описание (до 60 символов)..."
+                                   style="width: 100%; padding: 8px; margin-bottom: 10px; background-color: #1f1f1f; border: 1px solid #444; color: #fff; border-radius: 4px;">
+                            
+                            <div style="display: flex; gap: 10px;">
+                                <button id="save-desc-btn" class="btn big-red-button" style="padding: 5px 15px; font-size: 14px;">Сохранить</button>
+                                <button id="cancel-desc-btn" class="btn btn--ghost btn--small">Отмена</button>
+                            </div>
+                        </div>
+
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const editBtn = document.getElementById('edit-desc-btn');
+                                const formDiv = document.getElementById('edit-desc-form');
+                                const descContainer = document.getElementById('desc-container');
+                                const input = document.getElementById('desc-input');
+                                const saveBtn = document.getElementById('save-desc-btn');
+                                const cancelBtn = document.getElementById('cancel-desc-btn');
+                                
+                                if (editBtn) {
+                                    editBtn.addEventListener('click', function() {
+                                        editBtn.style.display = 'none';
+                                        descContainer.style.display = 'none';
+                                        formDiv.style.display = 'block';
+                                        input.focus();
+                                    });
+                                    
+                                    cancelBtn.addEventListener('click', function() {
+                                        formDiv.style.display = 'none';
+                                        descContainer.style.display = 'block';
+                                        editBtn.style.display = 'inline-block';
+                                        // Reset value to original
+                                        input.value = "{{ replay.short_description|escapejs }}"; 
+                                    });
+                                    
+                                    saveBtn.addEventListener('click', function() {
+                                        const newDesc = input.value;
+                                        
+                                        // Simple spinner or disable
+                                        saveBtn.disabled = true;
+                                        saveBtn.innerText = 'Сохранение...';
+
+                                        fetch("{% url 'replay_update_description' replay.pk %}", {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'X-CSRFToken': '{{ csrf_token }}'
+                                            },
+                                            body: JSON.stringify({short_description: newDesc})
+                                        })
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            if (data.success) {
+                                                // Reload to update the view (handle fallback logic etc)
+                                                window.location.reload();
+                                            } else {
+                                                alert('Ошибка: ' + (data.error || 'Unknown error'));
+                                                saveBtn.disabled = false;
+                                                saveBtn.innerText = 'Сохранить';
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error('Error:', error);
+                                            alert('Ошибка сети');
+                                            saveBtn.disabled = false;
+                                            saveBtn.innerText = 'Сохранить';
+                                        });
+                                    });
+                                }
+                            });
+                        </script>
+                    {% endif %}
+                </div>
       <h2 class="card-title" style="color: #c3c3c3; margin-bottom: 1rem; font-size: 1.75rem; font-weight: bold; margin-top: 1.5rem;">Комментарии</h2>
       <hr style="border-color: #333;"/>
 

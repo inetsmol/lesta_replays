@@ -652,6 +652,32 @@ class ReplayFiltersView(TemplateView):
         return ctx
 
 
+class ReplayUpdateDescriptionView(LoginRequiredMixin, View):
+    """
+    AJAX-обновление поля short_description.
+    """
+    def post(self, request, pk):
+        replay = get_object_or_404(Replay, pk=pk)
+
+        if replay.user != request.user:
+            return JsonResponse({"success": False, "error": "Вы не можете редактировать этот реплей."}, status=403)
+
+        try:
+            import json
+            data = json.loads(request.body)
+            new_desc = data.get("short_description", "").strip()
+            # Обрезаем до 60 символов как в модели
+            new_desc = new_desc[:60]
+            
+            replay.short_description = new_desc
+            replay.save(update_fields=['short_description'])
+            
+            return JsonResponse({"success": True, "short_description": replay.short_description})
+        except Exception as e:
+            logger.exception(f"Ошибка при обновлении описания: {e}")
+            return JsonResponse({"success": False, "error": "Ошибка при сохранении"}, status=400)
+
+
 class ReplayDetailView(DetailView):
     """
     Детальная страница реплея с полным анализом данных боя.
