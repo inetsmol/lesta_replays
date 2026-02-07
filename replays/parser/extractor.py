@@ -1936,7 +1936,7 @@ class ExtractorV2:
             "capture_points": int(vstats.get("capturePoints", 0)),
             "defense_points": int(vstats.get("droppedCapturePoints", 0)),
             "distance": round(int(vstats.get("mileage", 0)) / 1000, 2),  # в км
-            "xp": int(vstats.get("xp", 0)),
+            "xp": int(vstats.get("xp", 0)) - int(vstats.get("achievementXP", 0)),
 
             # Специальные поля для арты
             "stun_damage": int(vstats.get("damageAssistedStun", 0)),

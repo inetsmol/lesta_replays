@@ -202,10 +202,20 @@ def summarize_xp(data: Dict[str, Any]) -> Dict[str, Any]:
       • eff_mult = max(dailyXPFactor10, additionalXPFactor10) // 10   (т.е. x1/x2/x3).
     """
     # База/прем начислено
-    base_xp   = int(data.get("originalXP", 0))
-    base_free = int(data.get("originalFreeXP", 0))
-    prem_xp   = int(data.get("subtotalXP", 0))
-    prem_free = int(data.get("subtotalFreeXP", 0))
+    achievement_xp = int(data.get("achievementXP", 0))
+    base_xp   = int(data.get("originalXP", 0)) - achievement_xp
+    
+    premium_xp_factor100 = int(data.get("premiumXPFactor100", 100))
+    premium_factor = premium_xp_factor100 / 100.0
+    premium_achievement_xp = int(achievement_xp * premium_factor)
+    
+    # 5% от опыта идет в свободный опыт
+    achievement_free_xp = int(achievement_xp * 0.05)
+    premium_achievement_free_xp = int(premium_achievement_xp * 0.05)
+
+    base_free = int(data.get("originalFreeXP", 0)) - achievement_free_xp
+    prem_xp   = int(data.get("subtotalXP", 0)) - premium_achievement_xp
+    prem_free = int(data.get("subtotalFreeXP", 0)) - premium_achievement_free_xp
 
     # Что даёт клиент «как есть»
     factual_xp       = data.get("factualXP")
