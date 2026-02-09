@@ -15,6 +15,106 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/replay-detail.css' %}">
 
+{% if show_anti_abuse_banner %}
+<div id="anti-abuse-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px);">
+    <div class="anti-abuse-modal" style="background: #1f1f1f; padding: 40px; border-radius: 12px; border: 1px solid #ff4458; text-align: center; max-width: 600px; box-shadow: 0 0 30px rgba(255, 68, 88, 0.4); position: relative; overflow: hidden;">
+        
+        <!-- Background Glow -->
+        <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,68,88,0.1) 0%, rgba(0,0,0,0) 70%); z-index: 0; pointer-events: none;"></div>
+        
+        <div style="position: relative; z-index: 1;">
+            <div style="margin-bottom: 20px;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="#ff4458" style="display: inline-block;">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                </svg>
+            </div>
+
+            <h2 style="color: #ff4458; margin-bottom: 15px; font-size: 28px; font-weight: bold;">Подозрительная активность</h2>
+            <p style="color: #ddd; margin-bottom: 25px; font-size: 16px; line-height: 1.6;">
+                Вы слишком часто обновляете страницу. Накрутка просмотров создает лишнюю нагрузку на сервер.
+            </p>
+
+            <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 20px; margin-bottom: 30px;">
+                <p style="color: #fff; font-size: 18px; margin-bottom: 15px; font-weight: 500;">
+                    Лучше поддержите проект! 🚀
+                </p>
+                <p style="color: #b0b0b0; font-size: 14px; margin-bottom: 20px;">
+                    Вместо накрутки просмотров, вы можете помочь серверу работать быстрее и стабильнее. Каждые 100 ₽ ускоряют разработку и оплачивают хостинг.
+                </p>
+                
+                <div style="display: flex; flex-direction: column; gap: 20px; align-items: center; width: 100%;">
+                    
+                    <!-- YooMoney iframe -->
+                    <div style="width: 100%; display: flex; justify-content: center;">
+                      <iframe
+                        src="https://yoomoney.ru/quickpay/fundraise/button?billNumber=1D58232QB73.251002&"
+                        width="220"
+                        height="50"
+                        frameborder="0"
+                        allowtransparency="true"
+                        scrolling="no"
+                        style="max-width: 100%;"
+                        class="rounded-lg shadow-lg">
+                      </iframe>
+                    </div>
+
+                    <!-- T-Bank Button from sidebar -->
+                    <a
+                        href="https://www.tinkoff.ru/rm/r_QOueoIJBoY.BitHUDZPXL/7F9Zp34216"
+                        target="_blank"
+                        rel="noopener"
+                        class="group relative w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg font-semibold text-white overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl active:scale-95"
+                        style="max-width: 250px;"> <!-- added max-width to match iframe roughly -->
+
+                        <!-- Gradient -->
+                        <div class="absolute inset-0 bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500"></div>
+
+                        <!-- Glare -->
+                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></div>
+
+                        <!-- Glow -->
+                        <div class="absolute inset-0 bg-yellow-400 blur-xl opacity-50 group-hover:opacity-70 transition-opacity animate-pulse"></div>
+
+                        <!-- Content -->
+                        <span class="relative z-10 flex items-center gap-2">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="group-hover:rotate-90 transition-transform duration-300">
+                            <path d="M12 3C7.03 3 3 7.03 3 12s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm1 5v3h3v2h-3v3h-2v-3H8v-2h3V8h2z"/>
+                          </svg>
+                          <span class="text-base">Т-Банк донат</span>
+                        </span>
+                    </a>
+                </div>
+            </div>
+
+            <p style="color: #888; font-size: 14px; margin-bottom: 5px;">Блокировка снимется через:</p>
+            <div style="font-size: 36px; font-weight: bold; color: #fff; font-variant-numeric: tabular-nums;" id="abuse-timer">60</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let timeLeft = 60;
+        const timerElement = document.getElementById('abuse-timer');
+        const overlay = document.getElementById('anti-abuse-overlay');
+        
+        // Prevent scrolling
+        document.body.style.overflow = 'hidden';
+        
+        const interval = setInterval(function() {
+            timeLeft--;
+            timerElement.innerText = timeLeft;
+            
+            if (timeLeft <= 0) {
+                clearInterval(interval);
+                overlay.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        }, 1000);
+    });
+</script>
+{% endif %}
+
 {% if parse_error %}
   <div class="card error">
     <h2>Ошибка обработки реплея</h2>

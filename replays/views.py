@@ -687,10 +687,38 @@ class ReplayDetailView(DetailView):
     context_object_name = 'replay'
 
     def get(self, request, *args, **kwargs):
+        from django.core.cache import cache
+        import time
+
         self.object = self.get_object()
-        Replay.objects.filter(pk=self.object.pk).update(view_count=F('view_count') + 1)
-        self.object.view_count = (self.object.view_count or 0) + 1
+        
+        # Anti-abuse logic
+        user_id = request.user.pk if request.user.is_authenticated else request.session.session_key
+        if not user_id:
+             request.session.save()
+             user_id = request.session.session_key
+
+        cache_key = f"replay_view_timestamps_{self.object.pk}_{user_id}"
+        timestamps = cache.get(cache_key, [])
+        now = time.time()
+        
+        # Filter timestamps within last 5 minutes (300 seconds)
+        timestamps = [t for t in timestamps if now - t < 300]
+        
+        show_anti_abuse_banner = False
+        
+        if len(timestamps) >= 6:
+            show_anti_abuse_banner = True
+        else:
+            timestamps.append(now)
+            cache.set(cache_key, timestamps, 300)
+            
+            # Increment view count
+            Replay.objects.filter(pk=self.object.pk).update(view_count=F('view_count') + 1)
+            self.object.view_count = (self.object.view_count or 0) + 1
+
         context = self.get_context_data(object=self.object)
+        context['show_anti_abuse_banner'] = show_anti_abuse_banner
         return self.render_to_response(context)
 
     def _preload_tanks(self, cache) -> Dict[str, Tank]:
