@@ -1,0 +1,236 @@
+{# templates/includes/_donation_modal.html #}
+{% load static %}
+
+<div x-data="donationModal()" x-init="init()" @keydown.escape.window="closeModal()">
+  <!-- Modal -->
+  <div x-show="isOpen"
+       x-transition:enter="transition ease-out duration-300"
+       x-transition:enter-start="opacity-0 scale-95"
+       x-transition:enter-end="opacity-100 scale-100"
+       x-transition:leave="transition ease-in duration-200"
+       x-transition:leave-start="opacity-100 scale-100"
+       x-transition:leave-end="opacity-0 scale-95"
+       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto"
+       style="display: none;"
+       @click.self="closeModal()">
+
+    <div class="relative w-full max-w-md my-8 bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl border border-amber-500/30 shadow-2xl shadow-amber-500/20 overflow-hidden">
+
+      <!-- Декоративный фон -->
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-amber-500/10 via-transparent to-transparent"></div>
+
+      <!-- Header -->
+      <div class="relative p-4 border-b border-amber-500/20">
+        <div class="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-orange-500/5"></div>
+        <div class="relative flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="relative">
+              <svg width="24" height="24" viewBox="0 0 24 24" class="text-red-500 animate-pulse" fill="currentColor" aria-hidden="true">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 6 4 4 6.5 4c1.74 0 3.41.81 4.5 2.09C12.09 4.81 13.76 4 15.5 4 18 4 20 6 20 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+              <div class="absolute inset-0 bg-red-500 blur-lg opacity-40 animate-pulse"></div>
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">
+                Поддержите проект!
+              </h2>
+              <p class="text-xs text-gray-400">Помогите сохранить сервис живым</p>
+            </div>
+          </div>
+          <button @click="closeModal()"
+                  class="p-1.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="relative p-4 space-y-3">
+        <!-- Мотивационный текст -->
+        <div class="space-y-2">
+          <div class="p-3 rounded-lg bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20">
+            <p class="text-sm text-[#e6e6e6] leading-snug text-center font-medium" id="donation-modal-phrase">
+              <!-- JavaScript подставит текст -->
+            </p>
+          </div>
+
+          <div class="flex items-start gap-2 p-2.5 rounded-lg bg-red-500/10 border border-red-500/30">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="text-red-400 flex-shrink-0 mt-0.5">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <div class="text-xs text-[#e6e6e6] leading-relaxed">
+              <p><strong class="text-red-400">Это некоммерческий проект!</strong> Без вашей поддержки сервис не сможет существовать. Даже <strong class="text-amber-400">100 ₽</strong> помогают оплачивать хостинг и развитие.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- YooMoney iframe -->
+        <div class="flex justify-center overflow-hidden">
+          <iframe
+            src="https://yoomoney.ru/quickpay/fundraise/button?billNumber=1D58232QB73.251002&"
+            width="220"
+            height="50"
+            frameborder="0"
+            allowtransparency="true"
+            scrolling="no"
+            style="max-width: 100%;"
+            class="rounded-lg shadow-lg">
+          </iframe>
+        </div>
+
+        <!-- Разделитель -->
+        <div class="relative my-3">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-[#292929]"></div>
+          </div>
+          <div class="relative flex justify-center">
+            <span class="px-2 text-xs text-[#b6b6b6] bg-gray-950">или</span>
+          </div>
+        </div>
+
+        <!-- Т-Банк секция (компактная) -->
+        <div>
+          <div class="flex items-center gap-1.5 mb-2 justify-center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="text-yellow-400">
+              <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+            </svg>
+            <h4 class="text-sm font-semibold text-[#e6e6e6]">
+              Для клиентов Т-Банк
+            </h4>
+          </div>
+
+          <!-- QR-код (200px) -->
+          <div class="bg-white rounded-lg p-3 mb-3 shadow-xl border-2 border-yellow-400/20 overflow-hidden mx-auto" style="width: 200px; max-width: 200px;">
+            <img
+              src="{% static 'donation_qr.png' %}"
+              alt="QR-код для доната"
+              style="width: 100%; height: auto; display: block;"
+              class="rounded">
+            <p class="text-xs text-center text-slate-600 mt-2 font-medium">
+              📱 Откройте камеру — оплата в один клик
+            </p>
+          </div>
+
+          <!-- CTA кнопка (220px как YooMoney) -->
+          <a
+            href="https://www.tinkoff.ru/rm/r_QOueoIJBoY.BitHUDZPXL/7F9Zp34216"
+            target="_blank"
+            rel="noopener"
+            class="group relative mx-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-white overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl active:scale-95"
+            style="width: 220px; max-width: 220px;">
+
+            <!-- Градиентный фон -->
+            <div class="absolute inset-0 bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500"></div>
+
+            <!-- Анимированный блик -->
+            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></div>
+
+            <!-- Пульсирующее свечение -->
+            <div class="absolute inset-0 bg-yellow-400 blur-xl opacity-50 group-hover:opacity-70 transition-opacity animate-pulse"></div>
+
+            <!-- Контент кнопки -->
+            <span class="relative z-10 flex items-center gap-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="group-hover:rotate-90 transition-transform duration-300">
+                <path d="M12 3C7.03 3 3 7.03 3 12s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm1 5v3h3v2h-3v3h-2v-3H8v-2h3V8h2z"/>
+              </svg>
+              <span class="text-sm">Сделать донат</span>
+            </span>
+          </a>
+        </div>
+
+        <!-- Благодарность (компактная) -->
+        <div class="pt-3 border-t border-[#292929]">
+          <div class="flex items-start gap-2">
+            <div class="flex-shrink-0 mt-0.5">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="text-green-400">
+                <path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z"/>
+              </svg>
+            </div>
+            <p class="text-xs text-[#b6b6b6] leading-relaxed">
+              <span class="text-green-400 font-semibold">Спасибо!</span>
+              Каждая копейка идёт на поддержание сервиса. 🚀
+            </p>
+          </div>
+        </div>
+
+        <!-- Кнопка закрытия -->
+        <div class="mt-4">
+          <button @click="closeModal()"
+                  type="button"
+                  class="w-full px-4 py-2 bg-gradient-to-r from-gray-700/50 to-gray-800/50 text-gray-400 text-xs font-medium rounded-lg hover:from-gray-600/50 hover:to-gray-700/50 hover:text-white transition-all border border-gray-700">
+            Закрыть
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function donationModal() {
+  return {
+    isOpen: false,
+
+    // Список мотивирующих фраз с акцентом на некоммерческий характер
+    phrases: [
+      "❗ <strong>Некоммерческий проект!</strong> Без вашей поддержки сервис прекратит существование.",
+      "⚠️ <strong>Сервер не оплатит себя сам.</strong> Каждые 100 ₽ продлевают жизнь проекта!",
+      "💔 <strong>Без доната проект умрёт.</strong> Помогите сохранить сервис для всех!",
+      "🆘 <strong>Это не бизнес, а энтузиазм!</strong> Поддержите проект, пока он ещё жив.",
+      "⛽ <strong>Бак пуст!</strong> Подкиньте немного топлива, чтобы портал продолжал работать.",
+      "🔧 <strong>Ремонт танка стоит денег.</strong> Ваши 100 ₽ держат портал на ходу.",
+      "💸 <strong>Хостинг не бесплатный.</strong> Без вашей помощи проект закроется!",
+      "🤝 <strong>Проект держится на честном слове</strong> и вашей поддержке. Помогите!",
+      "📉 <strong>Средств на исходе!</strong> Каждые 100 ₽ — это ещё один месяц работы.",
+      "⏰ <strong>Время работает против нас.</strong> Поддержите проект, пока не поздно!",
+      "🏴‍☠️ <strong>Это некоммерческий проект!</strong> Сервер не окупается — нужна ваша помощь.",
+      "🎮 <strong>Бесплатно для вас = убыточно для проекта.</strong> Помогите сохранить сервис!",
+      "💪 <strong>Энтузиазм не оплатит сервер.</strong> Ваша поддержка критически важна!",
+      "🌟 <strong>Одна чашка кофе для вас</strong> = месяц работы для всех. Не дайте проекту умереть!",
+      "🔥 <strong>Портал бесплатный, но не магический.</strong> Поддержите или потеряете навсегда!"
+    ],
+
+    init() {
+      console.log('[DonationModal] Инициализация модального окна доната');
+
+      // Устанавливаем случайную фразу
+      const phraseEl = document.getElementById('donation-modal-phrase');
+      if (phraseEl) {
+        phraseEl.innerHTML = this.phrases[Math.floor(Math.random() * this.phrases.length)];
+      }
+
+      // Слушаем событие открытия модального окна
+      window.addEventListener('open-donation-modal', () => {
+        console.log('[DonationModal] Получено событие open-donation-modal');
+        this.openModal();
+      });
+
+      // Для отладки: добавляем глобальную функцию
+      window.openDonationModal = () => {
+        console.log('[DonationModal] Принудительное открытие через window.openDonationModal()');
+        this.openModal();
+      };
+    },
+
+    openModal() {
+      console.log('[DonationModal] Открываем модальное окно');
+      this.isOpen = true;
+      document.body.style.overflow = 'hidden';
+
+      // Обновляем фразу при каждом открытии
+      const phraseEl = document.getElementById('donation-modal-phrase');
+      if (phraseEl) {
+        phraseEl.innerHTML = this.phrases[Math.floor(Math.random() * this.phrases.length)];
+      }
+    },
+
+    closeModal() {
+      console.log('[DonationModal] Закрываем модальное окно');
+      this.isOpen = false;
+      document.body.style.overflow = '';
+    }
+  };
+}
+</script>

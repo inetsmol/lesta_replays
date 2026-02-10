@@ -1093,6 +1093,11 @@ function initDownloadButton() {
     const downloadUrl = downloadBtn.dataset.downloadUrl;
     if (downloadUrl) {
       window.open(downloadUrl, '_blank');
+
+      // Показываем модальное окно доната после скачивания
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('open-donation-modal'));
+      }, 500);
     }
   });
 }

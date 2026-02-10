@@ -456,6 +456,13 @@ function uploadModal() {
               if (data.redirect_url) {
                 this.redirectUrl = data.redirect_url;
               }
+
+              // Показываем модальное окно доната после успешной загрузки
+              if (summary.created > 0) {
+                setTimeout(() => {
+                  window.dispatchEvent(new CustomEvent('open-donation-modal'));
+                }, 1000);
+              }
             } else {
               const error = data.error || `Ошибка сервера (${xhr.status})`;
 
