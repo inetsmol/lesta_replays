@@ -614,10 +614,12 @@ img {
 
 .battle-records {
     display: flex;
-    justify-content: space-between;
-    height: 85px;
+    justify-content: center;
+    align-items: center;
+    gap: 15px; /* Отступы между элементами по 15px */
+    height: 88px;
     background-size: 150% 100%;
-    margin-top: 40px
+    margin-top: 40px;
 }
 
 .tanks-image.win .battle-records {
@@ -635,74 +637,56 @@ img {
     background-size: 105% 100%
 }
 
-.battle-records .dossier, .battle-records .achievements {
-    display: inline-block;
+/* Левая часть (достижения не в бою) - 7 равных секций */
+.battle-records .achievements {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr)); /* 7 равных секций */
+    grid-auto-flow: dense; /* Автоматическое заполнение пустых секций */
+    direction: rtl; /* Справа налево - заполнение от центра */
     width: 42%;
-    height: 88px
+    height: 88px;
 }
 
-.battle-records .achievements div, .battle-records .dossier div {
-    display: inline-block;
-    float: right;
-    height: 85px;
-    line-height: 85px;
-    margin: -4px -15px 0 -15px
+/* Правая часть (достижения в бою) - 6 равных секций */
+.battle-records .dossier {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr)); /* 6 равных секций */
+    width: 42%;
+    height: 88px;
 }
 
-.battle-records .achievements[data-number="7"] div img.mark.full {
-    margin: 0 0 -7px 0
+/* Контейнеры для значков - занимают свою секцию полностью */
+.battle-records .achievements > div,
+.battle-records .dossier > div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    position: relative;
+    overflow: visible; /* Изображения могут выходить за границы секции */
+    direction: ltr; /* Вернуть нормальное направление для содержимого */
 }
 
-.battle-records .dossier .achi-img-cont {
-    float: left;
-    margin: 0 -5px
-}
-
-.battle-records .achievements[data-number="8"] div {
-    margin: -4px -19px 0 -19px
-}
-
-.battle-records .achievements[data-number="9"] div {
-    margin: -4px -22px 0 -22px
-}
-
-.battle-records .achievements[data-number="10"] div {
-    margin: -4px -25px 0 -24px
-}
-
-.battle-records .dossier[data-number="7"] .achi-img-cont {
-    margin: 0 -9px
-}
-
-.battle-records .dossier[data-number="8"] .achi-img-cont {
-    margin: 0 -13px
-}
-
-.battle-records .dossier[data-number="9"] .achi-img-cont {
-    margin: 0 -16px
-}
-
-.battle-records .achievements[data-number="8"] .mark {
-    margin: 5px 3px 0 -4px !important
-}
-
+/* Знак мастерства - всегда в первой секции слева */
 .battle-records .achievements .mastery {
-    margin: 2px 0 0 -15px;
+    grid-column: 7; /* Седьмая секция в RTL = первая слева визуально */
+    order: -1; /* Первым в порядке */
 }
 
+/* Изображения значков - квадратные, занимают всю высоту */
+.battle-records .achievements > div img,
+.battle-records .dossier > div img {
+    height: 88px;
+    width: 88px;
+    max-width: none; /* Отменить ограничение Tailwind */
+    object-fit: contain;
+}
+
+/* Знак мастерства чуть меньше */
 .battle-records .achievements .mastery img {
-    height: 60px;
-    margin-top: -5px
-}
-
-.battle-records .achievements div img {
-    height: 90px;
-    vertical-align: middle
-}
-
-.battle-records .dossier div img {
     height: 80px;
-    vertical-align: middle
+    width: 65px;
+    max-width: none;
 }
 
 .battle-records .dossier div.badge, .battle-records .achievements div.badge {
@@ -2903,15 +2887,8 @@ form.contact .error {
     }
 }
 
-.battle-records .achievements div img.mark {
-    height: 83px;
-    margin-top: 5px;
-    margin-right: -7px;
-    margin-left: 5px
-}
-
-.battle-records .achievements div img.mark.full {
-    margin-right: 10px
+.battle-records .achievements .marks-on-gun img {
+    max-height: 83px;
 }
 
 .map-stat .stat .stat-tank .select, .replay-filter .select {
