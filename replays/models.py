@@ -1,4 +1,6 @@
 # replays/models.py
+from datetime import date
+
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
@@ -161,6 +163,19 @@ class Replay(VoteModel, models.Model):
         related_name='participated_replays',
         blank=True,
         help_text="Все участники этого боя"
+    )
+
+    # Достижения боя (для фильтрации)
+    achievements = models.ManyToManyField(
+        'Achievement',
+        related_name='replays',
+        blank=True,
+        help_text="Достижения, полученные в этом бою"
+    )
+    achievement_count = models.PositiveSmallIntegerField(
+        default=0,
+        db_index=True,
+        help_text="Количество достижений в бою"
     )
 
     def get_absolute_url(self):
@@ -742,7 +757,7 @@ class DailyUsage(models.Model):
         related_name='daily_usage',
         verbose_name="Пользователь",
     )
-    date = models.DateField("Дата", auto_now_add=True)
+    date = models.DateField("Дата", default=date.today)
     uploads = models.IntegerField("Загрузки", default=0)
     downloads = models.IntegerField("Скачивания", default=0)
 

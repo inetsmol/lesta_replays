@@ -494,6 +494,24 @@ class ReplayListView(ListView):
             if game_version_search:
                 queryset = queryset.filter(game_version__icontains=game_version_search)
 
+            # === Премиум-фильтры (по достижениям) ===
+            plan = SubscriptionService.get_user_plan(self.request.user)
+            if plan.can_use_advanced_filters:
+                # Фильтр по конкретному достижению (multi)
+                ach_ids = _to_int_set(_getlist("achievement"))
+                if ach_ids:
+                    for aid in ach_ids:
+                        queryset = queryset.filter(achievements__achievement_id=aid)
+                    m2m_used = True
+
+                # Фильтр по минимальному кол-ву достижений
+                ach_min = self.request.GET.get("achievement_count_min")
+                if ach_min:
+                    try:
+                        queryset = queryset.filter(achievement_count__gte=int(ach_min))
+                    except (TypeError, ValueError):
+                        pass
+
             if m2m_used:
                 queryset = queryset.distinct()
                 logger.debug("Применён distinct() из-за M2M фильтров")
@@ -658,9 +676,16 @@ class ReplayFiltersView(TemplateView):
                 "battle_types": (Replay.objects.values_list("battle_type", flat=True)
                                  .exclude(battle_type__isnull=True).exclude(battle_type__exact="")
                                  .distinct().order_by("battle_type")),
+                "achievements": (Achievement.objects
+                                 .filter(replays__isnull=False)
+                                 .distinct()
+                                 .order_by("name")),
             },
             "current_filters": current_filters,
             "list_url": reverse("replay_list"),
+            "can_use_advanced_filters": SubscriptionService.get_user_plan(
+                self.request.user
+            ).can_use_advanced_filters if self.request.user.is_authenticated else False,
         })
         return ctx
 

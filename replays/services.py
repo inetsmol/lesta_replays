@@ -16,7 +16,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 
 from replays.models import (
-    Replay, Tank, Player, Map,
+    Replay, Tank, Player, Map, Achievement,
     SubscriptionPlan, UserSubscription, DailyUsage, ReplayVideoLink,
 )
 from replays.parser.extractor import ExtractorV2
@@ -312,6 +312,9 @@ class ReplayProcessingService:
             # Шаг 8: Привязка игроков
             self._attach_players_to_replay(replay, payload)
 
+            # Шаг 9: Привязка достижений
+            self._attach_achievements_to_replay(replay, payload)
+
             logger.info(f"Реплей создан: {replay.id} - {uploaded_file.name}")
             return replay
 
@@ -357,6 +360,18 @@ class ReplayProcessingService:
         player_objs = self._upsert_players_from_payload(payload)
         if player_objs:
             replay.participants.add(*player_objs)
+
+    def _attach_achievements_to_replay(self, replay: Replay, payload) -> None:
+        """Извлекает достижения из payload и привязывает к реплею (M2M)."""
+        ach_ids = ExtractorV2.get_achievements(payload)
+        if not ach_ids:
+            return
+
+        achievements = Achievement.objects.filter(achievement_id__in=ach_ids)
+        if achievements:
+            replay.achievements.set(achievements)
+            replay.achievement_count = achievements.count()
+            replay.save(update_fields=['achievement_count'])
 
     @transaction.atomic
     def _upsert_players_from_payload(self, payload) -> List[Player]:

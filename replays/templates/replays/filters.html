@@ -178,6 +178,73 @@
 
             <hr class="filter-divider">
 
+            <!-- Премиум-фильтры (достижения) -->
+            <div class="filter-section">
+                <h3 class="filter-section-title">
+                    <i class="fas fa-medal"></i> Достижения
+                    <span class="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">Премиум</span>
+                </h3>
+
+                {% if can_use_advanced_filters %}
+                    <div class="filter-grid grid-2">
+                        <!-- Фильтр по конкретному достижению -->
+                        <div class="field-group search-dropdown-wrapper">
+                            <label for="ach_search_input">Конкретное достижение</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-award"></i>
+                                <input type="search" id="ach_search_input" placeholder="Поиск достижения..." autocomplete="off">
+                                <i class="fas fa-chevron-down" style="position: absolute; right: 12px; pointer-events: none; opacity: 0.5;"></i>
+                            </div>
+
+                            <div id="ach-dropdown" class="search-dropdown-container">
+                                <div class="list-header">
+                                    <span class="text-muted-sm">Всего: <span id="ach-count" class="item-count">{{ filter_data.achievements|length }}</span></span>
+                                    <button type="button" class="btn-reset-sm" id="ach-reset-btn">Сбросить</button>
+                                </div>
+                                {% with selected=current_filters.achievement|default:"" %}
+                                <div id="ach-list" class="search-list scroller">
+                                    {% for ach in filter_data.achievements %}
+                                        {% with said=ach.achievement_id|stringformat:"s" %}
+                                            <label class="search-item ach-item" data-name="{{ ach.name|lower }}">
+                                                <input type="checkbox" name="achievement" value="{{ said }}"
+                                                       {% if said in selected %}checked{% endif %}>
+                                                <span class="item-name">{{ ach.name }}</span>
+                                                <span class="item-meta text-gray-500 text-xs">{{ ach.section }}</span>
+                                            </label>
+                                        {% endwith %}
+                                    {% endfor %}
+                                </div>
+                                {% endwith %}
+                            </div>
+                        </div>
+
+                        <!-- Фильтр по минимальному кол-ву достижений -->
+                        <div class="field-group">
+                            <label for="achievement_count_min">Мин. кол-во достижений</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-sort-numeric-up"></i>
+                                <input type="number" id="achievement_count_min" name="achievement_count_min"
+                                       min="0" max="50" placeholder="Например: 3"
+                                       value="{{ current_filters.achievement_count_min.0|default_if_none:'' }}">
+                            </div>
+                            <div class="help-text">Реплеи с N и более достижениями</div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="p-4 rounded-lg border border-blue-500/20 bg-blue-500/5 text-center">
+                        <i class="fas fa-lock text-blue-400 text-2xl mb-2"></i>
+                        <p class="text-sm text-gray-400 mb-2">
+                            Фильтрация по достижениям и медалям доступна для подписчиков <strong class="text-blue-400">Премиум</strong> и <strong class="text-amber-400">Про</strong>.
+                        </p>
+                        <a href="{% url 'subscription_info' %}" class="inline-block px-4 py-1.5 rounded-lg text-sm font-semibold bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-400 hover:to-blue-500 transition-all">
+                            Узнать больше
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <hr class="filter-divider">
+
             <!-- Техника -->
             <div class="filter-section">
                 <h3 class="filter-section-title"><i class="fas fa-layer-group"></i> Техника</h3>
@@ -503,6 +570,16 @@
         countId: 'gv-count',
         resetBtnId: 'gv-reset-btn',
         itemSelector: '.gv-item'
+    });
+
+    // Инициализация достижений (премиум)
+    initDropdown({
+        inputId: 'ach_search_input',
+        dropdownId: 'ach-dropdown',
+        listId: 'ach-list',
+        countId: 'ach-count',
+        resetBtnId: 'ach-reset-btn',
+        itemSelector: '.ach-item'
     });
 
 
