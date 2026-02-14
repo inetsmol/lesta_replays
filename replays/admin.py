@@ -1,6 +1,11 @@
 # replays/admin.py
 from django.contrib import admin
-from .models import Tank, Player, Replay, Map, UserProfile, Achievement, MarksOnGun, APIUsageLog
+from django.utils import timezone
+
+from .models import (
+    Tank, Player, Replay, Map, UserProfile, Achievement, MarksOnGun, APIUsageLog,
+    SubscriptionPlan, UserSubscription, DailyUsage, ReplayVideoLink,
+)
 
 
 @admin.register(Tank)
@@ -65,3 +70,73 @@ class APIUsageLogAdmin(admin.ModelAdmin):
     search_fields = ("user__username",)
     ordering = ("-call_count",)
     readonly_fields = ("user", "endpoint", "call_count", "last_called_at")
+
+
+@admin.register(SubscriptionPlan)
+class SubscriptionPlanAdmin(admin.ModelAdmin):
+    list_display = ("name", "price_monthly", "price_yearly", "daily_upload_limit",
+                    "daily_download_limit", "max_video_links", "is_active")
+    list_editable = ("price_monthly", "price_yearly", "is_active")
+    list_display_links = ("name",)
+
+
+@admin.register(UserSubscription)
+class UserSubscriptionAdmin(admin.ModelAdmin):
+    list_display = ("user", "plan", "started_at", "expires_at", "is_active",
+                    "activated_by", "subscription_status")
+    list_filter = ("plan", "is_active", "activated_by")
+    search_fields = ("user__username", "user__email")
+    raw_id_fields = ("user",)
+    list_editable = ("is_active",)
+    actions = ["extend_30_days", "extend_90_days", "deactivate"]
+
+    @admin.display(description="Статус")
+    def subscription_status(self, obj):
+        if not obj.is_active:
+            return "Отключена"
+        if obj.is_expired:
+            return "Истекла"
+        return "Активна"
+
+    @admin.action(description="Продлить на 30 дней")
+    def extend_30_days(self, request, queryset):
+        import datetime
+        now = timezone.now()
+        for sub in queryset:
+            base = sub.expires_at if sub.expires_at and sub.expires_at > now else now
+            sub.expires_at = base + datetime.timedelta(days=30)
+            sub.is_active = True
+            sub.save()
+        self.message_user(request, f"Продлено {queryset.count()} подписок на 30 дней.")
+
+    @admin.action(description="Продлить на 90 дней")
+    def extend_90_days(self, request, queryset):
+        import datetime
+        now = timezone.now()
+        for sub in queryset:
+            base = sub.expires_at if sub.expires_at and sub.expires_at > now else now
+            sub.expires_at = base + datetime.timedelta(days=90)
+            sub.is_active = True
+            sub.save()
+        self.message_user(request, f"Продлено {queryset.count()} подписок на 90 дней.")
+
+    @admin.action(description="Деактивировать подписки")
+    def deactivate(self, request, queryset):
+        queryset.update(is_active=False)
+        self.message_user(request, f"Деактивировано {queryset.count()} подписок.")
+
+
+@admin.register(DailyUsage)
+class DailyUsageAdmin(admin.ModelAdmin):
+    list_display = ("user", "date", "uploads", "downloads")
+    list_filter = ("date",)
+    search_fields = ("user__username",)
+    readonly_fields = ("user", "date", "uploads", "downloads")
+
+
+@admin.register(ReplayVideoLink)
+class ReplayVideoLinkAdmin(admin.ModelAdmin):
+    list_display = ("replay", "platform", "url", "added_by", "created_at")
+    list_filter = ("platform",)
+    search_fields = ("url", "added_by__username")
+    raw_id_fields = ("replay", "added_by")

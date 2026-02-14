@@ -106,6 +106,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.csrf',
                 "replays.context_processors.sidebar_widgets",
+                "replays.context_processors.subscription_context",
             ],
         },
     },

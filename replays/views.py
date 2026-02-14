@@ -30,9 +30,10 @@ from rest_framework import status
 from django_comments.models import Comment
 
 from .error_handlers import ReplayErrorHandler
-from .models import Replay, Tank, Nation, Achievement, MarksOnGun, Map, APIUsageLog
+from .forms import VideoLinkForm, AvatarUploadForm
+from .models import Replay, Tank, Nation, Achievement, MarksOnGun, Map, APIUsageLog, SubscriptionPlan, ReplayVideoLink
 from .parser.extractor import ExtractorV2
-from .services import ReplayProcessingService
+from .services import ReplayProcessingService, SubscriptionService, UsageLimitService, VideoLinkService
 from .validators import BatchUploadValidator, ReplayFileValidator
 
 FILES_DIR = Path(settings.MEDIA_ROOT)
@@ -78,6 +79,14 @@ class ReplayBatchUploadView(LoginRequiredMixin, View):
         files = request.FILES.getlist('files') or []
         descriptions = request.POST.getlist('descriptions')
         user = request.user if request.user.is_authenticated else None
+
+        # Проверка лимита загрузок по подписке
+        if user and not UsageLimitService.can_upload(user):
+            return self._error_response(
+                request,
+                "Вы достигли дневного лимита загрузок. "
+                "Оформите подписку для неограниченных загрузок."
+            )
 
         # Валидация пакета файлов
         if batch_error := BatchUploadValidator.validate_batch(files):
@@ -136,6 +145,10 @@ class ReplayBatchUploadView(LoginRequiredMixin, View):
             file_result["ok"] = True
             file_result["replay_id"] = replay.id
             file_result["redirect_url"] = reverse('replay_detail', kwargs={'pk': replay.id})
+
+            # Записываем факт загрузки для лимитов
+            if user:
+                UsageLimitService.record_upload(user)
 
             logger.info(f"[BATCH] Успешно загружен '{file.name}' (ID: {replay.id})")
 
@@ -1067,6 +1080,21 @@ class ReplayDetailView(DetailView):
         if self.request.user.is_authenticated:
             context['user_has_liked'] = self.object.votes.exists(self.request.user.id)
 
+        # Видео-ссылки
+        context['video_links'] = VideoLinkService.get_video_links(self.object)
+        context['can_add_video'] = (
+            self.request.user.is_authenticated
+            and self.object.user == self.request.user
+            and VideoLinkService.can_add_video(self.request.user, self.object)
+        )
+        context['video_form'] = VideoLinkForm()
+
+        # Бейдж подписчика загрузившего
+        uploader_plan = None
+        if self.object.user:
+            uploader_plan = SubscriptionService.get_user_plan(self.object.user)
+        context['uploader_plan'] = uploader_plan
+
         return context
 
 
@@ -1094,6 +1122,14 @@ class ReplayDownloadView(LoginRequiredMixin, View):
         Returns:
             HttpResponse с файлом или Http404
         """
+        # Проверка лимита скачиваний по подписке
+        if not UsageLimitService.can_download(request.user):
+            return HttpResponse(
+                "Вы достигли дневного лимита скачиваний. "
+                "Оформите подписку для неограниченных скачиваний.",
+                status=429,
+            )
+
         try:
             # Получаем объект реплея
             replay = self._get_replay_object(pk)
@@ -1104,6 +1140,9 @@ class ReplayDownloadView(LoginRequiredMixin, View):
             # Валидация безопасности и существования
             self._validate_file_security(file_path)
             self._validate_file_exists(file_path)
+
+            # Записываем факт скачивания для лимитов
+            UsageLimitService.record_download(request.user)
 
             Replay.objects.filter(pk=replay.pk).update(download_count=F('download_count') + 1)
 
@@ -1414,3 +1453,92 @@ def get_replay_info(request):
         "battle_date": replay.battle_date,
     }
     return Response(data)
+
+
+class SubscriptionInfoView(TemplateView):
+    """Страница с описанием тарифных планов."""
+    template_name = 'replays/subscription.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['plans'] = SubscriptionPlan.objects.filter(is_active=True).order_by('price_monthly')
+        return context
+
+
+class AddVideoLinkView(LoginRequiredMixin, View):
+    """Добавление видео-ссылки к реплею."""
+
+    def post(self, request, pk):
+        replay = get_object_or_404(Replay, pk=pk)
+
+        # Проверяем, что пользователь — владелец реплея (загрузивший)
+        if replay.user != request.user:
+            return JsonResponse({'success': False, 'error': 'Только загрузивший реплей может добавлять видео.'}, status=403)
+
+        # Проверяем лимит по подписке
+        if not VideoLinkService.can_add_video(request.user, replay):
+            return JsonResponse({
+                'success': False,
+                'error': 'Вы достигли лимита видео-ссылок для вашего плана подписки.',
+            }, status=403)
+
+        form = VideoLinkForm(request.POST)
+        if form.is_valid():
+            link = VideoLinkService.add_video_link(
+                user=request.user,
+                replay=replay,
+                platform=form.cleaned_data['platform'],
+                url=form.cleaned_data['url'],
+            )
+            return JsonResponse({
+                'success': True,
+                'link': {
+                    'id': link.id,
+                    'platform': link.get_platform_display(),
+                    'url': link.url,
+                    'icon_class': link.icon_class,
+                    'color_class': link.color_class,
+                },
+            })
+
+        return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+
+
+class RemoveVideoLinkView(LoginRequiredMixin, View):
+    """Удаление видео-ссылки."""
+
+    def post(self, request, pk):
+        link = get_object_or_404(ReplayVideoLink, pk=pk)
+
+        if link.added_by != request.user:
+            return JsonResponse({'success': False, 'error': 'Нет прав на удаление.'}, status=403)
+
+        link.delete()
+        return JsonResponse({'success': True})
+
+
+class UploadAvatarView(LoginRequiredMixin, View):
+    """Загрузка аватара пользователя."""
+
+    def post(self, request):
+        plan = SubscriptionService.get_user_plan(request.user)
+        if not plan.can_upload_avatar:
+            return JsonResponse({
+                'success': False,
+                'error': 'Загрузка аватара доступна только для подписчиков.',
+            }, status=403)
+
+        form = AvatarUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            profile = request.user.profile
+            # Удаляем старый аватар если есть
+            if profile.avatar:
+                profile.avatar.delete(save=False)
+            profile.avatar = form.cleaned_data['avatar']
+            profile.save()
+            return JsonResponse({
+                'success': True,
+                'avatar_url': profile.avatar.url,
+            })
+
+        return JsonResponse({'success': False, 'errors': form.errors}, status=400)

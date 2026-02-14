@@ -47,6 +47,17 @@
               class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
             Мои реплеи
           </a>
+          <a
+              href="{% url 'subscription_info' %}"
+              class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+            {% if is_pro %}
+              <span class="text-amber-400">Про</span>
+            {% elif is_premium %}
+              <span class="text-blue-400">Премиум</span>
+            {% else %}
+              Подписка
+            {% endif %}
+          </a>
           <div class="my-1 h-px bg-gray-200 dark:bg-white/10"></div>
           <form method="post" action="{% url 'account_logout' %}">
             {% csrf_token %}

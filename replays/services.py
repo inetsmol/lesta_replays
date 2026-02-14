@@ -13,9 +13,12 @@ from typing import Optional, Tuple
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import models, transaction
 
-from replays.models import Replay, Tank, Player, Map
+from replays.models import (
+    Replay, Tank, Player, Map,
+    SubscriptionPlan, UserSubscription, DailyUsage, ReplayVideoLink,
+)
 from replays.parser.extractor import ExtractorV2
 from replays.parser.parser import Parser, ParseError
 
@@ -432,6 +435,149 @@ class ReplayProcessingService:
             gameplay_id=replay_fields.get('gameplay_id'),
             short_description=(description or '')[:self.MAX_DESCRIPTION_LEN],
         )
+
+
+class SubscriptionService:
+    """Сервис для работы с подписками."""
+
+    @staticmethod
+    def get_user_plan(user) -> SubscriptionPlan:
+        """Получить текущий план пользователя (или бесплатный по умолчанию)."""
+        if not user or not user.is_authenticated:
+            return SubscriptionService._get_free_plan()
+
+        try:
+            sub = user.subscription
+            if sub.is_valid:
+                return sub.plan
+        except UserSubscription.DoesNotExist:
+            pass
+
+        return SubscriptionService._get_free_plan()
+
+    @staticmethod
+    def is_premium(user) -> bool:
+        """Проверяет, есть ли у пользователя Премиум или выше."""
+        plan = SubscriptionService.get_user_plan(user)
+        return plan.name in (SubscriptionPlan.PLAN_PREMIUM, SubscriptionPlan.PLAN_PRO)
+
+    @staticmethod
+    def is_pro(user) -> bool:
+        """Проверяет, есть ли у пользователя план Про."""
+        plan = SubscriptionService.get_user_plan(user)
+        return plan.name == SubscriptionPlan.PLAN_PRO
+
+    @staticmethod
+    def activate_subscription(user, plan_name: str, days: int = 30, activated_by: str = 'admin'):
+        """Активировать подписку пользователю."""
+        from django.utils import timezone
+
+        plan = SubscriptionPlan.objects.get(name=plan_name)
+        expires_at = None
+        if plan_name != SubscriptionPlan.PLAN_FREE:
+            expires_at = timezone.now() + datetime.timedelta(days=days)
+
+        sub, created = UserSubscription.objects.update_or_create(
+            user=user,
+            defaults={
+                'plan': plan,
+                'expires_at': expires_at,
+                'is_active': True,
+                'activated_by': activated_by,
+            },
+        )
+        return sub
+
+    @staticmethod
+    def _get_free_plan() -> SubscriptionPlan:
+        return SubscriptionPlan.objects.get(name=SubscriptionPlan.PLAN_FREE)
+
+
+class UsageLimitService:
+    """Сервис для проверки и учёта дневных лимитов."""
+
+    @staticmethod
+    def _get_or_create_today(user) -> DailyUsage:
+        from django.utils import timezone
+        today = timezone.now().date()
+        usage, _ = DailyUsage.objects.get_or_create(user=user, date=today)
+        return usage
+
+    @staticmethod
+    def can_upload(user) -> bool:
+        """Может ли пользователь загрузить ещё один реплей сегодня."""
+        plan = SubscriptionService.get_user_plan(user)
+        if plan.daily_upload_limit == 0:
+            return True
+        usage = UsageLimitService._get_or_create_today(user)
+        return usage.uploads < plan.daily_upload_limit
+
+    @staticmethod
+    def can_download(user) -> bool:
+        """Может ли пользователь скачать ещё один реплей сегодня."""
+        plan = SubscriptionService.get_user_plan(user)
+        if plan.daily_download_limit == 0:
+            return True
+        usage = UsageLimitService._get_or_create_today(user)
+        return usage.downloads < plan.daily_download_limit
+
+    @staticmethod
+    def record_upload(user):
+        """Записать факт загрузки."""
+        usage = UsageLimitService._get_or_create_today(user)
+        usage.uploads = models.F('uploads') + 1
+        usage.save(update_fields=['uploads'])
+
+    @staticmethod
+    def record_download(user):
+        """Записать факт скачивания."""
+        usage = UsageLimitService._get_or_create_today(user)
+        usage.downloads = models.F('downloads') + 1
+        usage.save(update_fields=['downloads'])
+
+    @staticmethod
+    def get_remaining(user) -> dict:
+        """Получить остаток загрузок/скачиваний."""
+        plan = SubscriptionService.get_user_plan(user)
+        usage = UsageLimitService._get_or_create_today(user)
+
+        upload_limit = plan.daily_upload_limit
+        download_limit = plan.daily_download_limit
+
+        return {
+            'uploads_remaining': None if upload_limit == 0 else max(0, upload_limit - usage.uploads),
+            'downloads_remaining': None if download_limit == 0 else max(0, download_limit - usage.downloads),
+            'uploads_limit': upload_limit if upload_limit > 0 else None,
+            'downloads_limit': download_limit if download_limit > 0 else None,
+        }
+
+
+class VideoLinkService:
+    """Сервис для работы с видео-ссылками к реплеям."""
+
+    @staticmethod
+    def can_add_video(user, replay) -> bool:
+        """Может ли пользователь добавить видео к этому реплею."""
+        plan = SubscriptionService.get_user_plan(user)
+        if plan.max_video_links == 0:
+            return False
+        current_count = ReplayVideoLink.objects.filter(replay=replay, added_by=user).count()
+        return current_count < plan.max_video_links
+
+    @staticmethod
+    def add_video_link(user, replay, platform: str, url: str) -> ReplayVideoLink:
+        """Добавить видео-ссылку к реплею."""
+        return ReplayVideoLink.objects.create(
+            replay=replay,
+            platform=platform,
+            url=url,
+            added_by=user,
+        )
+
+    @staticmethod
+    def get_video_links(replay):
+        """Получить все видео-ссылки реплея."""
+        return ReplayVideoLink.objects.filter(replay=replay).select_related('added_by')
 
 
 def _norm_str(raw: str | None) -> str:

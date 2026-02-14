@@ -1,6 +1,7 @@
 {# templates/includes/_donation_modal.html #}
 {% load static %}
 
+{% if show_donation_prompts %}
 <div x-data="donationModal()" x-init="init()" @keydown.escape.window="closeModal()">
   <!-- Modal -->
   <div x-show="isOpen"
@@ -234,3 +235,4 @@ function donationModal() {
   };
 }
 </script>
+{% endif %}

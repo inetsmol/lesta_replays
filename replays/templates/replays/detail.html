@@ -916,6 +916,11 @@
           <span class="gray">Отправитель:</span>{{ details.playerName }}
             {% if replay.user %}
                 <span class="gray">Загрузил:</span>{{ replay.user.username }}
+                {% if uploader_plan and uploader_plan.name == 'pro' %}
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white ml-1" title="Про подписка">PRO</span>
+                {% elif uploader_plan and uploader_plan.name == 'premium' %}
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold bg-gradient-to-r from-blue-500 to-blue-600 text-white ml-1" title="Премиум подписка">PREMIUM</span>
+                {% endif %}
             {% endif %}
         </div>
   </div> <!-- /replay-wrapper -->
@@ -1020,6 +1025,113 @@
                         </script>
                     {% endif %}
                 </div>
+      {# === Видео-ссылки === #}
+      {% if video_links or can_add_video %}
+      <div style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 class="text-lg font-semibold text-gray-300 mb-3">
+          <i class="fas fa-video mr-1"></i> Видео
+        </h3>
+
+        {% if video_links %}
+        <div class="flex flex-wrap gap-2 mb-3">
+          {% for link in video_links %}
+            <a href="{{ link.url }}" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border transition-all hover:scale-105
+               {% if link.platform == 'youtube' %}
+                 border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400
+               {% elif link.platform == 'vk' %}
+                 border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400
+               {% else %}
+                 border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400
+               {% endif %}">
+              <i class="{{ link.icon_class }}"></i>
+              <span class="text-sm font-medium">{{ link.get_platform_display }}</span>
+              <i class="fas fa-external-link-alt text-xs opacity-50"></i>
+            </a>
+            {% if user == link.added_by %}
+              <button onclick="removeVideoLink({{ link.id }})"
+                      class="text-gray-500 hover:text-red-400 transition-colors text-xs"
+                      title="Удалить">
+                <i class="fas fa-times"></i>
+              </button>
+            {% endif %}
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if can_add_video %}
+        <div x-data="{ showForm: false }">
+          <button @click="showForm = !showForm"
+                  class="text-sm text-gray-400 hover:text-white transition-colors">
+            <i class="fas fa-plus mr-1"></i> Добавить видео
+          </button>
+          <div x-show="showForm" x-cloak style="margin-top: 10px; max-width: 500px;">
+            <form id="video-link-form" class="flex flex-col gap-2">
+              {% csrf_token %}
+              <div class="flex gap-2">
+                <select name="platform" class="form-control" style="background: #1f1f1f; border: 1px solid #444; color: #fff; padding: 6px 10px; border-radius: 4px; width: 140px;">
+                  <option value="youtube">YouTube</option>
+                  <option value="vk">VK Видео</option>
+                  <option value="rutube">RuTube</option>
+                </select>
+                <input type="url" name="url" placeholder="https://www.youtube.com/watch?v=..."
+                       class="form-control flex-1" required
+                       style="background: #1f1f1f; border: 1px solid #444; color: #fff; padding: 6px 10px; border-radius: 4px;">
+              </div>
+              <div>
+                <button type="submit" class="btn big-red-button" style="padding: 5px 15px; font-size: 14px;">
+                  Добавить
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('video-link-form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const formData = new FormData(form);
+                    fetch("{% url 'replay_add_video' replay.pk %}", {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                        body: formData
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.reload();
+                        } else {
+                            alert(data.error || JSON.stringify(data.errors));
+                        }
+                    })
+                    .catch(err => alert('Ошибка сети'));
+                });
+            }
+        });
+
+        function removeVideoLink(linkId) {
+            if (!confirm('Удалить видео-ссылку?')) return;
+            fetch('/replays/video/' + linkId + '/remove/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) window.location.reload();
+                else alert(data.error);
+            });
+        }
+        </script>
+        {% endif %}
+      </div>
+      {% endif %}
+
       <h2 class="card-title" style="color: #c3c3c3; margin-bottom: 1rem; font-size: 1.75rem; font-weight: bold; margin-top: 1.5rem;">Комментарии</h2>
       <hr style="border-color: #333;"/>
 

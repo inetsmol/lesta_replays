@@ -1,8 +1,13 @@
 # replays/forms.py
+import re
+
 from django import forms
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django_comments.forms import CommentForm
 from allauth.account.forms import SignupForm
+
+from .models import ReplayVideoLink
 
 User = get_user_model()
 
@@ -81,3 +86,64 @@ class CustomSignupForm(SignupForm):
                 'Пользователь с таким email уже зарегистрирован. Пожалуйста, используйте другой email или войдите в существующий аккаунт.'
             )
         return email
+
+
+class VideoLinkForm(forms.ModelForm):
+    """Форма для добавления видео-ссылки к реплею."""
+
+    VIDEO_URL_PATTERNS = {
+        'youtube': [
+            r'(?:https?://)?(?:www\.)?youtube\.com/watch\?v=[\w-]+',
+            r'(?:https?://)?youtu\.be/[\w-]+',
+        ],
+        'vk': [
+            r'(?:https?://)?(?:www\.)?vk\.com/video[\w.-]+',
+            r'(?:https?://)?vk\.com/clip[\w.-]+',
+        ],
+        'rutube': [
+            r'(?:https?://)?rutube\.ru/video/[\w-]+',
+        ],
+    }
+
+    class Meta:
+        model = ReplayVideoLink
+        fields = ['platform', 'url']
+        widgets = {
+            'platform': forms.Select(attrs={'class': 'form-control'}),
+            'url': forms.URLInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'https://www.youtube.com/watch?v=...',
+            }),
+        }
+
+    def clean_url(self):
+        url = self.cleaned_data.get('url', '').strip()
+        platform = self.cleaned_data.get('platform')
+
+        if platform and platform in self.VIDEO_URL_PATTERNS:
+            patterns = self.VIDEO_URL_PATTERNS[platform]
+            if not any(re.match(p, url) for p in patterns):
+                platform_name = dict(ReplayVideoLink.PLATFORM_CHOICES).get(platform, platform)
+                raise ValidationError(
+                    f'Ссылка не похожа на видео с {platform_name}. '
+                    f'Проверьте правильность URL.'
+                )
+        return url
+
+
+class AvatarUploadForm(forms.Form):
+    """Форма для загрузки аватара."""
+    avatar = forms.ImageField(
+        label='Аватар',
+        help_text='JPG или PNG, максимум 2 МБ, минимум 100x100 пикселей',
+        widget=forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/jpeg,image/png'}),
+    )
+
+    def clean_avatar(self):
+        image = self.cleaned_data.get('avatar')
+        if image:
+            if image.size > 2 * 1024 * 1024:
+                raise ValidationError('Размер файла не должен превышать 2 МБ.')
+            if image.content_type not in ('image/jpeg', 'image/png'):
+                raise ValidationError('Допустимые форматы: JPG, PNG.')
+        return image

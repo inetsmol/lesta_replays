@@ -2,6 +2,7 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 from vote.models import VoteModel
 
 User = get_user_model()
@@ -545,6 +546,13 @@ class UserProfile(models.Model):
         help_text="Account ID из Lesta Games API"
     )
 
+    avatar = models.ImageField(
+        upload_to='avatars/',
+        blank=True,
+        null=True,
+        help_text="Аватар пользователя (только для подписчиков)"
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -588,3 +596,216 @@ class APIUsageLog(models.Model):
 
     def __str__(self):
         return f"{self.user.username} — {self.endpoint}: {self.call_count}"
+
+
+class SubscriptionPlan(models.Model):
+    """Тарифный план подписки."""
+    PLAN_FREE = 'free'
+    PLAN_PREMIUM = 'premium'
+    PLAN_PRO = 'pro'
+    PLAN_CHOICES = [
+        (PLAN_FREE, 'Бесплатный'),
+        (PLAN_PREMIUM, 'Премиум'),
+        (PLAN_PRO, 'Про'),
+    ]
+
+    name = models.CharField(
+        "Название",
+        max_length=20,
+        choices=PLAN_CHOICES,
+        unique=True,
+    )
+    price_monthly = models.DecimalField(
+        "Цена в месяц (₽)",
+        max_digits=8, decimal_places=2, default=0,
+    )
+    price_yearly = models.DecimalField(
+        "Цена в год (₽)",
+        max_digits=8, decimal_places=2, default=0,
+    )
+    daily_upload_limit = models.IntegerField(
+        "Лимит загрузок/день",
+        default=3,
+        help_text="0 = без лимита",
+    )
+    daily_download_limit = models.IntegerField(
+        "Лимит скачиваний/день",
+        default=5,
+        help_text="0 = без лимита",
+    )
+    max_video_links = models.IntegerField(
+        "Макс. видео-ссылок на реплей",
+        default=0,
+    )
+    max_file_size_mb = models.IntegerField(
+        "Макс. размер файла (MB)",
+        default=50,
+    )
+    can_use_advanced_filters = models.BooleanField(
+        "Премиум-фильтры",
+        default=False,
+        help_text="Фильтр по достижениям, кол-ву медалей",
+    )
+    can_use_pro_filters = models.BooleanField(
+        "Про-фильтры",
+        default=False,
+        help_text="Фильтр по WN8, проценту побед",
+    )
+    can_export_stats = models.BooleanField(
+        "Экспорт статистики",
+        default=False,
+    )
+    show_donation_prompts = models.BooleanField(
+        "Показывать напоминания о донатах",
+        default=True,
+    )
+    can_upload_avatar = models.BooleanField(
+        "Загрузка аватара",
+        default=False,
+    )
+    description = models.TextField(
+        "Описание плана",
+        blank=True,
+    )
+    is_active = models.BooleanField("Активен", default=True)
+
+    class Meta:
+        verbose_name = "Тарифный план"
+        verbose_name_plural = "Тарифные планы"
+        ordering = ['price_monthly']
+
+    def __str__(self):
+        return self.get_name_display()
+
+
+class UserSubscription(models.Model):
+    """Подписка пользователя на тарифный план."""
+    ACTIVATED_BY_CHOICES = [
+        ('admin', 'Администратор'),
+        ('payment', 'Оплата'),
+        ('promo', 'Промокод'),
+    ]
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='subscription',
+        verbose_name="Пользователь",
+    )
+    plan = models.ForeignKey(
+        SubscriptionPlan,
+        on_delete=models.PROTECT,
+        verbose_name="Тарифный план",
+    )
+    started_at = models.DateTimeField("Начало подписки", auto_now_add=True)
+    expires_at = models.DateTimeField(
+        "Истекает",
+        null=True, blank=True,
+        help_text="NULL = бессрочно (для бесплатного плана)",
+    )
+    is_active = models.BooleanField("Активна", default=True)
+    activated_by = models.CharField(
+        "Активировано через",
+        max_length=50,
+        choices=ACTIVATED_BY_CHOICES,
+        default='admin',
+    )
+
+    @property
+    def is_expired(self):
+        if not self.expires_at:
+            return False
+        return timezone.now() > self.expires_at
+
+    @property
+    def is_valid(self):
+        return self.is_active and not self.is_expired
+
+    @property
+    def plan_name(self):
+        return self.plan.name
+
+    class Meta:
+        verbose_name = "Подписка пользователя"
+        verbose_name_plural = "Подписки пользователей"
+
+    def __str__(self):
+        status = "активна" if self.is_valid else "истекла"
+        return f"{self.user.username} — {self.plan.get_name_display()} ({status})"
+
+
+class DailyUsage(models.Model):
+    """Трекинг ежедневных лимитов пользователя."""
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='daily_usage',
+        verbose_name="Пользователь",
+    )
+    date = models.DateField("Дата", auto_now_add=True)
+    uploads = models.IntegerField("Загрузки", default=0)
+    downloads = models.IntegerField("Скачивания", default=0)
+
+    class Meta:
+        unique_together = ['user', 'date']
+        verbose_name = "Дневное использование"
+        verbose_name_plural = "Дневное использование"
+
+    def __str__(self):
+        return f"{self.user.username} — {self.date}: ↑{self.uploads} ↓{self.downloads}"
+
+
+class ReplayVideoLink(models.Model):
+    """Ссылка на видео к реплею (YouTube, VK, RuTube)."""
+    PLATFORM_CHOICES = [
+        ('youtube', 'YouTube'),
+        ('vk', 'VK Видео'),
+        ('rutube', 'RuTube'),
+    ]
+
+    replay = models.ForeignKey(
+        Replay,
+        on_delete=models.CASCADE,
+        related_name='video_links',
+        verbose_name="Реплей",
+    )
+    platform = models.CharField(
+        "Платформа",
+        max_length=20,
+        choices=PLATFORM_CHOICES,
+    )
+    url = models.URLField("Ссылка на видео")
+    added_by = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name="Добавил",
+    )
+    created_at = models.DateTimeField("Дата добавления", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Видео-ссылка"
+        verbose_name_plural = "Видео-ссылки"
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{self.get_platform_display()} — {self.replay_id}"
+
+    @property
+    def icon_class(self):
+        """CSS-класс иконки для платформы."""
+        icons = {
+            'youtube': 'fab fa-youtube',
+            'vk': 'fab fa-vk',
+            'rutube': 'fas fa-play-circle',
+        }
+        return icons.get(self.platform, 'fas fa-video')
+
+    @property
+    def color_class(self):
+        """CSS-класс цвета для платформы."""
+        colors = {
+            'youtube': 'text-danger',
+            'vk': 'text-primary',
+            'rutube': 'text-info',
+        }
+        return colors.get(self.platform, '')
