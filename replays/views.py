@@ -856,6 +856,15 @@ class ReplayDetailView(DetailView):
                     46: 'medalLeClerc',  # Медаль Леклерка
                     47: 'medalLavrinenko', # Медаль Лавриненко
                     48: 'medalEkins',    # Медаль Экинса
+                    538: 'readyForBattleLT',             # Образцовое выполнение: ЛТ
+                    539: 'readyForBattleMT',             # Образцовое выполнение: СТ
+                    540: 'readyForBattleHT',             # Образцовое выполнение: ТТ
+                    541: 'readyForBattleSPG',            # Образцовое выполнение: САУ
+                    542: 'readyForBattleATSPG',          # Образцовое выполнение: ПТ-САУ
+                    1215: 'readyForBattleAllianceUSSR',  # Образцовое выполнение: Союз
+                    1216: 'readyForBattleAllianceGermany',  # Образцовое выполнение: Блок
+                    1217: 'readyForBattleAllianceUSA',   # Образцовое выполнение: Альянс
+                    1218: 'readyForBattleAllianceFrance', # Образцовое выполнение: Коалиция
                 }
 
                 medal_id = self.achievement.achievement_id
@@ -864,6 +873,7 @@ class ReplayDetailView(DetailView):
                     base_path = self.achievement.image_big
                     # Заменяем базовое имя на имя со степенью
                     # medalKay.png -> medalKay4.png
+                    # readyForBattleHT.png -> readyForBattleHT3.png
                     if base_name in base_path:
                         return base_path.replace(f'{base_name}.png', f'{base_name}{self.rank}.png')
 
@@ -872,13 +882,24 @@ class ReplayDetailView(DetailView):
         # Знак классности (ID 79) добавляется отдельно в шаблоне, исключаем его из списков
         MASTERY_BADGE_ID = 79
 
+        # ID медалей, у которых степень 1 тоже имеет значение (отдельный файл картинки)
+        # Для остальных value=1 означает просто "получено", а не степень
+        ALWAYS_RANKED_IDS = {
+            538, 539, 540, 541, 542,           # readyForBattle (ЛТ, СТ, ТТ, САУ, ПТ-САУ)
+            1215, 1216, 1217, 1218,            # readyForBattle Alliance
+        }
+
         # Создаём обёрнутые достижения (исключая знак классности)
         wrapped_achievements = []
         for aid, value in achievements_with_values.items():
             if aid in achievements_dict and aid != MASTERY_BADGE_ID:
                 ach = achievements_dict[aid]
-                # Если value - это число больше 1, это степень медали
-                rank = value if isinstance(value, int) and value > 1 else None
+                # Для readyForBattle степень >= 1 значима (отдельные файлы для каждой степени)
+                # Для остальных медалей степень значима только если > 1
+                if isinstance(value, int) and aid in ALWAYS_RANKED_IDS:
+                    rank = value if value >= 1 else None
+                else:
+                    rank = value if isinstance(value, int) and value > 1 else None
                 wrapped_achievements.append(AchievementWithRank(ach, rank))
 
         # Разделяем на battle и nonbattle

@@ -1619,7 +1619,23 @@ class ExtractorV2:
         roman_numerals = {1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V'}
 
         # ID медалей со степенями
-        RANKED_MEDALS = {41, 42, 43, 44, 45, 46, 47, 48}
+        RANKED_MEDALS = {
+            41, 42, 43, 44, 45, 46, 47, 48,       # Именные медали (Кея, Абрамса и т.д.)
+            538, 539, 540, 541, 542,               # readyForBattle (ЛТ, СТ, ТТ, САУ, ПТ-САУ)
+            1215, 1216, 1217, 1218,                # readyForBattle Alliance
+        }
+
+        # Словарь для замены имён файлов изображений
+        RANKED_MEDAL_NAMES = {
+            41: 'medalKay', 42: 'medalSamokhin', 43: 'medalGudz',
+            44: 'medalPoppel', 45: 'medalAbrams', 46: 'medalLeClerc',
+            47: 'medalLavrinenko', 48: 'medalEkins',
+            538: 'readyForBattleLT', 539: 'readyForBattleMT',
+            540: 'readyForBattleHT', 541: 'readyForBattleSPG',
+            542: 'readyForBattleATSPG',
+            1215: 'readyForBattleAllianceUSSR', 1216: 'readyForBattleAllianceGermany',
+            1217: 'readyForBattleAllianceUSA', 1218: 'readyForBattleAllianceFrance',
+        }
 
         # Формируем результат для каждого игрока
         result = {}
@@ -1647,20 +1663,16 @@ class ExtractorV2:
                                 medal_data['name'] = medal_data['name'].replace('%(rank)s', f'{roman} степени')
 
                             # Обновляем путь к изображению для медалей со степенями
-                            if aid_int in RANKED_MEDALS:
+                            if aid_int in RANKED_MEDAL_NAMES:
+                                base_name = RANKED_MEDAL_NAMES[aid_int]
                                 image_big = medal_data['image_big']
-                                # Заменяем базовое имя на имя с степенью
+                                # Заменяем базовое имя на имя со степенью
                                 # Например: medalKay.png -> medalKay4.png
-                                for medal_id, base_name in {
-                                    41: 'medalKay', 42: 'medalSamokhin', 43: 'medalGudz',
-                                    44: 'medalPoppel', 45: 'medalAbrams', 46: 'medalLeClerc',
-                                    47: 'medalLavrinenko', 48: 'medalEkins'
-                                }.items():
-                                    if medal_id == aid_int and base_name in image_big:
-                                        medal_data['image_big'] = image_big.replace(
-                                            f'{base_name}.png', f'{base_name}{rank}.png'
-                                        )
-                                        break
+                                # readyForBattleHT.png -> readyForBattleHT3.png
+                                if base_name in image_big:
+                                    medal_data['image_big'] = image_big.replace(
+                                        f'{base_name}.png', f'{base_name}{rank}.png'
+                                    )
 
                         valid_medals.append(medal_data)
                         valid_names.append(medal_data['name'])
