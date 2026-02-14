@@ -30,7 +30,7 @@ from rest_framework import status
 from django_comments.models import Comment
 
 from .error_handlers import ReplayErrorHandler
-from .models import Replay, Tank, Nation, Achievement, MarksOnGun, Map
+from .models import Replay, Tank, Nation, Achievement, MarksOnGun, Map, APIUsageLog
 from .parser.extractor import ExtractorV2
 from .services import ReplayProcessingService
 from .validators import BatchUploadValidator, ReplayFileValidator
@@ -1347,6 +1347,14 @@ def get_replay_info(request):
     API endpoint that returns replay information by URL.
     Expects 'url' query parameter.
     """
+    obj, created = APIUsageLog.objects.get_or_create(
+        user=request.user, endpoint='api_replay_info',
+    )
+    if not created:
+        APIUsageLog.objects.filter(pk=obj.pk).update(call_count=F('call_count') + 1)
+    else:
+        APIUsageLog.objects.filter(pk=obj.pk).update(call_count=1)
+
     url = request.GET.get('url')
     if not url:
         return Response({"error": "URL parameter is required"}, status=status.HTTP_400_BAD_REQUEST)

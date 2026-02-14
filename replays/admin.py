@@ -1,6 +1,6 @@
 # replays/admin.py
 from django.contrib import admin
-from .models import Tank, Player, Replay, Map, UserProfile, Achievement, MarksOnGun
+from .models import Tank, Player, Replay, Map, UserProfile, Achievement, MarksOnGun, APIUsageLog
 
 
 @admin.register(Tank)
@@ -56,3 +56,12 @@ class MarksOnGunAdmin(admin.ModelAdmin):
     list_filter = ("is_active",)
     ordering = ("marks_count",)
     readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(APIUsageLog)
+class APIUsageLogAdmin(admin.ModelAdmin):
+    list_display = ("user", "endpoint", "call_count", "last_called_at")
+    list_filter = ("endpoint",)
+    search_fields = ("user__username",)
+    ordering = ("-call_count",)
+    readonly_fields = ("user", "endpoint", "call_count", "last_called_at")

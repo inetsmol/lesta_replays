@@ -556,3 +556,35 @@ class UserProfile(models.Model):
         return f"Профиль {self.user.username}"
 
 
+class APIUsageLog(models.Model):
+    """
+    Счётчик вызовов API endpoint'ов по пользователям.
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='api_usage_logs',
+        verbose_name="Пользователь",
+    )
+    endpoint = models.CharField(
+        "Endpoint",
+        max_length=100,
+        db_index=True,
+        help_text="Имя API endpoint'а (например, api_replay_info)",
+    )
+    call_count = models.PositiveIntegerField(
+        "Количество вызовов",
+        default=0,
+    )
+    last_called_at = models.DateTimeField(
+        "Последний вызов",
+        auto_now=True,
+    )
+
+    class Meta:
+        unique_together = ('user', 'endpoint')
+        verbose_name = "Статистика API"
+        verbose_name_plural = "Статистика API"
+
+    def __str__(self):
+        return f"{self.user.username} — {self.endpoint}: {self.call_count}"
