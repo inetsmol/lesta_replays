@@ -11,7 +11,7 @@ from django.db.models.signals import post_save
 from django.contrib.auth import get_user_model
 
 from replays.allauth_providers.lesta.client import LestaAPIClient
-from replays.models import Player, UserProfile
+from replays.models import Player, UserProfile, SubscriptionPlan, UserSubscription
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -114,7 +114,7 @@ def update_user_nickname(sender, request, sociallogin, **kwargs):
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     """
-    Автоматически создать UserProfile при создании User.
+    Автоматически создать UserProfile и назначить free-план при создании User.
 
     Args:
         sender: Модель User
@@ -129,6 +129,26 @@ def create_user_profile(sender, instance, created, **kwargs):
         except Exception as e:
             logger.error(
                 f"Failed to create UserProfile for user {instance.id}: {e}",
+                exc_info=True
+            )
+
+        try:
+            free_plan = SubscriptionPlan.objects.get(name=SubscriptionPlan.PLAN_FREE)
+            UserSubscription.objects.create(
+                user=instance,
+                plan=free_plan,
+                expires_at=None,
+                is_active=True,
+                activated_by='admin',
+            )
+            logger.info(f"Assigned free plan to user {instance.id} ({instance.username})")
+        except SubscriptionPlan.DoesNotExist:
+            logger.warning(
+                f"Free plan not found in DB, skipping subscription for user {instance.id}"
+            )
+        except Exception as e:
+            logger.error(
+                f"Failed to assign free plan to user {instance.id}: {e}",
                 exc_info=True
             )
 
