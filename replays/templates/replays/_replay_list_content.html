@@ -218,10 +218,9 @@
                                 <div class="flex flex-wrap items-baseline justify-between gap-2">
                                     <div class="upload-info text-sm leading-5 font-semibold text-[#ddd]">
                                         <span>{{ replay.battle_date|default_if_none:replay.created_at|localtime|date:"d.m.Y H:i" }}</span>
-                                        {% if replay.get_battle_type_display or replay.get_gameplay_display %}
+                                        {% if replay.get_combined_battle_display %}
                                             <span class="text-[#999] font-normal">
-                                                •
-                                                {% if replay.get_battle_type_display %}{{ replay.get_battle_type_display }}{% endif %}{% if replay.get_battle_type_display and replay.get_gameplay_display and replay.get_battle_type_display != replay.get_gameplay_display %}, {% endif %}{% if replay.get_gameplay_display and replay.get_battle_type_display != replay.get_gameplay_display %}{{ replay.get_gameplay_display }}{% endif %}
+                                                • {{ replay.get_combined_battle_display }}
                                             </span>
                                         {% endif %}
                                         {% if replay.user %}

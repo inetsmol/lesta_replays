@@ -282,6 +282,35 @@ class Replay(VoteModel, models.Model):
 
         return code_map.get(code, "")
 
+    # Коды обычных боёв, для которых gameplay_id информативнее battle_type
+    _REGULAR_BATTLE_CODES = {1, 2, 19, 20}
+
+    def get_combined_battle_display(self) -> str:
+        """
+        Комбинированное отображение типа боя для списка реплеев.
+
+        Для специальных режимов (Стальной охотник, Линия фронта и т.д.)
+        показывает только battle_type. Для обычных боёв — battle_type + gameplay
+        (например, "Случайный бой, Штурм").
+        """
+        bt_display = self.get_battle_type_display()
+        gp_display = self.get_gameplay_display()
+
+        try:
+            code = int(self.battle_type)
+        except (ValueError, TypeError):
+            code = None
+
+        # Для специальных режимов — только battle_type
+        if code is not None and code not in self._REGULAR_BATTLE_CODES:
+            return bt_display
+
+        # Для обычных — battle_type + gameplay (если разные)
+        if bt_display and gp_display and bt_display != gp_display:
+            return f"{bt_display}, {gp_display}"
+
+        return bt_display or gp_display or ""
+
     class Meta:
         verbose_name = "Реплей"
         verbose_name_plural = "Реплеи"

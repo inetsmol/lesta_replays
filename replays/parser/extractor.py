@@ -1434,11 +1434,17 @@ class ExtractorV2:
         }
         return code_map.get(code)
 
+    # Коды обычных боёв, для которых gameplayID информативнее battleType
+    _REGULAR_BATTLE_CODES = {1, 2, 19, 20}
+
     @staticmethod
     def get_battle_type_label(cache: 'ReplayDataCache') -> str:
         """
-        Вернёт человекочитаемое название типа игры по gameplayID.
-        Например: "Стандартный бой", "Встречный бой", "Господство".
+        Вернёт человекочитаемое название типа игры.
+
+        Для специальных режимов (Стальной охотник, Линия фронта и т.д.)
+        использует battleType/bonusType. Для обычных боёв — gameplayID,
+        который точнее описывает формат (Стандартный бой, Штурм, Встречный бой).
 
         Args:
             cache: Кеш данных реплея
@@ -1446,11 +1452,26 @@ class ExtractorV2:
         Returns:
             Человекочитаемое название типа игры
         """
+        bt = cache.first_block.get("battleType")
+        bonus = cache.common.get("bonusType")
+
+        for code in (bt, bonus):
+            try:
+                code_int = int(code)
+                if code_int not in ExtractorV2._REGULAR_BATTLE_CODES:
+                    label = ExtractorV2._get_battle_type_by_code(code_int)
+                    if label:
+                        return label
+            except (TypeError, ValueError):
+                pass
+
+        # Для обычных боёв используем gameplayID (более информативен)
         gameplay_id = str(cache.first_block.get("gameplayID") or "").strip()
         if gameplay_id:
             label = ExtractorV2._get_battle_type_by_gameplay_id(gameplay_id)
             if label:
                 return label
+
         return "Неизвестный режим"
 
     @staticmethod

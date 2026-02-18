@@ -498,10 +498,14 @@ class ReplayListView(ListView):
             gp = set(_getlist("gameplay"))
             if gp and 'all' not in gp:
                 queryset = queryset.filter(gameplay_id__in=gp)
-            elif not gp:
-                # Для премиум-пользователей по умолчанию показываем только стандартный бой
+            elif not gp and not bt:
+                # Для премиум-пользователей по умолчанию показываем только
+                # случайный бой + стандартный бой (battle_type IN (1,19) AND gameplay_id='ctf')
                 if plan.can_use_advanced_filters:
-                    queryset = queryset.filter(gameplay_id='ctf')
+                    queryset = queryset.filter(
+                        battle_type__in=['1', '19'],
+                        gameplay_id='ctf',
+                    )
 
             owner_nick = (self.request.GET.get("owner_nick") or "").strip()
             if owner_nick:
@@ -627,7 +631,9 @@ class ReplayListView(ListView):
             ctx["can_use_advanced_filters"] = can_advanced
             ctx["can_use_pro_filters"] = can_pro
             ctx["default_gameplay_applied"] = (
-                can_advanced and not self.request.GET.getlist("gameplay")
+                can_advanced
+                and not self.request.GET.getlist("gameplay")
+                and not self.request.GET.getlist("battle_type")
             )
             # Показывать значки достижений на карточках, если фильтр по ачивкам активен
             show_ach = bool(can_pro and self.request.GET.getlist("achievement"))
