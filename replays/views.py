@@ -95,7 +95,8 @@ class ReplayBatchUploadView(LoginRequiredMixin, View):
             )
 
         # Валидация пакета файлов
-        if batch_error := BatchUploadValidator.validate_batch(files):
+        is_premium = SubscriptionService.is_premium(user)
+        if batch_error := BatchUploadValidator.validate_batch(files, is_premium=is_premium):
             return self._error_response(request, batch_error)
 
         # Обработка файлов

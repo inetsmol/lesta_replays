@@ -63,16 +63,18 @@ class ReplayFileValidator:
 class BatchUploadValidator:
     """Валидатор пакетной загрузки."""
 
-    MAX_FILES_PER_REQUEST = 5
+    MAX_FILES_FREE = 1
+    MAX_FILES_PREMIUM = 5
     MAX_TOTAL_SIZE = 30 * 1024 * 1024  # 30MB
 
     @classmethod
-    def validate_batch(cls, files: list) -> Optional[str]:
+    def validate_batch(cls, files: list, is_premium: bool = False) -> Optional[str]:
         """
         Валидирует пакет файлов.
 
         Args:
             files: Список загруженных файлов
+            is_premium: Премиум/Про пользователь (множественная загрузка)
 
         Returns:
             str | None: Сообщение об ошибке или None
@@ -80,8 +82,11 @@ class BatchUploadValidator:
         if not files:
             return "Файлы не выбраны"
 
-        if len(files) > cls.MAX_FILES_PER_REQUEST:
-            return f"Слишком много файлов. Максимум: {cls.MAX_FILES_PER_REQUEST}"
+        max_files = cls.MAX_FILES_PREMIUM if is_premium else cls.MAX_FILES_FREE
+        if len(files) > max_files:
+            if not is_premium:
+                return "Загрузка нескольких файлов одновременно доступна только с Премиум-подпиской. Загружайте по одному файлу."
+            return f"Слишком много файлов. Максимум: {max_files}"
 
         total_size = sum(f.size for f in files)
         if total_size > cls.MAX_TOTAL_SIZE:

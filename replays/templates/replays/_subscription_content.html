@@ -65,6 +65,16 @@
       </li>
 
       <li class="flex items-center gap-2 text-sm">
+        {% if plan.name == 'free' %}
+          <i class="fas fa-minus text-gray-500"></i>
+          <span class="text-gray-400">Загрузка по 1 файлу</span>
+        {% else %}
+          <i class="fas fa-check text-green-400"></i>
+          <span class="text-gray-300">До 5 файлов одновременно</span>
+        {% endif %}
+      </li>
+
+      <li class="flex items-center gap-2 text-sm">
         {% if plan.daily_download_limit == 0 %}
           <i class="fas fa-check text-green-400"></i>
           <span class="text-gray-300">Безлимитные скачивания</span>
