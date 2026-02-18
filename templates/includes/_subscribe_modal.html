@@ -52,23 +52,25 @@
 
         <!-- Способы оплаты -->
         <div class="ml-10 space-y-2">
-          <!-- Кнопки YooMoney и Т-Банк -->
-          <div class="flex items-center justify-center gap-3">
+          <!-- Кнопки Т-Банк и YooMoney -->
+          <div class="flex items-stretch justify-center gap-3">
             <a href="https://www.tinkoff.ru/rm/r_yPRgXbAsRv.klYbxJbAtH/nCNuX53972"
                target="_blank" rel="noopener"
-               class="relative inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-semibold text-white text-sm overflow-hidden transition-all">
+               class="relative flex-1 inline-flex items-center justify-center gap-2 rounded-lg font-semibold text-white text-sm overflow-hidden transition-all"
+               style="height: 42px;">
               <div class="absolute inset-0 bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500"></div>
               <span class="relative z-10 flex items-center gap-2">
                 <i class="fas fa-external-link-alt text-xs"></i>
-                <span>Перевести Т-Банк</span>
+                <span>Т-Банк</span>
               </span>
             </a>
-            <iframe
-              src="https://yoomoney.ru/quickpay/fundraise/button?billNumber=1D58232QB73.251002&"
-              width="160" height="50" frameborder="0"
-              allowtransparency="true" scrolling="no"
-              class="rounded-lg">
-            </iframe>
+            <div class="flex-1" style="height: 42px;">
+              <iframe
+                src="https://yoomoney.ru/quickpay/fundraise/button?billNumber=1D58232QB73.251002&"
+                width="100%" height="42" frameborder="0"
+                allowtransparency="true" scrolling="no">
+              </iframe>
+            </div>
           </div>
 
           <!-- Т-Банк QR -->
