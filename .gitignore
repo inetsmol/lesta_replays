@@ -7,7 +7,6 @@ db.sqlite3
 /!_media/
 */migrations
 texts/
-replays/management/commands/
 lesta_replays.session.sql
 .vscode/
 
