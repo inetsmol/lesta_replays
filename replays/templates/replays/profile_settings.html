@@ -111,7 +111,7 @@
             {% endif %}
           </div>
           <span class="text-sm text-gray-400">
-            {{ account.extra_data.nickname|default:account.extra_data.display_name|default:account.uid }}
+            {% firstof account.extra_data.nickname account.extra_data.display_name account.uid %}
           </span>
         </div>
       {% empty %}
