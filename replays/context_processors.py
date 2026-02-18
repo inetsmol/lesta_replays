@@ -34,6 +34,7 @@ def subscription_context(request):
 
     return {
         'user_plan': plan,
+        'user_profile': getattr(user, 'profile', None),
         'is_premium': plan.name in ('premium', 'pro'),
         'is_pro': plan.name == 'pro',
         'show_donation_prompts': plan.show_donation_prompts,

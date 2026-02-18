@@ -1,0 +1,8 @@
+{# replays/templates/replays/profile_subscription.html #}
+{% extends "replays/profile_base.html" %}
+
+{% block title %}Подписка - {{ user.username }}{% endblock %}
+
+{% block tab_content %}
+  {% include "replays/_subscription_content.html" %}
+{% endblock %}

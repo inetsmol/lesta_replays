@@ -1,0 +1,264 @@
+{# replays/templates/replays/profile_settings.html #}
+{% extends "replays/profile_base.html" %}
+{% load static %}
+
+{% block title %}Настройки - {{ user.username }}{% endblock %}
+
+{% block tab_content %}
+<div class="space-y-6">
+
+  {# ===== ПРОФИЛЬ: НИКНЕЙМ + АВАТАР ===== #}
+  <section class="rounded-xl p-6 border border-gray-700 bg-gray-900/50">
+    <h2 class="text-lg font-semibold text-white mb-6 flex items-center gap-2.5">
+      <i class="fas fa-user-circle text-gray-400"></i>
+      <span>Профиль</span>
+    </h2>
+
+    <div class="grid gap-5" style="grid-template-columns: 1fr 1fr;">
+      {# --- Никнейм (левая половина) --- #}
+      <div class="rounded-lg bg-dark-700/50 border border-gray-700/50 p-5">
+        <label class="block text-sm font-medium text-gray-400 mb-3">Никнейм</label>
+        <form method="post" action="{% url 'profile_settings' %}">
+          {% csrf_token %}
+          <input type="text" name="username"
+                 value="{{ username_form.username.value|default:'' }}"
+                 class="w-full bg-dark-800 border border-gray-600 rounded-lg px-4 py-2.5
+                        text-white placeholder-gray-500 focus:border-red-500
+                        focus:ring-1 focus:ring-red-500 outline-none mb-3"
+                 maxlength="150" minlength="3"
+                 placeholder="Введите новый никнейм">
+          {% if username_form.username.errors %}
+            <p class="text-red-400 text-sm mb-3">
+              {{ username_form.username.errors.0 }}
+            </p>
+          {% endif %}
+          <button type="submit"
+                  class="px-5 py-2 bg-red-600 hover:bg-red-500 text-white
+                         rounded-lg font-medium transition-colors text-sm">
+            Сохранить
+          </button>
+        </form>
+      </div>
+
+      {# --- Аватар (правая половина) --- #}
+      <div class="rounded-lg bg-dark-700/50 border border-gray-700/50 p-5" x-data="avatarUpload()">
+        <label class="block text-sm font-medium text-gray-400 mb-3">Аватар</label>
+        {% if can_upload_avatar %}
+          <div class="flex items-center gap-4">
+            <div class="shrink-0 relative">
+              <img x-bind:src="avatarUrl || '{{ profile.avatar.url|default_if_none:"" }}'"
+                   x-show="!deleted && (avatarUrl || {{ profile.avatar|yesno:'true,false' }})"
+                   alt="Аватар"
+                   class="w-16 h-16 rounded-full object-cover border-2 border-gray-600">
+              <div class="w-16 h-16 rounded-full bg-dark-800 flex items-center justify-center border-2 border-gray-600"
+                   x-show="deleted || (!avatarUrl && !{{ profile.avatar|yesno:'true,false' }})"
+                   {% if profile and profile.avatar %}style="display: none;"{% endif %}>
+                <i class="fas fa-user text-2xl text-gray-500"></i>
+              </div>
+            </div>
+            <div>
+              <input type="file" accept="image/jpeg,image/png,.jpeg" x-on:change="upload($event)"
+                     class="text-sm text-gray-400 file:mr-3 file:py-1.5 file:px-3
+                            file:rounded-lg file:border-0 file:bg-dark-800
+                            file:text-white file:font-medium file:cursor-pointer
+                            hover:file:bg-dark-600">
+              <div class="flex items-center gap-3 mt-1.5">
+                <p class="text-xs text-gray-500">JPG / PNG, до 2 МБ</p>
+                <button x-show="!deleted && (avatarUrl || {{ profile.avatar|yesno:'true,false' }})"
+                        x-on:click="remove()"
+                        x-bind:disabled="deleting"
+                        class="text-xs text-red-400 hover:text-red-300 transition-colors"
+                        type="button">
+                  <i class="fas fa-trash-alt mr-0.5"></i> Удалить
+                </button>
+              </div>
+              <p x-show="error" x-text="error" class="text-red-400 text-xs mt-1"></p>
+              <p x-show="success" x-text="successMsg" class="text-green-400 text-xs mt-1"></p>
+            </div>
+          </div>
+        {% else %}
+          <p class="text-gray-400 text-sm">
+            Доступно для
+            <a href="{% url 'profile_subscription' %}" class="text-red-400 hover:underline">подписчиков</a>.
+          </p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  {# ===== ПРИВЯЗАННЫЕ АККАУНТЫ ===== #}
+  <section class="rounded-xl p-6 border border-gray-700 bg-gray-900/50">
+    <h2 class="text-lg font-semibold text-white mb-5 flex items-center gap-2.5">
+      <i class="fas fa-link text-gray-400"></i>
+      <span>Привязанные аккаунты</span>
+    </h2>
+    <div class="space-y-3">
+      {% for account in social_accounts %}
+        <div class="flex items-center justify-between bg-dark-700 rounded-lg px-4 py-3">
+          <div class="flex items-center gap-3">
+            {% if account.provider == 'lesta' %}
+              <i class="fas fa-gamepad text-lg text-green-400"></i>
+              <span class="text-white">Lesta Games</span>
+            {% elif account.provider == 'google' %}
+              <i class="fab fa-google text-lg text-red-400"></i>
+              <span class="text-white">Google</span>
+            {% elif account.provider == 'yandex' %}
+              <i class="fab fa-yandex text-lg text-yellow-400"></i>
+              <span class="text-white">Яндекс</span>
+            {% else %}
+              <i class="fas fa-user text-lg text-gray-400"></i>
+              <span class="text-white">{{ account.provider|title }}</span>
+            {% endif %}
+          </div>
+          <span class="text-sm text-gray-400">
+            {{ account.extra_data.nickname|default:account.extra_data.display_name|default:account.uid }}
+          </span>
+        </div>
+      {% empty %}
+        <p class="text-gray-500">Нет привязанных аккаунтов.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  {# ===== ИНФОРМАЦИЯ ===== #}
+  <section class="rounded-xl p-6 border border-gray-700 bg-gray-900/50">
+    <h2 class="text-lg font-semibold text-white mb-5 flex items-center gap-2.5">
+      <i class="fas fa-info-circle text-gray-400"></i>
+      <span>Информация</span>
+    </h2>
+    <div class="space-y-2 text-sm text-gray-400">
+      <p>Email: <span class="text-gray-300">{{ user.email|default:"не указан" }}</span></p>
+      <p>Дата регистрации: <span class="text-gray-300">{{ user.date_joined|date:"d.m.Y" }}</span></p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+function avatarUpload() {
+  return {
+    avatarUrl: null,
+    error: null,
+    success: false,
+    successMsg: '',
+    deleted: false,
+    deleting: false,
+
+    updatePageAvatars(url) {
+      // Обновляем аватар в шапке профиля
+      let headerAvatar = document.getElementById('profile-header-avatar');
+      let headerPlaceholder = document.getElementById('profile-header-avatar-placeholder');
+      if (url) {
+        if (headerAvatar) {
+          headerAvatar.src = url;
+          headerAvatar.style.display = '';
+        } else {
+          // Создаём img
+          const img = document.createElement('img');
+          img.id = 'profile-header-avatar';
+          img.src = url;
+          img.alt = 'Аватар';
+          img.className = 'w-16 h-16 rounded-full object-cover border-2 border-gray-600';
+          if (headerPlaceholder) {
+            headerPlaceholder.parentNode.insertBefore(img, headerPlaceholder);
+          }
+        }
+        if (headerPlaceholder) headerPlaceholder.style.display = 'none';
+      } else {
+        // Удалён — убираем img, показываем placeholder
+        if (headerAvatar) headerAvatar.remove();
+        if (headerPlaceholder) {
+          headerPlaceholder.style.display = '';
+        } else {
+          // Создаём placeholder
+          const div = document.createElement('div');
+          div.id = 'profile-header-avatar-placeholder';
+          div.className = 'w-16 h-16 rounded-full bg-dark-700 flex items-center justify-center border-2 border-gray-600';
+          div.innerHTML = '<i class="fas fa-user text-2xl text-gray-500"></i>';
+          const container = document.querySelector('.flex.items-center.gap-4.mb-6');
+          if (container) container.insertBefore(div, container.firstChild);
+        }
+      }
+
+      // Обновляем аватар в навбаре
+      const navAvatar = document.getElementById('navbar-avatar');
+      if (url) {
+        if (navAvatar) {
+          navAvatar.src = url;
+        } else {
+          const summary = document.querySelector('details[data-user-menu] > summary');
+          if (summary) {
+            const img = document.createElement('img');
+            img.id = 'navbar-avatar';
+            img.src = url;
+            img.alt = '';
+            img.className = 'w-6 h-6 rounded-full object-cover border border-gray-500';
+            img.style.aspectRatio = '1/1';
+            summary.insertBefore(img, summary.firstChild);
+          }
+        }
+      } else {
+        if (navAvatar) navAvatar.remove();
+      }
+    },
+
+    async upload(event) {
+      this.error = null;
+      this.success = false;
+      this.deleted = false;
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('avatar', file);
+
+      try {
+        const resp = await fetch('{% url "upload_avatar" %}', {
+          method: 'POST',
+          headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+          body: formData,
+        });
+        const data = await resp.json();
+        if (data.success) {
+          this.avatarUrl = data.avatar_url;
+          this.success = true;
+          this.successMsg = 'Аватар обновлён!';
+          this.updatePageAvatars(data.avatar_url);
+        } else {
+          this.error = data.error || 'Ошибка загрузки';
+        }
+      } catch (e) {
+        this.error = 'Ошибка загрузки. Попробуйте позже.';
+      }
+    },
+
+    async remove() {
+      this.error = null;
+      this.success = false;
+      this.deleting = true;
+
+      try {
+        const resp = await fetch('{% url "delete_avatar" %}', {
+          method: 'POST',
+          headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        });
+        const data = await resp.json();
+        if (data.success) {
+          this.avatarUrl = null;
+          this.deleted = true;
+          this.success = true;
+          this.successMsg = 'Аватар удалён';
+          this.updatePageAvatars(null);
+        } else {
+          this.error = data.error || 'Ошибка удаления';
+        }
+      } catch (e) {
+        this.error = 'Ошибка удаления. Попробуйте позже.';
+      } finally {
+        this.deleting = false;
+      }
+    }
+  }
+}
+</script>
+{% endblock %}

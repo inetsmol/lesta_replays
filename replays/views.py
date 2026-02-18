@@ -12,7 +12,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q, F, Count, OuterRef, Subquery, IntegerField, CharField, Value, FloatField
+from django.db.models import Q, F, Count, OuterRef, Subquery, IntegerField, CharField, Value, FloatField, Exists, BooleanField, Prefetch
 from django.db.models.functions import Coalesce, Cast
 from django.http import JsonResponse, Http404, HttpResponse, StreamingHttpResponse, HttpRequest
 from django.shortcuts import redirect, render, get_object_or_404
@@ -30,7 +30,7 @@ from rest_framework import status
 from django_comments.models import Comment
 
 from .error_handlers import ReplayErrorHandler
-from .forms import VideoLinkForm, AvatarUploadForm
+from .forms import VideoLinkForm, AvatarUploadForm, UsernameChangeForm
 from .models import Replay, Tank, Nation, Achievement, MarksOnGun, Map, APIUsageLog, SubscriptionPlan, ReplayVideoLink
 from .parser.extractor import ExtractorV2
 from .services import ReplayProcessingService, SubscriptionService, UsageLimitService, VideoLinkService
@@ -82,6 +82,12 @@ class ReplayBatchUploadView(LoginRequiredMixin, View):
 
         # Проверка лимита загрузок по подписке
         if user and not UsageLimitService.can_upload(user):
+            if self._is_ajax_request(request):
+                return JsonResponse({
+                    "success": False,
+                    "limit_reached": "upload",
+                    "error": "Вы достигли дневного лимита загрузок.",
+                }, status=429)
             return self._error_response(
                 request,
                 "Вы достигли дневного лимита загрузок. "
@@ -298,9 +304,21 @@ class ReplayListView(ListView):
         Получение отфильтрованного QuerySet с применением фильтров.
         """
         try:
+            prefetches = ['participants', 'video_links']
+            # Если фильтр по достижениям активен — prefetch боевых ачивок для значков на карточке
+            if self.request.GET.getlist("achievement"):
+                prefetches.append(
+                    Prefetch(
+                        'achievements',
+                        queryset=Achievement.objects.filter(
+                            section__in=('battle', 'epic', 'class')
+                        ).exclude(achievement_id=79),
+                        to_attr='battle_achievements',
+                    )
+                )
             qs = (Replay.objects
-                  .select_related('tank', 'owner', 'user')
-                  .prefetch_related('participants')
+                  .select_related('tank', 'owner', 'user', 'user__subscription__plan')
+                  .prefetch_related(*prefetches)
                   )
 
             # СНАЧАЛА фильтры
@@ -325,8 +343,22 @@ class ReplayListView(ListView):
                     Subquery(comment_counts, output_field=IntegerField()),
                     Value(0),
                     output_field=IntegerField(),
-                )
+                ),
             )
+
+            # Аннотация: лайкнул ли текущий пользователь
+            if self.request.user.is_authenticated:
+                from vote.models import Vote
+                replay_ct = ContentType.objects.get_for_model(Replay)
+                qs = qs.annotate(
+                    user_liked=Exists(
+                        Vote.objects.filter(
+                            content_type=replay_ct,
+                            object_id=OuterRef('pk'),
+                            user_id=self.request.user.id,
+                        )
+                    )
+                )
 
             # ПОТОМ сортировка
             sort = (self.request.GET.get('sort') or '').strip()
@@ -455,9 +487,20 @@ class ReplayListView(ListView):
             if gv:
                 queryset = queryset.filter(game_version__in=gv)
 
+            # === Премиум-фильтры ===
+            plan = SubscriptionService.get_user_plan(self.request.user)
+
             bt = set(_getlist("battle_type"))
             if bt:
                 queryset = queryset.filter(battle_type__in=bt)
+
+            gp = set(_getlist("gameplay"))
+            if gp and 'all' not in gp:
+                queryset = queryset.filter(gameplay_id__in=gp)
+            elif not gp:
+                # Для премиум-пользователей по умолчанию показываем только стандартный бой
+                if plan.can_use_advanced_filters:
+                    queryset = queryset.filter(gameplay_id='ctf')
 
             owner_nick = (self.request.GET.get("owner_nick") or "").strip()
             if owner_nick:
@@ -493,15 +536,11 @@ class ReplayListView(ListView):
             game_version_search = (self.request.GET.get("game_version_search") or "").strip()
             if game_version_search:
                 queryset = queryset.filter(game_version__icontains=game_version_search)
-
-            # === Премиум-фильтры (по достижениям) ===
-            plan = SubscriptionService.get_user_plan(self.request.user)
-            if plan.can_use_advanced_filters:
-                # Фильтр по конкретному достижению (multi)
+            if plan.can_use_pro_filters:
+                # Фильтр по конкретному достижению (multi, OR-логика)
                 ach_ids = _to_int_set(_getlist("achievement"))
                 if ach_ids:
-                    for aid in ach_ids:
-                        queryset = queryset.filter(achievements__achievement_id=aid)
+                    queryset = queryset.filter(achievements__achievement_id__in=ach_ids)
                     m2m_used = True
 
                 # Фильтр по минимальному кол-ву достижений
@@ -577,7 +616,25 @@ class ReplayListView(ListView):
                 "allowed_page_sizes": self.ALLOWED_PAGE_SIZES,
                 "current_per_page": current_per_page,
                 "base_qs_without_per_page": base_qs_without_per_page,
+
             })
+
+            # Премиум-фильтры
+            plan = SubscriptionService.get_user_plan(self.request.user)
+            can_advanced = plan.can_use_advanced_filters
+            can_pro = plan.can_use_pro_filters
+            ctx["can_use_advanced_filters"] = can_advanced
+            ctx["can_use_pro_filters"] = can_pro
+            ctx["default_gameplay_applied"] = (
+                can_advanced and not self.request.GET.getlist("gameplay")
+            )
+            # Показывать значки достижений на карточках, если фильтр по ачивкам активен
+            show_ach = bool(can_pro and self.request.GET.getlist("achievement"))
+            ctx["show_achievements_on_cards"] = show_ach
+
+            # Подставить правильные пути к картинкам для медалей со степенями
+            if show_ach:
+                self._resolve_achievement_images(ctx.get("object_list") or ctx.get("page_obj"))
 
             logger.debug(f"Context подготовлен успешно")
             return ctx
@@ -585,6 +642,58 @@ class ReplayListView(ListView):
         except Exception as e:
             logger.exception(f"Ошибка в get_context_data: {e}")
             raise
+
+
+    # Медали со степенями: ID -> базовое имя файла (из AchievementWithRank)
+    RANKED_MEDALS = {
+        41: 'medalKay', 42: 'medalSamokhin', 43: 'medalGudz',
+        44: 'medalPoppel', 45: 'medalAbrams', 46: 'medalLeClerc',
+        47: 'medalLavrinenko', 48: 'medalEkins',
+        538: 'readyForBattleLT', 539: 'readyForBattleMT',
+        540: 'readyForBattleHT', 541: 'readyForBattleSPG',
+        542: 'readyForBattleATSPG',
+        1215: 'readyForBattleAllianceUSSR', 1216: 'readyForBattleAllianceGermany',
+        1217: 'readyForBattleAllianceUSA', 1218: 'readyForBattleAllianceFrance',
+    }
+    # ID, для которых степень 1 тоже значима
+    ALWAYS_RANKED_IDS = {538, 539, 540, 541, 542, 1215, 1216, 1217, 1218}
+
+    def _resolve_achievement_images(self, page):
+        """Подставляет правильные пути к картинкам для медалей со степенями."""
+        if not page:
+            return
+        from replays.parser.replay_cache import ReplayDataCache
+        for replay in page:
+            if not hasattr(replay, 'battle_achievements') or not replay.battle_achievements:
+                continue
+            # Проверяем есть ли медали со степенями
+            ranked_ids = {a.achievement_id for a in replay.battle_achievements} & set(self.RANKED_MEDALS)
+            # Достаём степени из payload если есть медали со степенями
+            awv = {}
+            if ranked_ids:
+                try:
+                    cache = ReplayDataCache(replay.payload)
+                    awv = cache.get_achievements_with_values()
+                except Exception:
+                    pass
+            for ach in replay.battle_achievements:
+                # По умолчанию — обычный путь
+                ach.resolved_image = ach.image_big
+                if ach.achievement_id not in ranked_ids:
+                    continue
+                value = awv.get(ach.achievement_id)
+                if not isinstance(value, int):
+                    continue
+                if ach.achievement_id in self.ALWAYS_RANKED_IDS:
+                    rank = value if value >= 1 else None
+                else:
+                    rank = value if value > 1 else None
+                if rank is not None:
+                    base_name = self.RANKED_MEDALS[ach.achievement_id]
+                    if base_name in ach.image_big:
+                        ach.resolved_image = ach.image_big.replace(
+                            f'{base_name}.png', f'{base_name}{rank}.png'
+                        )
 
 
 class MyReplaysView(LoginRequiredMixin, ReplayListView):
@@ -640,6 +749,34 @@ class ReplayFiltersView(TemplateView):
     """
     template_name = "replays/filters.html"
 
+    @staticmethod
+    def _get_battle_types():
+        """Возвращает список кортежей (код, название) для типов боёв."""
+        codes = (Replay.objects.values_list("battle_type", flat=True)
+                 .exclude(battle_type__isnull=True).exclude(battle_type__exact="")
+                 .distinct().order_by("battle_type"))
+        result = []
+        helper = Replay()
+        for code in codes:
+            helper.battle_type = code
+            label = helper.get_battle_type_display() or f"Тип {code}"
+            result.append((code, label))
+        return result
+
+    @staticmethod
+    def _get_gameplay_modes():
+        """Возвращает список кортежей (gameplay_id, название) для режимов игры."""
+        codes = (Replay.objects.values_list("gameplay_id", flat=True)
+                 .exclude(gameplay_id__isnull=True).exclude(gameplay_id__exact="")
+                 .distinct().order_by("gameplay_id"))
+        result = []
+        helper = Replay()
+        for code in codes:
+            helper.gameplay_id = code
+            label = helper.get_gameplay_display() or code
+            result.append((code, label))
+        return result
+
     def get_context_data(self, **kwargs):
         from django.urls import reverse
         ctx = super().get_context_data(**kwargs)
@@ -673,19 +810,21 @@ class ReplayFiltersView(TemplateView):
                 "levels": Tank.objects.order_by('level').values_list('level', flat=True).distinct(),
                 "mastery_choices": [(i, f"Знак {i}") for i in range(5)],
                 "game_versions": game_versions,
-                "battle_types": (Replay.objects.values_list("battle_type", flat=True)
-                                 .exclude(battle_type__isnull=True).exclude(battle_type__exact="")
-                                 .distinct().order_by("battle_type")),
+                "battle_types": self._get_battle_types(),
+                "gameplay_modes": self._get_gameplay_modes(),
                 "achievements": (Achievement.objects
                                  .filter(replays__isnull=False)
-                                 .distinct()
-                                 .order_by("name")),
+                                 .annotate(replay_count=Count('replays'))
+                                 .order_by('replay_count', 'name')),
             },
             "current_filters": current_filters,
             "list_url": reverse("replay_list"),
             "can_use_advanced_filters": SubscriptionService.get_user_plan(
                 self.request.user
             ).can_use_advanced_filters if self.request.user.is_authenticated else False,
+            "can_use_pro_filters": SubscriptionService.get_user_plan(
+                self.request.user
+            ).can_use_pro_filters if self.request.user.is_authenticated else False,
         })
         return ctx
 
@@ -1149,11 +1288,11 @@ class ReplayDownloadView(LoginRequiredMixin, View):
         """
         # Проверка лимита скачиваний по подписке
         if not UsageLimitService.can_download(request.user):
-            return HttpResponse(
-                "Вы достигли дневного лимита скачиваний. "
-                "Оформите подписку для неограниченных скачиваний.",
-                status=429,
-            )
+            return JsonResponse({
+                "success": False,
+                "limit_reached": "download",
+                "error": "Вы достигли дневного лимита скачиваний.",
+            }, status=429)
 
         try:
             # Получаем объект реплея
@@ -1566,4 +1705,76 @@ class UploadAvatarView(LoginRequiredMixin, View):
                 'avatar_url': profile.avatar.url,
             })
 
-        return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+        # Собираем ошибки валидации в читаемую строку
+        error_messages = []
+        for field_errors in form.errors.values():
+            error_messages.extend(field_errors)
+        return JsonResponse({
+            'success': False,
+            'error': ' '.join(error_messages) or 'Ошибка загрузки файла.',
+        }, status=400)
+
+
+class DeleteAvatarView(LoginRequiredMixin, View):
+    """Удаление аватара пользователя."""
+
+    def post(self, request):
+        profile = request.user.profile
+        if profile.avatar:
+            profile.avatar.delete(save=False)
+            profile.avatar = None
+            profile.save()
+        return JsonResponse({'success': True})
+
+
+# ==================== ПРОФИЛЬ ====================
+
+class ProfileReplaysView(MyReplaysView):
+    """Вкладка 'Мои реплеи' в профиле."""
+    template_name = 'replays/profile_replays.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_tab'] = 'replays'
+        context['profile'] = getattr(self.request.user, 'profile', None)
+        return context
+
+
+class ProfileSubscriptionView(LoginRequiredMixin, TemplateView):
+    """Вкладка 'Подписка' в профиле."""
+    template_name = 'replays/profile_subscription.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_tab'] = 'subscription'
+        context['plans'] = SubscriptionPlan.objects.filter(is_active=True).order_by('price_monthly')
+        context['profile'] = getattr(self.request.user, 'profile', None)
+        return context
+
+
+class ProfileSettingsView(LoginRequiredMixin, TemplateView):
+    """Вкладка 'Настройки профиля'."""
+    template_name = 'replays/profile_settings.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_tab'] = 'settings'
+        context['profile'] = getattr(self.request.user, 'profile', None)
+        context['username_form'] = context.get('username_form', UsernameChangeForm(user=self.request.user))
+        context['can_upload_avatar'] = SubscriptionService.get_user_plan(self.request.user).can_upload_avatar
+        try:
+            from allauth.socialaccount.models import SocialAccount
+            context['social_accounts'] = SocialAccount.objects.filter(user=self.request.user)
+        except ImportError:
+            context['social_accounts'] = []
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = UsernameChangeForm(request.POST, user=request.user)
+        if form.is_valid():
+            request.user.username = form.cleaned_data['username']
+            request.user.save(update_fields=['username'])
+            messages.success(request, 'Никнейм успешно изменён.')
+            return redirect('profile_settings')
+        context = self.get_context_data(username_form=form)
+        return self.render_to_response(context)

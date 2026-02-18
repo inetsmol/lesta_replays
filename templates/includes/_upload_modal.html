@@ -443,6 +443,15 @@ function uploadModal() {
           try {
             const data = JSON.parse(xhr.responseText || '{}');
 
+            // Проверяем лимит загрузок (429)
+            if (xhr.status === 429 && data.limit_reached) {
+              this.isUploading = false;
+              this.closeModal();
+              this.resetForm();
+              window.dispatchEvent(new CustomEvent('show-limit-modal', { detail: { type: data.limit_reached } }));
+              return;
+            }
+
             if (xhr.status >= 200 && xhr.status < 300 && data.success !== false) {
               const summary = data.summary || {};
 

@@ -5,6 +5,20 @@ from django_comments_xtd import get_form
 register = template.Library()
 
 
+@register.simple_tag
+def comment_avatar_url(comment):
+    """
+    Возвращает URL аватара автора комментария из UserProfile.
+    Если аватара нет или комментарий от гостя — возвращает пустую строку.
+    """
+    user = getattr(comment, 'user', None)
+    if user and user.is_authenticated:
+        profile = getattr(user, 'profile', None)
+        if profile and profile.avatar:
+            return profile.avatar.url
+    return ''
+
+
 @register.inclusion_tag('comments/form.html', takes_context=True)
 def custom_render_comment_form(context, obj):
     """

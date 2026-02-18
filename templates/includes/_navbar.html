@@ -26,6 +26,11 @@
     {% if user.is_authenticated %}
         <details class="relative" data-user-menu>
           <summary class="list-none cursor-pointer inline-flex items-center gap-1 sm:gap-2 opacity-85 hover:opacity-100 hover:text-accent-600 text-sm sm:text-base">
+            {% if user_profile and user_profile.avatar %}
+              <img id="navbar-avatar" src="{{ user_profile.avatar.url }}" alt=""
+                   class="w-6 h-6 rounded-full object-cover border border-gray-500 shrink-0"
+                   style="aspect-ratio: 1/1; min-width: 1.5rem;">
+            {% endif %}
             <span class="hidden sm:inline">{{ user.username }}</span>
             <span class="sm:hidden">{{ user.username|truncatechars:10 }}</span>
             <!-- стрелка -->
@@ -37,26 +42,10 @@
         <!-- Выпадающее меню -->
         <div class="absolute right-0 mt-2 w-44 rounded-xl bg-white dark:bg-dark-700
             text-gray-900 dark:text-gray-100 shadow-lg ring-1 ring-black/10 dark:ring-white/10 p-1 z-50">
-          {% comment %} <a
-{#              href="{% url 'profile' %}" #}
+          <a
+              href="{% url 'profile' %}"
               class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
             Профиль
-          </a> {% endcomment %}
-          <a
-              href="{% url 'my_replay_list' %}"
-              class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
-            Мои реплеи
-          </a>
-          <a
-              href="{% url 'subscription_info' %}"
-              class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
-            {% if is_pro %}
-              <span class="text-amber-400">Про</span>
-            {% elif is_premium %}
-              <span class="text-blue-400">Премиум</span>
-            {% else %}
-              Подписка
-            {% endif %}
           </a>
           <div class="my-1 h-px bg-gray-200 dark:bg-white/10"></div>
           <form method="post" action="{% url 'account_logout' %}">

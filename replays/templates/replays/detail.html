@@ -869,51 +869,11 @@
 
       </div> <!-- /personal-data tab -->
     </div> <!-- /tab-detailed -->
-        <!-- Stats container -->
-        <div class="replay-stats-container" style="display: inline-block; margin-right: 20px; vertical-align: middle;">
-          <div style="display: inline-flex; align-items: center; gap: 12px;">
-            <!-- Like button -->
-            {% if user.is_authenticated %}
-              <button id="like-button" class="like-btn {% if user_has_liked %}liked{% endif %}" data-replay-id="{{ replay.id }}">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="{% if user_has_liked %}#ff4458{% else %}none{% endif %}" stroke="{% if user_has_liked %}#ff4458{% else %}#888{% endif %}" stroke-width="2">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                </svg>
-                <span id="likes-count">{{ likes_count }}</span>
-              </button>
-            {% else %}
-              <span class="like-btn disabled" title="Войдите, чтобы поставить лайк">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                </svg>
-                <span>{{ likes_count }}</span>
-              </span>
-            {% endif %}
-
-            <!-- Comments -->
-            {% get_comment_count for replay as comment_count %}
-            <span class="stat-item" style="display: inline-flex; align-items: center; gap: 4px; color: #888; font-size: 13px;">
-              <i class="far fa-comments" style="font-size: 16px;"></i>
-              <span>{{ comment_count|default:"0" }}</span>
-            </span>
-
-            <!-- Views -->
-            <span class="stat-item" style="display: inline-flex; align-items: center; gap: 4px; color: #888; font-size: 13px;">
-              <i class="far fa-eye" style="font-size: 16px;"></i>
-              <span>{{ replay.view_count|intcomma }}</span>
-            </span>
-
-            <!-- Downloads -->
-            <span class="stat-item" style="display: inline-flex; align-items: center; gap: 4px; color: #888; font-size: 13px;">
-              <i class="fas fa-download" style="font-size: 16px;"></i>
-              <span>{{ replay.download_count|intcomma }}</span>
-            </span>
-          </div>
-        </div>
         <div class="right down-info">
           <span class="gray">Сервер:</span>{{ details.serverName }}
           <span class="gray">Режим боя:</span>{{ details.battleModeLabel }}
           <span class="gray">Текущая версия:</span>{{ details.clientVersion }}
-          <span class="gray">Отправитель:</span>{{ details.playerName }}
+          <span class="gray">Игрок:</span>{{ details.playerName }}
             {% if replay.user %}
                 <span class="gray">Загрузил:</span>{{ replay.user.username }}
                 {% if uploader_plan and uploader_plan.name == 'pro' %}
@@ -923,19 +883,56 @@
                 {% endif %}
             {% endif %}
         </div>
+        <div class="clearfix"></div>
   </div> <!-- /replay-wrapper -->
 
   <div class="card" style="margin-top: 0.5rem; background: #14120e; padding: 20px; border-radius: 5px;">
     <div class="card-body">
                 <div class="description-header" style="margin-bottom: 2rem;">
-                    <div id="desc-container">
-                        {% if replay.short_description %}
-                            <div class="title text-lg font-semibold text-white">{{ replay.short_description }}</div>
-                        {% else %}
-                            <div class="title text-lg font-semibold text-white">
-                                {{ replay.tank.name|default:'Неизвестный танк' }} • {{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}
-                            </div>
-                        {% endif %}
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+                        <div id="desc-container">
+                            {% if replay.short_description %}
+                                <div class="title text-lg font-semibold text-white">{{ replay.short_description }}</div>
+                            {% else %}
+                                <div class="title text-lg font-semibold text-white">
+                                    {{ replay.tank.name|default:'Неизвестный танк' }} • {{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div style="display: inline-flex; align-items: center; gap: 12px; flex-shrink: 0;">
+                            {% if user.is_authenticated %}
+                              <button id="like-button" class="like-btn {% if user_has_liked %}liked{% endif %}" data-replay-id="{{ replay.id }}">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="{% if user_has_liked %}#ff4458{% else %}none{% endif %}" stroke="{% if user_has_liked %}#ff4458{% else %}#888{% endif %}" stroke-width="2">
+                                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                </svg>
+                                <span id="likes-count">{{ likes_count }}</span>
+                              </button>
+                            {% else %}
+                              <span class="like-btn disabled" title="Войдите, чтобы поставить лайк">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2">
+                                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                </svg>
+                                <span>{{ likes_count }}</span>
+                              </span>
+                            {% endif %}
+
+                            {% get_comment_count for replay as comment_count %}
+                            <span class="stat-item" style="display: inline-flex; align-items: center; gap: 4px; color: #888; font-size: 13px;">
+                              <i class="far fa-comments" style="font-size: 16px;"></i>
+                              <span>{{ comment_count|default:"0" }}</span>
+                            </span>
+
+                            <span class="stat-item" style="display: inline-flex; align-items: center; gap: 4px; color: #888; font-size: 13px;">
+                              <i class="far fa-eye" style="font-size: 16px;"></i>
+                              <span>{{ replay.view_count|intcomma }}</span>
+                            </span>
+
+                            <span class="stat-item" style="display: inline-flex; align-items: center; gap: 4px; color: #888; font-size: 13px;">
+                              <i class="fas fa-download" style="font-size: 16px;"></i>
+                              <span>{{ replay.download_count|intcomma }}</span>
+                            </span>
+                        </div>
                     </div>
 
                     {% if user == replay.user %}
@@ -1189,7 +1186,7 @@ function initDownloadButton() {
   const downloadBtn = document.getElementById('download-replay-btn');
   if (!downloadBtn) return;
 
-  downloadBtn.addEventListener('click', function(e) {
+  downloadBtn.addEventListener('click', async function(e) {
     e.preventDefault();
 
     const isAuthenticated = downloadBtn.dataset.authenticated === 'true';
@@ -1201,15 +1198,41 @@ function initDownloadButton() {
       return;
     }
 
-    // Если авторизован, открываем ссылку для скачивания
     const downloadUrl = downloadBtn.dataset.downloadUrl;
-    if (downloadUrl) {
-      window.open(downloadUrl, '_blank');
+    if (!downloadUrl) return;
+
+    try {
+      const resp = await fetch(downloadUrl);
+
+      if (resp.status === 429) {
+        const data = await resp.json();
+        window.dispatchEvent(new CustomEvent('show-limit-modal', { detail: { type: data.limit_reached || 'download' } }));
+        return;
+      }
+
+      if (!resp.ok) {
+        alert('Ошибка при скачивании файла');
+        return;
+      }
+
+      // Скачиваем файл из ответа
+      const blob = await resp.blob();
+      const filename = resp.headers.get('Content-Disposition')?.match(/filename="?(.+?)"?$/)?.[1] || 'replay.mtreplay';
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(a.href);
 
       // Показываем модальное окно доната после скачивания
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('open-donation-modal'));
       }, 500);
+    } catch (err) {
+      console.error('Download error:', err);
+      alert('Ошибка при скачивании файла');
     }
   });
 }

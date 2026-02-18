@@ -99,6 +99,7 @@ class VideoLinkForm(forms.ModelForm):
         'vk': [
             r'(?:https?://)?(?:www\.)?vk\.com/video[\w.-]+',
             r'(?:https?://)?vk\.com/clip[\w.-]+',
+            r'(?:https?://)?(?:www\.)?vkvideo\.ru/video[\w.-]+',
         ],
         'rutube': [
             r'(?:https?://)?rutube\.ru/video/[\w-]+',
@@ -131,6 +132,33 @@ class VideoLinkForm(forms.ModelForm):
         return url
 
 
+class UsernameChangeForm(forms.Form):
+    """Форма для изменения никнейма пользователя."""
+    username = forms.CharField(
+        label='Никнейм',
+        max_length=150,
+        min_length=3,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Введите новый никнейм',
+        }),
+    )
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        if user:
+            self.fields['username'].initial = user.username
+
+    def clean_username(self):
+        username = self.cleaned_data['username'].strip()
+        if self.user and username == self.user.username:
+            return username
+        if User.objects.filter(username__iexact=username).exists():
+            raise ValidationError('Пользователь с таким именем уже существует.')
+        return username
+
+
 class AvatarUploadForm(forms.Form):
     """Форма для загрузки аватара."""
     avatar = forms.ImageField(
@@ -144,6 +172,17 @@ class AvatarUploadForm(forms.Form):
         if image:
             if image.size > 2 * 1024 * 1024:
                 raise ValidationError('Размер файла не должен превышать 2 МБ.')
-            if image.content_type not in ('image/jpeg', 'image/png'):
-                raise ValidationError('Допустимые форматы: JPG, PNG.')
+            # Проверяем реальный формат через Pillow
+            from PIL import Image as PILImage
+            image.seek(0)
+            try:
+                img = PILImage.open(image)
+                img.verify()  # проверяем целостность
+            except Exception:
+                raise ValidationError('Не удалось прочитать изображение. Убедитесь, что файл не повреждён.')
+            image.seek(0)
+            img = PILImage.open(image)
+            if img.format not in ('JPEG', 'PNG', 'MPO'):
+                raise ValidationError(f'Допустимые форматы: JPG, PNG. Ваш файл: {img.format}.')
+            image.seek(0)
         return image

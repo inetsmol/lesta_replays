@@ -1,0 +1,146 @@
+{% load static %}
+
+<div class="text-center mb-8">
+  <h2 class="text-2xl font-bold text-white mb-2">Тарифные планы</h2>
+  <p class="text-gray-400">Выберите план, который подходит именно вам</p>
+  {% if user_plan %}
+    <p class="text-sm text-amber-400 mt-2">
+      Ваш текущий план: <strong>{{ user_plan.get_name_display }}</strong>
+    </p>
+  {% endif %}
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  {% for plan in plans %}
+  <div class="relative rounded-2xl border
+    {% if plan.name == 'pro' %}
+      border-amber-500/50 bg-gradient-to-b from-amber-500/10 to-gray-900
+    {% elif plan.name == 'premium' %}
+      border-blue-500/50 bg-gradient-to-b from-blue-500/10 to-gray-900
+    {% else %}
+      border-gray-700 bg-gray-900
+    {% endif %}
+    p-6 flex flex-col">
+
+    {% if plan.name == 'pro' %}
+      <div class="absolute -top-3 left-1/2 transform -translate-x-1/2">
+        <span class="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+          Лучший выбор
+        </span>
+      </div>
+    {% endif %}
+
+    <div class="text-center mb-4">
+      <h2 class="text-xl font-bold
+        {% if plan.name == 'pro' %}text-amber-400
+        {% elif plan.name == 'premium' %}text-blue-400
+        {% else %}text-gray-300
+        {% endif %}">
+        {{ plan.get_name_display }}
+      </h2>
+      <div class="mt-2">
+        {% if plan.price_monthly > 0 %}
+          <span class="text-3xl font-bold text-white">{{ plan.price_monthly|floatformat:0 }} &#8381;</span>
+          <span class="text-gray-400 text-sm">/мес</span>
+          <div class="text-xs text-gray-500 mt-1">
+            или {{ plan.price_yearly|floatformat:0 }} &#8381;/год
+          </div>
+        {% else %}
+          <span class="text-3xl font-bold text-white">Бесплатно</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <p class="text-sm text-gray-400 text-center mb-4">{{ plan.description }}</p>
+
+    <ul class="space-y-2 mb-6 flex-1">
+      <li class="flex items-center gap-2 text-sm">
+        {% if plan.daily_upload_limit == 0 %}
+          <i class="fas fa-check text-green-400"></i>
+          <span class="text-gray-300">Безлимитные загрузки</span>
+        {% else %}
+          <i class="fas fa-minus text-gray-500"></i>
+          <span class="text-gray-400">{{ plan.daily_upload_limit }} загрузок/день</span>
+        {% endif %}
+      </li>
+
+      <li class="flex items-center gap-2 text-sm">
+        {% if plan.daily_download_limit == 0 %}
+          <i class="fas fa-check text-green-400"></i>
+          <span class="text-gray-300">Безлимитные скачивания</span>
+        {% else %}
+          <i class="fas fa-minus text-gray-500"></i>
+          <span class="text-gray-400">{{ plan.daily_download_limit }} скачиваний/день</span>
+        {% endif %}
+      </li>
+
+      <li class="flex items-center gap-2 text-sm">
+        {% if not plan.show_donation_prompts %}
+          <i class="fas fa-check text-green-400"></i>
+          <span class="text-gray-300">Без напоминаний о донатах</span>
+        {% else %}
+          <i class="fas fa-minus text-gray-500"></i>
+          <span class="text-gray-400">С напоминаниями о донатах</span>
+        {% endif %}
+      </li>
+
+      <li class="flex items-center gap-2 text-sm">
+        {% if plan.can_use_pro_filters %}
+          <i class="fas fa-check text-green-400"></i>
+          <span class="text-gray-300">Фильтр по достижениям и медалям</span>
+        {% else %}
+          <i class="fas fa-lock text-gray-600"></i>
+          <span class="text-gray-500">Фильтр по достижениям</span>
+        {% endif %}
+      </li>
+
+      <li class="flex items-center gap-2 text-sm">
+        {% if plan.can_upload_avatar %}
+          <i class="fas fa-check text-green-400"></i>
+          <span class="text-gray-300">Кастомный аватар</span>
+        {% else %}
+          <i class="fas fa-lock text-gray-600"></i>
+          <span class="text-gray-500">Кастомный аватар</span>
+        {% endif %}
+      </li>
+
+      <li class="flex items-center gap-2 text-sm">
+        {% if plan.max_video_links > 0 %}
+          <i class="fas fa-check text-green-400"></i>
+          <span class="text-gray-300">До {{ plan.max_video_links }} видео на реплей</span>
+        {% else %}
+          <i class="fas fa-lock text-gray-600"></i>
+          <span class="text-gray-500">Видео-ссылки на реплеях</span>
+        {% endif %}
+      </li>
+
+    </ul>
+
+    <div class="mt-auto pt-4">
+      {% if user_plan and user_plan.name == plan.name %}
+        <button disabled
+          class="w-full py-2.5 px-4 rounded-lg text-sm font-semibold bg-gray-700 text-gray-400 cursor-not-allowed">
+          Текущий план
+        </button>
+      {% elif plan.name == 'free' %}
+      {% else %}
+        <button
+          class="w-full py-2.5 px-4 rounded-lg text-sm font-semibold text-white transition-all
+          {% if plan.name == 'pro' %}
+            bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 hover:shadow-lg hover:shadow-amber-500/25
+          {% else %}
+            bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 hover:shadow-lg hover:shadow-blue-500/25
+          {% endif %}"
+          onclick="window.dispatchEvent(new CustomEvent('show-subscribe-modal', { detail: { planName: '{{ plan.get_name_display }}' } }))">
+          Выбрать план
+        </button>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="mt-8 text-center text-sm text-gray-500">
+  <p>Для активации подписки свяжитесь с администратором через Telegram <a href="https://t.me/inetsmol" target="_blank" class="text-blue-400 hover:text-blue-300 underline">@inetsmol</a> или по почте <a href="mailto:inetsmol@gmail.com" class="text-blue-400 hover:text-blue-300 underline">inetsmol@gmail.com</a>.</p>
+  <p class="mt-1">Интеграция автоматической оплаты будет добавлена в будущем обновлении.</p>
+</div>

@@ -1,0 +1,8 @@
+{# replays/templates/replays/profile_replays.html #}
+{% extends "replays/profile_base.html" %}
+
+{% block title %}Мои реплеи - {{ user.username }}{% endblock %}
+
+{% block tab_content %}
+  {% include "replays/_replay_list_content.html" %}
+{% endblock %}

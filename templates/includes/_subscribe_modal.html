@@ -1,0 +1,143 @@
+{# templates/includes/_subscribe_modal.html #}
+{# Модалка оплаты подписки #}
+{% load static %}
+
+<div x-data="subscribeModal()" x-init="init()" @keydown.escape.window="close()">
+  <div x-show="isOpen"
+       x-transition:enter="transition ease-out duration-300"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100"
+       x-transition:leave="transition ease-in duration-200"
+       x-transition:leave-start="opacity-100"
+       x-transition:leave-end="opacity-0"
+       class="fixed inset-0 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+       style="display: none; z-index: 60;"
+       @click.self="close()">
+
+    <div x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         class="relative w-full bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl border border-amber-500/30 shadow-2xl shadow-amber-500/10 overflow-hidden overflow-y-auto"
+         style="max-width: 400px; max-height: 90vh;">
+
+      <!-- Header -->
+      <div class="relative p-6 pb-4 border-b border-gray-800">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center">
+              <i class="fas fa-crown text-white"></i>
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-white">Оформление подписки</h2>
+              <p class="text-xs text-gray-400" x-text="planName"></p>
+            </div>
+          </div>
+          <button @click="close()" class="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Инструкция -->
+      <div class="p-5 space-y-3">
+
+        <!-- Шаг 1 -->
+        <div class="flex gap-3">
+          <div class="flex-shrink-0 w-7 h-7 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm font-bold">1</div>
+          <div>
+            <p class="text-sm font-medium text-white mb-1">Сделайте перевод</p>
+            <p class="text-xs text-gray-400">Любым удобным способом — через Т-Банк или YooMoney(любые карты)</p>
+          </div>
+        </div>
+
+        <!-- Способы оплаты -->
+        <div class="ml-10 space-y-2">
+          <!-- Кнопки YooMoney и Т-Банк -->
+          <div class="flex items-center justify-center gap-3">
+            <a href="https://www.tinkoff.ru/rm/r_yPRgXbAsRv.klYbxJbAtH/nCNuX53972"
+               target="_blank" rel="noopener"
+               class="relative inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-semibold text-white text-sm overflow-hidden transition-all">
+              <div class="absolute inset-0 bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500"></div>
+              <span class="relative z-10 flex items-center gap-2">
+                <i class="fas fa-external-link-alt text-xs"></i>
+                <span>Перевести Т-Банк</span>
+              </span>
+            </a>
+            <iframe
+              src="https://yoomoney.ru/quickpay/fundraise/button?billNumber=1D58232QB73.251002&"
+              width="160" height="50" frameborder="0"
+              allowtransparency="true" scrolling="no"
+              class="rounded-lg">
+            </iframe>
+          </div>
+
+          <!-- Т-Банк QR -->
+          <div class="flex flex-col items-center">
+            <div class="bg-white rounded-lg p-2 inline-block">
+              <img src="{% static 'donation_qr.png' %}" alt="QR-код для оплаты"
+                   class="h-auto rounded" style="width: 100px; display: block;">
+            </div>
+            <p class="text-xs text-center text-gray-500 mt-1">Сканируйте камерой</p>
+          </div>
+        </div>
+
+        <!-- Шаг 2 -->
+        <div class="flex gap-3 pt-1">
+          <div class="flex-shrink-0 w-7 h-7 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm font-bold">2</div>
+          <div>
+            <p class="text-sm font-medium text-white mb-1">Отправьте скриншот перевода</p>
+            <p class="text-xs text-gray-400">
+              В сообщении укажите <strong class="text-amber-300">«Хочу подписку»</strong> и ваш <strong class="text-amber-300">ник на сайте</strong>
+            </p>
+          </div>
+        </div>
+
+        <!-- Контакты -->
+        <div class="ml-10 text-sm text-gray-400">
+          Telegram: <a href="https://t.me/inetsmol" target="_blank" class="text-blue-400 hover:text-blue-300">@inetsmol</a>
+          <br>
+          Почта: <a href="mailto:inetsmol@gmail.com?subject=Хочу подписку" class="text-blue-400 hover:text-blue-300">inetsmol@gmail.com</a>
+        </div>
+
+        <!-- Шаг 3 -->
+        <div class="flex gap-3 pt-1">
+          <div class="flex-shrink-0 w-7 h-7 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-sm font-bold">3</div>
+          <div>
+            <p class="text-sm font-medium text-white mb-1">Подписка активируется вручную</p>
+            <p class="text-xs text-gray-400">Обычно в течение нескольких часов после подтверждения оплаты</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="p-5 pt-0">
+        <button @click="close()"
+                class="w-full py-2.5 px-4 rounded-lg text-sm font-semibold text-gray-300 hover:text-white hover:bg-white/5 border border-gray-700 transition-all">
+          Закрыть
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function subscribeModal() {
+  return {
+    isOpen: false,
+    planName: '',
+
+    init() {
+      window.addEventListener('show-subscribe-modal', (e) => {
+        this.planName = e.detail?.planName || '';
+        this.isOpen = true;
+        document.body.style.overflow = 'hidden';
+      });
+    },
+
+    close() {
+      this.isOpen = false;
+      document.body.style.overflow = '';
+    }
+  };
+}
+</script>

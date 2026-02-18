@@ -1,0 +1,85 @@
+{# templates/includes/_limit_modal.html #}
+{# Модалка достижения дневного лимита загрузок/скачиваний #}
+<div x-data="limitModal()" x-init="init()" @keydown.escape.window="close()">
+  <div x-show="isOpen"
+       x-transition:enter="transition ease-out duration-300"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100"
+       x-transition:leave="transition ease-in duration-200"
+       x-transition:leave-start="opacity-100"
+       x-transition:leave-end="opacity-0"
+       class="fixed inset-0 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+       style="display: none; z-index: 60;"
+       @click.self="close()">
+
+    <div x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         class="relative w-full max-w-md bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl border border-amber-500/30 shadow-2xl shadow-amber-500/10 overflow-hidden">
+
+      <!-- Header -->
+      <div class="relative p-6 pb-0">
+        <div class="flex flex-col items-center text-center">
+          <div class="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mb-4">
+            <i class="fas fa-exclamation-triangle text-amber-400 text-2xl"></i>
+          </div>
+          <h2 class="text-xl font-bold text-white mb-2" x-text="title"></h2>
+          <p class="text-sm text-gray-400" x-text="message"></p>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="px-6">
+        <div class="flex items-start gap-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+          <i class="fas fa-crown text-amber-400 flex-shrink-0 mt-0.5"></i>
+          <div class="text-sm text-amber-200/80">
+            <p class="font-medium text-amber-300 mb-1">Хотите больше?</p>
+            <p>Подписка снимает ограничения и помогает сервису жить и становиться лучше. Поддержите проект — это совсем недорого!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="p-6 flex gap-3">
+        <button @click="close()"
+                class="flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold text-gray-300 hover:text-white hover:bg-white/5 border border-gray-700 transition-all">
+          Закрыть
+        </button>
+        <a href="{% url 'subscription_info' %}"
+           class="flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold text-center text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 hover:shadow-lg hover:shadow-amber-500/25 transition-all">
+          Подробнее
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function limitModal() {
+  return {
+    isOpen: false,
+    title: '',
+    message: '',
+
+    init() {
+      window.addEventListener('show-limit-modal', (e) => {
+        const type = e.detail?.type || 'download';
+        if (type === 'upload') {
+          this.title = 'Лимит загрузок исчерпан';
+          this.message = 'Вы достигли дневного лимита загрузок реплеев. Лимит обновится завтра.';
+        } else {
+          this.title = 'Лимит скачиваний исчерпан';
+          this.message = 'Вы достигли дневного лимита скачиваний реплеев. Лимит обновится завтра.';
+        }
+        this.isOpen = true;
+        document.body.style.overflow = 'hidden';
+      });
+    },
+
+    close() {
+      this.isOpen = false;
+      document.body.style.overflow = '';
+    }
+  };
+}
+</script>
