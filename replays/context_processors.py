@@ -31,9 +31,11 @@ def subscription_context(request):
 
     plan = SubscriptionService.get_user_plan(user)
     remaining = UsageLimitService.get_remaining(user)
+    user_subscription = getattr(user, 'subscription', None)
 
     return {
         'user_plan': plan,
+        'user_subscription': user_subscription,
         'user_profile': getattr(user, 'profile', None),
         'is_premium': plan.name in ('premium', 'pro'),
         'is_pro': plan.name == 'pro',

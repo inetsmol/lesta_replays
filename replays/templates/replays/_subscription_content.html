@@ -7,6 +7,19 @@
     <p class="text-sm text-amber-400 mt-2">
       Ваш текущий план: <strong>{{ user_plan.get_name_display }}</strong>
     </p>
+    {% if user_subscription and user_subscription.expires_at and is_premium %}
+      {% if user_subscription.is_expired %}
+        <p class="text-sm text-red-400 mt-1">
+          <i class="fas fa-exclamation-circle"></i>
+          Подписка истекла {{ user_subscription.expires_at|date:"d.m.Y" }}
+        </p>
+      {% else %}
+        <p class="text-sm text-gray-400 mt-1">
+          <i class="fas fa-clock"></i>
+          Действует до: <strong class="text-white">{{ user_subscription.expires_at|date:"d.m.Y" }}</strong>
+        </p>
+      {% endif %}
+    {% endif %}
   {% endif %}
 </div>
 
