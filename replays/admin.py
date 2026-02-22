@@ -4,7 +4,7 @@ from django.utils import timezone
 
 from .models import (
     Tank, Player, Replay, Map, UserProfile, Achievement, MarksOnGun, APIUsageLog,
-    SubscriptionPlan, UserSubscription, DailyUsage, ReplayVideoLink,
+    SubscriptionPlan, UserSubscription, DailyUsage, ReplayVideoLink, ReplayStatBattle, ReplayStatPlayer,
 )
 
 
@@ -140,3 +140,25 @@ class ReplayVideoLinkAdmin(admin.ModelAdmin):
     list_filter = ("platform",)
     search_fields = ("url", "added_by__username")
     raw_id_fields = ("replay", "added_by")
+
+
+@admin.register(ReplayStatBattle)
+class ReplayStatBattleAdmin(admin.ModelAdmin):
+    list_display = (
+        "id", "user", "battle_date", "outcome", "map_display_name",
+        "arena_unique_id", "battle_signature",
+    )
+    list_filter = ("outcome", "battle_date")
+    search_fields = ("user__username", "map_display_name", "map_name", "battle_signature")
+    raw_id_fields = ("user",)
+
+
+@admin.register(ReplayStatPlayer)
+class ReplayStatPlayerAdmin(admin.ModelAdmin):
+    list_display = (
+        "id", "battle", "player_name", "player_account_id",
+        "tank_name", "damage", "xp", "kills",
+    )
+    list_filter = ("battle__battle_date",)
+    search_fields = ("player_name", "tank_name", "battle__user__username")
+    raw_id_fields = ("battle", "tank")

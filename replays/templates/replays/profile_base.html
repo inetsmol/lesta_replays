@@ -41,6 +41,17 @@
          {% endif %}">
       <i class="fas fa-play-circle mr-1"></i> Мои реплеи
     </a>
+    <a href="{% url 'profile_stats' %}"
+       class="px-4 py-3 text-sm font-medium border-b-2 transition-colors relative
+         {% if active_tab == 'stats' %}
+           border-red-500 text-white
+         {% else %}
+           border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-600
+         {% endif %}">
+      <span class="{% if not is_pro %}inline-flex items-center blur-[1.5px] opacity-80{% endif %}">
+        <i class="fas fa-chart-bar mr-1"></i> Статистика
+      </span>
+    </a>
     <a href="{% url 'profile_subscription' %}"
        class="px-4 py-3 text-sm font-medium border-b-2 transition-colors
          {% if active_tab == 'subscription' %}

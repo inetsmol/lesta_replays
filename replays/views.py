@@ -5,6 +5,11 @@ import logging
 import mimetypes
 import os
 import urllib.parse
+import zipfile
+from collections import OrderedDict
+from datetime import datetime
+from html import escape
+from io import BytesIO
 from pathlib import Path
 from typing import List, Dict, Any
 
@@ -12,13 +17,15 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q, F, Count, OuterRef, Subquery, IntegerField, CharField, Value, FloatField, Exists, BooleanField, Prefetch
+from django.core.exceptions import ValidationError
+from django.db.models import Q, F, Count, OuterRef, Subquery, IntegerField, CharField, Value, FloatField, Exists, BooleanField, Prefetch, Avg, Sum
 from django.db.models.functions import Coalesce, Cast
 from django.http import JsonResponse, Http404, HttpResponse, StreamingHttpResponse, HttpRequest
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
 from django.utils.dateparse import parse_date
 from django.utils.encoding import escape_uri_path
+from django.utils import timezone
 from django.views import View
 from django.views.generic import ListView, DetailView, TemplateView
 
@@ -31,9 +38,14 @@ from django_comments.models import Comment
 
 from .error_handlers import ReplayErrorHandler
 from .forms import VideoLinkForm, AvatarUploadForm, UsernameChangeForm
-from .models import Replay, Tank, Nation, Achievement, MarksOnGun, Map, APIUsageLog, SubscriptionPlan, ReplayVideoLink
+from .models import (
+    Replay, Tank, Nation, Achievement, MarksOnGun, Map,
+    APIUsageLog, SubscriptionPlan, ReplayVideoLink,
+    ReplayStatBattle, ReplayStatPlayer,
+)
 from .parser.extractor import ExtractorV2
-from .services import ReplayProcessingService, SubscriptionService, UsageLimitService, VideoLinkService
+from .parser.parser import ParseError
+from .services import ReplayProcessingService, ReplayStatsProcessingService, SubscriptionService, UsageLimitService, VideoLinkService
 from .validators import BatchUploadValidator, ReplayFileValidator
 
 FILES_DIR = Path(settings.MEDIA_ROOT)
@@ -1818,6 +1830,589 @@ class ProfileReplaysView(MyReplaysView):
         context['active_tab'] = 'replays'
         context['profile'] = getattr(self.request.user, 'profile', None)
         return context
+
+
+class ProfileStatsView(LoginRequiredMixin, ListView):
+    """Вкладка 'Статистика' в профиле пользователя."""
+
+    model = ReplayStatBattle
+    template_name = 'replays/profile_stats.html'
+    context_object_name = 'items'
+    paginate_by = 25
+
+    ALLOWED_PAGE_SIZES = [25, 50, 100]
+    SORTABLE_FIELDS = {
+        'battle_date',
+        'map_display_name',
+        'outcome',
+        'players_count',
+        'avg_damage',
+        'total_damage',
+    }
+
+    def _can_use_stats(self) -> bool:
+        return SubscriptionService.is_pro(self.request.user)
+
+    def get_paginate_by(self, queryset=None):
+        try:
+            per_page = int(self.request.GET.get('per_page', self.paginate_by))
+            if per_page in self.ALLOWED_PAGE_SIZES:
+                return per_page
+        except (TypeError, ValueError):
+            pass
+        return self.paginate_by
+
+    def get_queryset(self):
+        if not self._can_use_stats():
+            return ReplayStatBattle.objects.none()
+
+        raw_qs = ReplayStatBattle.objects.filter(user=self.request.user)
+
+        date_from = self.request.GET.get('date_from')
+        date_to = self.request.GET.get('date_to')
+        if date_from:
+            parsed = parse_date(date_from)
+            if parsed:
+                raw_qs = raw_qs.filter(battle_date__date__gte=parsed)
+        if date_to:
+            parsed = parse_date(date_to)
+            if parsed:
+                raw_qs = raw_qs.filter(battle_date__date__lte=parsed)
+
+        qs = (
+            raw_qs
+            .values('battle_signature', 'battle_date', 'map_name', 'map_display_name', 'outcome')
+            .annotate(
+                players_count=Count('players', distinct=True),
+                avg_damage=Coalesce(
+                    Cast(Avg('players__damage'), output_field=IntegerField()),
+                    Value(0),
+                    output_field=IntegerField(),
+                ),
+                total_damage=Coalesce(
+                    Cast(Sum('players__damage'), output_field=IntegerField()),
+                    Value(0),
+                    output_field=IntegerField(),
+                ),
+            )
+        )
+
+        sort = (self.request.GET.get('sort') or '').strip()
+        direction = (self.request.GET.get('dir') or 'desc').lower()
+        if sort in self.SORTABLE_FIELDS:
+            order = sort if direction == 'asc' else f'-{sort}'
+            qs = qs.order_by(order, '-battle_date', '-battle_signature')
+        else:
+            qs = qs.order_by('-battle_date', '-battle_signature')
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_tab'] = 'stats'
+        context['profile'] = getattr(self.request.user, 'profile', None)
+        context['can_use_stats'] = self._can_use_stats()
+
+        q = self.request.GET.copy()
+        q.pop('page', None)
+        page_qs = q.urlencode()
+        context['page_qs'] = page_qs
+        context['page_qs_prefix'] = f'{page_qs}&' if page_qs else ''
+
+        current_sort = (self.request.GET.get('sort') or '').strip()
+        current_dir = (self.request.GET.get('dir') or 'desc').lower()
+        next_dir = {}
+        for field in self.SORTABLE_FIELDS:
+            if current_sort == field and current_dir == 'desc':
+                next_dir[field] = 'asc'
+            else:
+                next_dir[field] = 'desc'
+
+        q_without_page = self.request.GET.copy()
+        q_without_page.pop('page', None)
+        q_without_page.pop('per_page', None)
+        context['base_qs_without_per_page'] = q_without_page.urlencode()
+        context['allowed_page_sizes'] = self.ALLOWED_PAGE_SIZES
+        context['current_per_page'] = self.get_paginate_by(None)
+        context['current_sort'] = current_sort
+        context['current_dir'] = current_dir
+        context['next_dir'] = next_dir
+        context['date_from'] = self.request.GET.get('date_from', '')
+        context['date_to'] = self.request.GET.get('date_to', '')
+
+        export_q = self.request.GET.copy()
+        for key in ('page', 'per_page', 'sort', 'dir'):
+            export_q.pop(key, None)
+        export_qs = export_q.urlencode()
+        context['export_url'] = reverse('profile_stats_export')
+        if export_qs:
+            context['export_url'] += f'?{export_qs}'
+
+        return context
+
+
+class ReplayStatsExportView(LoginRequiredMixin, View):
+    """Экспорт статистики в XLSX в формате матрицы Игрок x Бой."""
+
+    OUTCOME_LABELS = {
+        ReplayStatBattle.OUTCOME_WIN: "Победа",
+        ReplayStatBattle.OUTCOME_LOSS: "Поражение",
+        ReplayStatBattle.OUTCOME_DRAW: "Ничья",
+    }
+    HEADER_STYLE_DEFAULT = 1
+    HEADER_STYLE_WIN = 2
+    HEADER_STYLE_LOSS = 3
+    HEADER_STYLE_DRAW = 4
+
+    @staticmethod
+    def _pro_required_response(request: HttpRequest):
+        messages.error(request, "Статистика доступна только для подписчиков ПРО.")
+        return redirect('subscription_info')
+
+    @staticmethod
+    def _column_name(index: int) -> str:
+        """1 -> A, 26 -> Z, 27 -> AA."""
+        chars = []
+        while index > 0:
+            index, rem = divmod(index - 1, 26)
+            chars.append(chr(65 + rem))
+        return ''.join(reversed(chars))
+
+    @staticmethod
+    def _xml_cell(ref: str, value: Any, style_idx: int | None = None) -> str:
+        if value is None or value == "":
+            return ""
+        style_attr = f' s="{style_idx}"' if style_idx is not None else ""
+        if isinstance(value, (int, float)):
+            return f'<c r="{ref}"{style_attr}><v>{value}</v></c>'
+        text = escape(str(value))
+        return f'<c r="{ref}" t="inlineStr"{style_attr}><is><t xml:space="preserve">{text}</t></is></c>'
+
+    @staticmethod
+    def _format_outcome_label(outcome: str) -> str:
+        return ReplayStatsExportView.OUTCOME_LABELS.get(outcome, "Результат")
+
+    @staticmethod
+    def _format_battle_column_title(battle_date, map_display_name: str, map_name: str, outcome: str) -> str:
+        dt_value = battle_date
+        if battle_date is not None and timezone.is_aware(battle_date):
+            dt_value = timezone.localtime(battle_date)
+        dt_label = dt_value.strftime("%d.%m.%Y %H:%M") if dt_value else "Без даты"
+        map_label = map_display_name or map_name or "Карта неизвестна"
+        outcome_label = ReplayStatsExportView._format_outcome_label(outcome)
+        return f"{dt_label}\n{map_label}\n{outcome_label}"
+
+    @classmethod
+    def _header_style_for_outcome(cls, outcome: str | None) -> int:
+        if outcome == ReplayStatBattle.OUTCOME_WIN:
+            return cls.HEADER_STYLE_WIN
+        if outcome == ReplayStatBattle.OUTCOME_LOSS:
+            return cls.HEADER_STYLE_LOSS
+        if outcome == ReplayStatBattle.OUTCOME_DRAW:
+            return cls.HEADER_STYLE_DRAW
+        return cls.HEADER_STYLE_DEFAULT
+
+    @staticmethod
+    def _estimate_column_widths(table: List[List[Any]]) -> List[float]:
+        if not table:
+            return []
+
+        column_count = max(len(row) for row in table)
+        widths: List[float] = []
+        for col_idx in range(column_count):
+            max_len = 0
+            for row in table:
+                if col_idx >= len(row):
+                    continue
+                value = row[col_idx]
+                if value is None:
+                    continue
+                text = str(value)
+                lines = text.splitlines() or [text]
+                line_len = max(len(line) for line in lines) if lines else 0
+                if line_len > max_len:
+                    max_len = line_len
+
+            # Приближение ширины колонки Excel.
+            width = min(80.0, max(10.0, float(max_len + 2)))
+            widths.append(width)
+        return widths
+
+    def _build_export_table(self, request) -> tuple[List[List[Any]], List[str | None]]:
+        qs = ReplayStatPlayer.objects.filter(battle__user=request.user).order_by(
+            'battle__battle_date', 'battle__battle_signature', 'player_name', 'id'
+        )
+
+        selected_battle_signatures = [
+            value.strip()
+            for value in request.GET.getlist('battle_signature')
+            if value and value.strip()
+        ]
+        if selected_battle_signatures:
+            qs = qs.filter(battle__battle_signature__in=selected_battle_signatures)
+
+        date_from = request.GET.get('date_from')
+        date_to = request.GET.get('date_to')
+        if date_from:
+            parsed = parse_date(date_from)
+            if parsed:
+                qs = qs.filter(battle__battle_date__date__gte=parsed)
+        if date_to:
+            parsed = parse_date(date_to)
+            if parsed:
+                qs = qs.filter(battle__battle_date__date__lte=parsed)
+
+        entries = qs.values(
+            'battle__battle_signature',
+            'battle__battle_date',
+            'battle__map_display_name',
+            'battle__map_name',
+            'battle__outcome',
+            'player_account_id',
+            'player_name',
+            'damage',
+        )
+
+        rows = list(entries)
+        if not rows:
+            table = [
+                ["", "Бой\nКарта\nРезультат", "Средний урон"],
+                ["Нет данных", "", 0],
+                ["Итог: побед 0 из 0 боев", "", ""],
+            ]
+            header_outcomes = [None, None, None]
+            return table, header_outcomes
+
+        battles: "OrderedDict[str, Dict[str, str]]" = OrderedDict()
+        for row in rows:
+            signature = row['battle__battle_signature']
+            if signature not in battles:
+                battles[signature] = {
+                    "title": self._format_battle_column_title(
+                        battle_date=row.get('battle__battle_date'),
+                        map_display_name=row.get('battle__map_display_name') or "",
+                        map_name=row.get('battle__map_name') or "",
+                        outcome=row.get('battle__outcome') or "",
+                    ),
+                    "outcome": row.get('battle__outcome') or "",
+                }
+
+        players: "OrderedDict[tuple[int, str], Dict[str, int]]" = OrderedDict()
+        for row in rows:
+            key = (row['player_account_id'], row['player_name'])
+            if key not in players:
+                players[key] = {}
+            players[key][row['battle__battle_signature']] = int(row['damage'] or 0)
+
+        header = [""] + [item["title"] for item in battles.values()] + ["Средний урон"]
+        table: List[List[Any]] = [header]
+        battle_keys = list(battles.keys())
+
+        for (_, player_name), damage_map in players.items():
+            row_values = [damage_map.get(signature, "") for signature in battle_keys]
+            present_values = [value for value in row_values if value != ""]
+            avg_damage = round(sum(present_values) / len(present_values)) if present_values else 0
+            table.append([player_name] + row_values + [avg_damage])
+
+        wins_count = sum(
+            1
+            for item in battles.values()
+            if item.get("outcome") == ReplayStatBattle.OUTCOME_WIN
+        )
+        battles_count = len(battles)
+        table.append([f"Итог: побед {wins_count} из {battles_count} боев"] + [""] * battles_count + [""])
+
+        header_outcomes = [None] + [item.get("outcome") for item in battles.values()] + [None]
+        return table, header_outcomes
+
+    def _build_xlsx_bytes(self, table: List[List[Any]], header_outcomes: List[str | None] | None = None) -> bytes:
+        column_widths = self._estimate_column_widths(table)
+        cols_xml = "".join(
+            f'<col min="{idx}" max="{idx}" width="{width:.2f}" customWidth="1"/>'
+            for idx, width in enumerate(column_widths, start=1)
+        )
+        cols_block = f"<cols>{cols_xml}</cols>" if cols_xml else ""
+
+        # Формируем sheet XML
+        rows_xml = []
+        for row_idx, row in enumerate(table, start=1):
+            cells = []
+            row_attrs = f' r="{row_idx}"'
+            if row_idx == 1:
+                row_attrs += ' ht="48" customHeight="1"'
+            for col_idx, value in enumerate(row, start=1):
+                ref = f"{self._column_name(col_idx)}{row_idx}"
+                style_idx = None
+                if row_idx == 1:
+                    outcome = None
+                    if header_outcomes and col_idx - 1 < len(header_outcomes):
+                        outcome = header_outcomes[col_idx - 1]
+                    style_idx = self._header_style_for_outcome(outcome)
+                cell_xml = self._xml_cell(ref, value, style_idx=style_idx)
+                if cell_xml:
+                    cells.append(cell_xml)
+            rows_xml.append(f'<row{row_attrs}>{"".join(cells)}</row>')
+
+        sheet_xml = (
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+            f'{cols_block}'
+            '<sheetData>'
+            f'{"".join(rows_xml)}'
+            '</sheetData>'
+            '</worksheet>'
+        )
+
+        content_types_xml = (
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+            '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+            '<Default Extension="xml" ContentType="application/xml"/>'
+            '<Override PartName="/xl/workbook.xml" '
+            'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+            '<Override PartName="/xl/worksheets/sheet1.xml" '
+            'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+            '<Override PartName="/xl/styles.xml" '
+            'ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
+            '</Types>'
+        )
+
+        rels_xml = (
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+            '<Relationship Id="rId1" '
+            'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" '
+            'Target="xl/workbook.xml"/>'
+            '</Relationships>'
+        )
+
+        workbook_xml = (
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+            'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+            '<sheets><sheet name="Статистика" sheetId="1" r:id="rId1"/></sheets>'
+            '</workbook>'
+        )
+
+        workbook_rels_xml = (
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+            '<Relationship Id="rId1" '
+            'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" '
+            'Target="worksheets/sheet1.xml"/>'
+            '<Relationship Id="rId2" '
+            'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" '
+            'Target="styles.xml"/>'
+            '</Relationships>'
+        )
+
+        styles_xml = (
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+            '<fonts count="2">'
+            '<font><sz val="11"/><color theme="1"/><name val="Calibri"/><family val="2"/></font>'
+            '<font><b/><sz val="11"/><color theme="1"/><name val="Calibri"/><family val="2"/></font>'
+            '</fonts>'
+            '<fills count="6">'
+            '<fill><patternFill patternType="none"/></fill>'
+            '<fill><patternFill patternType="gray125"/></fill>'
+            '<fill><patternFill patternType="solid"><fgColor rgb="FFC6EFCE"/><bgColor indexed="64"/></patternFill></fill>'
+            '<fill><patternFill patternType="solid"><fgColor rgb="FFFFC7CE"/><bgColor indexed="64"/></patternFill></fill>'
+            '<fill><patternFill patternType="solid"><fgColor rgb="FFFFEB9C"/><bgColor indexed="64"/></patternFill></fill>'
+            '<fill><patternFill patternType="solid"><fgColor rgb="FFE2E8F0"/><bgColor indexed="64"/></patternFill></fill>'
+            '</fills>'
+            '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
+            '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+            '<cellXfs count="5">'
+            '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+            '<xf numFmtId="0" fontId="1" fillId="5" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1">'
+            '<alignment wrapText="1" vertical="center" horizontal="center"/>'
+            '</xf>'
+            '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1">'
+            '<alignment wrapText="1" vertical="center" horizontal="center"/>'
+            '</xf>'
+            '<xf numFmtId="0" fontId="1" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1">'
+            '<alignment wrapText="1" vertical="center" horizontal="center"/>'
+            '</xf>'
+            '<xf numFmtId="0" fontId="1" fillId="4" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1">'
+            '<alignment wrapText="1" vertical="center" horizontal="center"/>'
+            '</xf>'
+            '</cellXfs>'
+            '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'
+            '</styleSheet>'
+        )
+
+        output = BytesIO()
+        with zipfile.ZipFile(output, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr('[Content_Types].xml', content_types_xml)
+            archive.writestr('_rels/.rels', rels_xml)
+            archive.writestr('xl/workbook.xml', workbook_xml)
+            archive.writestr('xl/_rels/workbook.xml.rels', workbook_rels_xml)
+            archive.writestr('xl/styles.xml', styles_xml)
+            archive.writestr('xl/worksheets/sheet1.xml', sheet_xml)
+
+        return output.getvalue()
+
+    def get(self, request):
+        if not SubscriptionService.is_pro(request.user):
+            return self._pro_required_response(request)
+
+        table, header_outcomes = self._build_export_table(request)
+        file_bytes = self._build_xlsx_bytes(table, header_outcomes=header_outcomes)
+        filename = f"replay_stats_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+
+        response = HttpResponse(
+            file_bytes,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
+
+class ReplayStatsBatchUploadView(LoginRequiredMixin, View):
+    """Загрузка реплеев для сбора статистики без сохранения файла/payload."""
+
+    MAX_FILES_PER_REQUEST = 20
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.stats_service = ReplayStatsProcessingService()
+
+    def handle_no_permission(self):
+        request = getattr(self, 'request', None)
+        if request and self._is_ajax_request(request):
+            return JsonResponse({
+                'success': False,
+                'error': 'Для загрузки статистики необходимо авторизоваться.',
+                'redirect_url': f"{settings.LOGIN_URL}?next={request.path}",
+            }, status=403)
+        return super().handle_no_permission()
+
+    @staticmethod
+    def _is_ajax_request(request: HttpRequest) -> bool:
+        return request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    def post(self, request: HttpRequest):
+        if not SubscriptionService.is_pro(request.user):
+            return self._pro_required_response(request)
+
+        files = request.FILES.getlist('files') or []
+        if not files:
+            return self._error_response(request, "Файлы не выбраны.")
+
+        if len(files) > self.MAX_FILES_PER_REQUEST:
+            return self._error_response(
+                request,
+                f"За один запрос можно загрузить не более {self.MAX_FILES_PER_REQUEST} файлов.",
+            )
+
+        results: List[Dict[str, Any]] = []
+        for file in files:
+            file_result = {'file': file.name}
+
+            validation_error = ReplayFileValidator.validate(file)
+            if validation_error:
+                file_result.update({
+                    'ok': False,
+                    'status': 'error',
+                    'error': validation_error,
+                })
+                results.append(file_result)
+                continue
+
+            try:
+                process_result = self.stats_service.process_replay(file, request.user)
+                created_rows = process_result.get('created_rows', 0)
+                duplicate_rows = process_result.get('duplicate_rows', 0)
+                total_rows = process_result.get('total_rows', 0)
+
+                if created_rows > 0:
+                    file_result.update({
+                        'ok': True,
+                        'status': 'created',
+                        'rows_created': created_rows,
+                        'rows_duplicates': duplicate_rows,
+                        'rows_total': total_rows,
+                    })
+                else:
+                    file_result.update({
+                        'ok': True,
+                        'status': 'duplicate',
+                        'rows_created': created_rows,
+                        'rows_duplicates': duplicate_rows,
+                        'rows_total': total_rows,
+                    })
+            except ParseError as e:
+                file_result.update({
+                    'ok': False,
+                    'status': 'error',
+                    'error': str(e),
+                })
+            except ValidationError as e:
+                message = "; ".join(e.messages) if getattr(e, 'messages', None) else str(e)
+                file_result.update({
+                    'ok': False,
+                    'status': 'error',
+                    'error': message,
+                })
+            except Exception as e:
+                logger.exception(f"[STATS-UPLOAD] Ошибка обработки файла {file.name}: {e}")
+                file_result.update({
+                    'ok': False,
+                    'status': 'error',
+                    'error': 'Не удалось обработать файл.',
+                })
+
+            results.append(file_result)
+
+        created_count = sum(1 for row in results if row.get('status') == 'created')
+        duplicate_count = sum(1 for row in results if row.get('status') == 'duplicate')
+        error_count = sum(1 for row in results if row.get('status') == 'error')
+        summary = {
+            'processed': len(files),
+            'created': created_count,
+            'duplicates': duplicate_count,
+            'errors': error_count,
+        }
+
+        if self._is_ajax_request(request):
+            return JsonResponse({
+                'success': True,
+                'summary': summary,
+                'results': results,
+                'redirect_url': reverse('profile_stats'),
+            })
+
+        if created_count:
+            messages.success(request, f"Добавлено статистических записей: {created_count}")
+        if duplicate_count:
+            messages.info(request, f"Дубликатов пропущено: {duplicate_count}")
+        if error_count:
+            messages.error(request, f"Ошибок обработки: {error_count}")
+
+        return redirect('profile_stats')
+
+    def _error_response(self, request: HttpRequest, message: str):
+        if self._is_ajax_request(request):
+            return JsonResponse({
+                'success': False,
+                'error': message,
+                'redirect_url': reverse('profile_stats'),
+            }, status=400)
+
+        messages.error(request, message)
+        return redirect('profile_stats')
+
+    def _pro_required_response(self, request: HttpRequest):
+        message = "Статистика доступна только для подписчиков ПРО."
+        if self._is_ajax_request(request):
+            return JsonResponse({
+                'success': False,
+                'error': message,
+                'redirect_url': reverse('subscription_info'),
+            }, status=403)
+
+        messages.error(request, message)
+        return redirect('subscription_info')
 
 
 class ProfileSubscriptionView(LoginRequiredMixin, TemplateView):

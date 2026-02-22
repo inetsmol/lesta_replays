@@ -118,6 +118,16 @@
       </li>
 
       <li class="flex items-center gap-2 text-sm">
+        {% if plan.name == 'pro' %}
+          <i class="fas fa-check text-green-400"></i>
+          <span class="text-gray-300">Статистика (в разработке, предложения приветствуются)</span>
+        {% else %}
+          <i class="fas fa-lock text-gray-600"></i>
+          <span class="text-gray-500">Статистика (только Про)</span>
+        {% endif %}
+      </li>
+
+      <li class="flex items-center gap-2 text-sm">
         {% if plan.can_upload_avatar %}
           <i class="fas fa-check text-green-400"></i>
           <span class="text-gray-300">Кастомный аватар</span>

@@ -345,6 +345,143 @@ class Replay(VoteModel, models.Model):
         ]
 
 
+class ReplayStatBattle(models.Model):
+    """Один бой в статистике пользователя."""
+
+    OUTCOME_WIN = "win"
+    OUTCOME_LOSS = "loss"
+    OUTCOME_DRAW = "draw"
+    OUTCOME_CHOICES = [
+        (OUTCOME_WIN, "Победа"),
+        (OUTCOME_LOSS, "Поражение"),
+        (OUTCOME_DRAW, "Ничья"),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="replay_stat_battles",
+        help_text="Владелец статистики боя",
+    )
+    battle_date = models.DateTimeField(
+        db_index=True,
+        help_text="Дата и время боя",
+    )
+    map_name = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        help_text="Внутреннее имя карты",
+    )
+    map_display_name = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text="Отображаемое имя карты",
+    )
+    outcome = models.CharField(
+        max_length=10,
+        choices=OUTCOME_CHOICES,
+        db_index=True,
+        help_text="Исход боя для владельца реплея",
+    )
+    arena_unique_id = models.BigIntegerField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Уникальный ID боя (если есть в реплее)",
+    )
+    battle_signature = models.CharField(
+        max_length=64,
+        db_index=True,
+        help_text="Детерминированная сигнатура боя для дедупликации",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Бой статистики"
+        verbose_name_plural = "Бои статистики"
+        ordering = ["-battle_date", "-created_at"]
+        indexes = [
+            models.Index(fields=["user", "battle_date"]),
+            models.Index(fields=["user", "outcome"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "battle_signature"],
+                name="unique_stat_battle_user_signature",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.user_id} | {self.battle_date:%d.%m.%Y %H:%M} | {self.battle_signature[:10]}"
+
+
+class ReplayStatPlayer(models.Model):
+    """Статистика игрока в конкретном бою."""
+
+    battle = models.ForeignKey(
+        ReplayStatBattle,
+        on_delete=models.CASCADE,
+        related_name="players",
+        help_text="Бой статистики",
+    )
+    player_account_id = models.BigIntegerField(
+        db_index=True,
+        help_text="ID игрока",
+    )
+    player_name = models.CharField(
+        max_length=50,
+        db_index=True,
+        help_text="Имя игрока",
+    )
+    tank = models.ForeignKey(
+        "Tank",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="replay_stat_players",
+        help_text="Танк из справочника (если найден)",
+    )
+    tank_tag = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        help_text="Технический тег танка (vehicleId)",
+    )
+    tank_name = models.CharField(
+        max_length=128,
+        blank=True,
+        default="",
+        help_text="Название танка (fallback, если нет связи с Tank)",
+    )
+    damage = models.PositiveIntegerField(default=0, db_index=True, help_text="Нанесенный урон")
+    xp = models.PositiveIntegerField(default=0, help_text="Полученный опыт")
+    kills = models.PositiveSmallIntegerField(default=0, help_text="Количество фрагов")
+    assist = models.PositiveIntegerField(default=0, help_text="Суммарный ассист")
+    block = models.PositiveIntegerField(default=0, help_text="Заблокированный урон")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Игрок статистики боя"
+        verbose_name_plural = "Игроки статистики боев"
+        ordering = ["player_name"]
+        indexes = [
+            models.Index(fields=["battle", "player_name"]),
+            models.Index(fields=["battle", "damage"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["battle", "player_account_id"],
+                name="unique_stat_player_per_battle",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.player_name} | {self.damage}"
+
+
 class Nation(models.TextChoices):
     """
     Список наций в соответствии с Танковедением tanki.su (RU-регион).
