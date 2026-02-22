@@ -141,6 +141,26 @@ class Replay(VoteModel, models.Model):
         help_text="Заблокированный бронёй урон"
     )
 
+    is_alive = models.BooleanField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Выжил ли игрок в бою (deathReason == -1)"
+    )
+
+    battle_duration = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        help_text="Продолжительность боя в секундах (common.duration)"
+    )
+
+    is_platoon = models.BooleanField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Играл ли владелец реплея во взводе (prebattleID != 0)"
+    )
+
     game_version = models.CharField(
         max_length=50,
         null=True,

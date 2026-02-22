@@ -6,9 +6,11 @@ from django.views.generic import RedirectView
 
 from .views import (
     ReplayListView, ReplayDetailView, ReplayDownloadView, AboutView, ReplayFiltersView,
-    health, ReplayBatchUploadView, MyReplaysView, ReplayDeleteView, ReplayVoteView, get_replay_info,
+    health, ReplayBatchUploadView, MyReplaysView, ReplayDeleteView, ReplayBulkDeleteView,
+    ReplayVoteView, get_replay_info,
     ReplayUpdateDescriptionView, SubscriptionInfoView, AddVideoLinkView, RemoveVideoLinkView,
     UploadAvatarView, DeleteAvatarView, ProfileReplaysView, ProfileSubscriptionView, ProfileSettingsView,
+    PlayerStatsAPIView, VehicleEncyclopediaAPIView,
 )
 
 urlpatterns = [
@@ -16,6 +18,7 @@ urlpatterns = [
     path('replays/my/', MyReplaysView.as_view(), name='my_replay_list'),
     path('replays/<int:pk>/', ReplayDetailView.as_view(), name='replay_detail'),
     path('replays/<int:pk>/delete/', ReplayDeleteView.as_view(), name='replay_delete'),
+    path('replays/bulk-delete/', ReplayBulkDeleteView.as_view(), name='replay_bulk_delete'),
     path('replays/<int:pk>/update_description/', ReplayUpdateDescriptionView.as_view(), name='replay_update_description'),
     path('replays/<int:pk>/vote/', ReplayVoteView.as_view(), name='replay_vote'),
     path("replays/filters/", ReplayFiltersView.as_view(), name="replay_filters"),
@@ -30,6 +33,8 @@ urlpatterns = [
     path('profile/avatar/', UploadAvatarView.as_view(), name='upload_avatar'),
     path('profile/avatar/delete/', DeleteAvatarView.as_view(), name='delete_avatar'),
     path('api/replay/', get_replay_info, name='api_replay_info'),
+    path('api/player/<int:account_id>/stats/', PlayerStatsAPIView.as_view(), name='player_stats_api'),
+    path('api/vehicles/encyclopedia/', VehicleEncyclopediaAPIView.as_view(), name='vehicle_encyclopedia_api'),
     path('<int:pk>/download/', ReplayDownloadView.as_view(), name='replay_download'),
     path("about/", AboutView.as_view(), name="about"),
     path('health/', health, name='health'),

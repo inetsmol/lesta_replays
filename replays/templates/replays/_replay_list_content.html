@@ -1,5 +1,7 @@
 {% load static humanize custom_comments_tags tz comments webp_tags %}
 
+{% if show_delete_button %}<div x-data="bulkDelete()">{% endif %}
+
     <div class="filters-actions mb-3" x-data="{ expanded: false }">
       <div class="flex items-start justify-between gap-2 mb-2 w-full">
         <!-- СОРТИРОВКИ ПЕРВЫЙ РЯД (слева) -->
@@ -129,6 +131,39 @@
       </div>
     </div>
 
+    {% if show_delete_button %}
+    <div class="mb-3 flex items-center gap-3">
+        <button @click="toggleSelectMode()"
+                class="btn btn--ghost flex items-center gap-2"
+                :class="selectMode && 'ring-2 ring-red-500/50'"
+                type="button">
+            <i class="fas" :class="selectMode ? 'fa-times' : 'fa-check-square'"></i>
+            <span x-text="selectMode ? 'Отменить' : 'Выбрать'"></span>
+        </button>
+        <template x-if="selectMode">
+            <div class="flex items-center gap-3">
+                <button @click="toggleAll()"
+                        class="btn btn--ghost text-sm"
+                        type="button">
+                    <i class="far" :class="allSelected ? 'fa-check-square' : 'fa-square'"></i>
+                    <span x-text="allSelected ? 'Снять все' : 'Выбрать все'"></span>
+                </button>
+                <button @click="deleteSelected()"
+                        class="btn btn--ghost flex items-center gap-2 transition-all duration-200"
+                        :class="selected.length ? 'text-red-400 hover:text-red-300 hover:bg-red-500/10' : 'opacity-40 cursor-not-allowed'"
+                        :disabled="!selected.length"
+                        type="button">
+                    <i class="fas fa-trash-alt"></i>
+                    Удалить выбранные
+                    <span x-show="selected.length"
+                          class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-600 text-white text-xs font-bold"
+                          x-text="selected.length"></span>
+                </button>
+            </div>
+        </template>
+    </div>
+    {% endif %}
+
     <main class="replay-grid replay-grid--rows">
         {% if items %}
             {% for replay in items %}
@@ -137,21 +172,38 @@
                 {% endif %}
                     <a class="tovabb replay-card group"
                         href="{% url 'replay_detail' replay.id %}?back={{ request.get_full_path|urlencode }}"
+                        {% if show_delete_button %}
+                        :class="selectMode && 'cursor-pointer'"
+                        @click="if (selectMode) { $event.preventDefault(); toggle({{ replay.id }}); }"
+                        {% endif %}
                         title="{{ replay.tank.name|default:'Неизвестный танк' }} - {{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}">
-                        <div class="wrapper transform transition duration-200 ease-out group-hover:-translate-y-1 group-hover:scale-[1.02] group-hover:shadow-[0_18px_30px_-18px_rgba(0,0,0,0.75)] relative">
+                        <div class="wrapper transform transition duration-200 ease-out group-hover:-translate-y-1 group-hover:scale-[1.02] group-hover:shadow-[0_18px_30px_-18px_rgba(0,0,0,0.75)] relative"
+                             {% if show_delete_button %}:class="selected.includes({{ replay.id }}) && 'ring-2 ring-red-500 ring-offset-2 ring-offset-[#1a1a2e]'"{% endif %}>
 
-                            <!-- КНОПКА УДАЛЕНИЯ -->
+                            <!-- КНОПКА УДАЛЕНИЯ / ЧЕКБОКС -->
                             {% if show_delete_button %}
-                                <form action="{% url 'replay_delete' replay.id %}" method="post"
-                                      onsubmit="return confirm('Вы уверены, что хотите удалить этот реплей?');"
-                                      class="absolute top-2 right-2 z-[20]"
-                                      onclick="event.stopPropagation();">
-                                    {% csrf_token %}
-                                    <button type="submit"
-                                            class="flex items-center justify-center w-8 h-8 bg-red-600/90 hover:bg-red-700 text-white rounded-md transition-all duration-200 hover:scale-110 shadow-lg backdrop-blur-sm">
-                                        <i class="fas fa-trash-alt text-sm"></i>
-                                    </button>
-                                </form>
+                                <div class="absolute top-2 right-2 z-[20]">
+                                    <!-- Чекбокс в режиме выбора -->
+                                    <template x-if="selectMode">
+                                        <div @click.prevent.stop="toggle({{ replay.id }})"
+                                             class="flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200 cursor-pointer shadow-lg backdrop-blur-sm"
+                                             :class="selected.includes({{ replay.id }}) ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-dark-800/90 hover:bg-dark-700 text-gray-400 border border-dark-600'">
+                                            <i class="fas" :class="selected.includes({{ replay.id }}) ? 'fa-check' : 'fa-square'"></i>
+                                        </div>
+                                    </template>
+                                    <!-- Обычная кнопка удаления -->
+                                    <template x-if="!selectMode">
+                                        <form action="{% url 'replay_delete' replay.id %}" method="post"
+                                              onsubmit="return confirm('Вы уверены, что хотите удалить этот реплей?');"
+                                              onclick="event.stopPropagation();">
+                                            {% csrf_token %}
+                                            <button type="submit"
+                                                    class="flex items-center justify-center w-8 h-8 bg-red-600/90 hover:bg-red-700 text-white rounded-md transition-all duration-200 hover:scale-110 shadow-lg backdrop-blur-sm">
+                                                <i class="fas fa-trash-alt text-sm"></i>
+                                            </button>
+                                        </form>
+                                    </template>
+                                </div>
                             {% endif %}
 
                         <div class="img-container">
@@ -226,9 +278,15 @@
                                             <span class="text-[#999] font-normal">•</span>
                                             {% with sub=replay.user.subscription %}
                                                 {% if sub.plan.name == 'pro' %}
+                                                    {% if replay.user.profile.avatar %}
+                                                        <img src="{{ replay.user.profile.avatar.url }}" alt="" class="inline-block w-5 h-5 rounded-full object-cover align-middle ring-1 ring-amber-500/50">
+                                                    {% endif %}
                                                     <span class="text-amber-400 font-normal text-lg md:text-xl">{{ replay.user.username }}</span>
                                                     <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold leading-none bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm align-middle">PRO</span>
                                                 {% elif sub.plan.name == 'premium' %}
+                                                    {% if replay.user.profile.avatar %}
+                                                        <img src="{{ replay.user.profile.avatar.url }}" alt="" class="inline-block w-5 h-5 rounded-full object-cover align-middle ring-1 ring-blue-500/50">
+                                                    {% endif %}
                                                     <span class="text-blue-400 font-normal text-lg md:text-xl">{{ replay.user.username }}</span>
                                                     <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold leading-none bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm align-middle">PREMIUM</span>
                                                 {% else %}
@@ -403,6 +461,58 @@
       return match ? match[2] : null;
     }
 
+    function bulkDelete() {
+      const allIds = [{% for replay in items %}{{ replay.id }}{% if not forloop.last %},{% endif %}{% endfor %}];
+      return {
+        selectMode: false,
+        selected: [],
+        allIds: allIds,
+        get allSelected() {
+          return this.allIds.length > 0 && this.selected.length === this.allIds.length;
+        },
+        toggleSelectMode() {
+          this.selectMode = !this.selectMode;
+          if (!this.selectMode) this.selected = [];
+        },
+        toggle(id) {
+          const idx = this.selected.indexOf(id);
+          if (idx === -1) this.selected.push(id);
+          else this.selected.splice(idx, 1);
+        },
+        toggleAll() {
+          if (this.allSelected) {
+            this.selected = [];
+          } else {
+            this.selected = [...this.allIds];
+          }
+        },
+        deleteSelected() {
+          if (!this.selected.length) return;
+          const count = this.selected.length;
+          const word = count === 1 ? 'реплей' : (count < 5 ? 'реплея' : 'реплеев');
+          if (!confirm(`Удалить ${count} ${word}? Это действие нельзя отменить.`)) return;
+
+          fetch('{% url "replay_bulk_delete" %}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': getCookieValue('csrftoken'),
+            },
+            body: JSON.stringify({ ids: this.selected }),
+          })
+          .then(r => r.json())
+          .then(data => {
+            if (data.success) {
+              window.location.reload();
+            } else {
+              alert(data.error || 'Ошибка при удалении');
+            }
+          })
+          .catch(() => alert('Ошибка соединения'));
+        },
+      };
+    }
+
     function toggleLike(el) {
       {% if not user.is_authenticated %}
         window.location.href = '{% url "account_login" %}';
@@ -431,3 +541,5 @@
       .catch(() => {});
     }
     </script>
+
+{% if show_delete_button %}</div>{% endif %}

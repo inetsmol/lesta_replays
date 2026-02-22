@@ -318,7 +318,7 @@ class ReplayListView(ListView):
                     )
                 )
             qs = (Replay.objects
-                  .select_related('tank', 'owner', 'user', 'user__subscription__plan')
+                  .select_related('tank', 'owner', 'user', 'user__subscription__plan', 'user__profile')
                   .prefetch_related(*prefetches)
                   )
 
@@ -506,6 +506,35 @@ class ReplayListView(ListView):
                         battle_type__in=['1', '19'],
                         gameplay_id='ctf',
                     )
+
+            # Выжил / Уничтожен (премиум)
+            if plan.can_use_advanced_filters:
+                survived = self.request.GET.get("survived", "").strip()
+                if survived == "alive":
+                    queryset = queryset.filter(is_alive=True)
+                elif survived == "dead":
+                    queryset = queryset.filter(is_alive=False)
+
+                # Продолжительность боя (премиум, ввод в минутах → фильтр в секундах)
+                dur_min = self.request.GET.get("duration_min")
+                dur_max = self.request.GET.get("duration_max")
+                if dur_min:
+                    try:
+                        queryset = queryset.filter(battle_duration__gte=int(dur_min) * 60)
+                    except (TypeError, ValueError):
+                        pass
+                if dur_max:
+                    try:
+                        queryset = queryset.filter(battle_duration__lte=int(dur_max) * 60)
+                    except (TypeError, ValueError):
+                        pass
+
+                # Соло / Взвод (премиум)
+                platoon = self.request.GET.get("platoon", "").strip()
+                if platoon == "solo":
+                    queryset = queryset.filter(is_platoon=False)
+                elif platoon == "platoon":
+                    queryset = queryset.filter(is_platoon=True)
 
             owner_nick = (self.request.GET.get("owner_nick") or "").strip()
             if owner_nick:
@@ -748,6 +777,50 @@ class ReplayDeleteView(LoginRequiredMixin, View):
             messages.error(request, f"Ошибка при удалении реплея: {e}")
 
         return redirect('my_replay_list')
+
+
+class ReplayBulkDeleteView(LoginRequiredMixin, View):
+    """
+    Массовое удаление реплеев.
+    Принимает JSON с массивом ID реплеев. Удаляет только принадлежащие текущему пользователю.
+    """
+    def post(self, request):
+        import json
+
+        try:
+            data = json.loads(request.body)
+            ids = data.get('ids', [])
+        except (json.JSONDecodeError, AttributeError):
+            return JsonResponse({'success': False, 'error': 'Некорректные данные'}, status=400)
+
+        if not ids or not isinstance(ids, list):
+            return JsonResponse({'success': False, 'error': 'Не выбраны реплеи'}, status=400)
+
+        # Ограничиваем количество за раз
+        ids = ids[:100]
+
+        # Получаем только реплеи текущего пользователя
+        replays = Replay.objects.filter(pk__in=ids, user=request.user)
+        count = replays.count()
+
+        if count == 0:
+            return JsonResponse({'success': False, 'error': 'Нет реплеев для удаления'}, status=404)
+
+        # Удаляем файлы с диска
+        for replay in replays:
+            if replay.file_name:
+                file_path = os.path.join(settings.MEDIA_ROOT, replay.file_name)
+                if os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                    except OSError as e:
+                        logger.warning(f"Не удалось удалить файл {file_path}: {e}")
+
+        # Удаляем записи из БД
+        replays.delete()
+        logger.info(f"Пользователь {request.user.id} массово удалил {count} реплеев")
+
+        return JsonResponse({'success': True, 'deleted': count})
 
 
 class ReplayFiltersView(TemplateView):
@@ -1785,3 +1858,154 @@ class ProfileSettingsView(LoginRequiredMixin, TemplateView):
             return redirect('profile_settings')
         context = self.get_context_data(username_form=form)
         return self.render_to_response(context)
+
+
+class PlayerStatsAPIView(View):
+    """API endpoint для получения статистики игрока с Lesta API."""
+
+    LESTA_API_BASE = "https://api.tanki.su/wot"
+    CACHE_TIMEOUT = 600  # 10 минут
+
+    def get(self, request, account_id):
+        from django.core.cache import cache
+        import requests
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        if account_id <= 0:
+            return JsonResponse({"error": "Некорректный ID игрока"}, status=400)
+
+        cache_key = f"player_stats_{account_id}"
+        cached = cache.get(cache_key)
+        if cached:
+            return JsonResponse(cached)
+
+        app_id = settings.LESTA_APPLICATION_ID
+        if not app_id:
+            return JsonResponse({"error": "Lesta API не настроен"}, status=500)
+
+        endpoints = {
+            "info": f"{self.LESTA_API_BASE}/account/info/?application_id={app_id}&account_id={account_id}&extra=statistics.random",
+            "tanks": f"{self.LESTA_API_BASE}/account/tanks/?application_id={app_id}&account_id={account_id}",
+            "achievements": f"{self.LESTA_API_BASE}/account/achievements/?application_id={app_id}&account_id={account_id}",
+        }
+
+        results = {}
+
+        def fetch(key, url):
+            try:
+                resp = requests.get(url, timeout=10)
+                resp.raise_for_status()
+                data = resp.json()
+                if data.get("status") == "ok":
+                    return key, data["data"].get(str(account_id))
+            except Exception as e:
+                logger.warning(f"Lesta API error ({key}): {e}")
+            return key, None
+
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            futures = [executor.submit(fetch, k, v) for k, v in endpoints.items()]
+            for future in as_completed(futures):
+                key, data = future.result()
+                results[key] = data
+
+        if not results.get("info"):
+            return JsonResponse({"error": "Игрок не найден"}, status=404)
+
+        # Загрузка данных клана (если есть)
+        clan_data = None
+        clan_id = results["info"].get("clan_id")
+        if clan_id:
+            try:
+                clan_url = f"{self.LESTA_API_BASE}/clans/info/?application_id={app_id}&clan_id={clan_id}&fields=tag,name,color,emblems,clan_id,members"
+                resp = requests.get(clan_url, timeout=5)
+                resp.raise_for_status()
+                cdata = resp.json()
+                if cdata.get("status") == "ok":
+                    clan_info = cdata["data"].get(str(clan_id))
+                    if clan_info:
+                        # Извлекаем данные участника (роль, дата вступления)
+                        member_info = None
+                        for m in clan_info.get("members", []):
+                            if m.get("account_id") == account_id:
+                                member_info = m
+                                break
+                        clan_info.pop("members", None)
+                        clan_data = clan_info
+                        if member_info:
+                            clan_data["member"] = member_info
+            except Exception as e:
+                logger.warning(f"Lesta Clans API error: {e}")
+
+        # Обогащаем достижения данными из БД (иконки, названия, описания)
+        raw_achievements = results.get("achievements") or {}
+        ach_counts = raw_achievements.get("achievements") or {}
+        if ach_counts:
+            from replays.models import Achievement as AchModel
+            db_achs = AchModel.objects.filter(token__in=ach_counts.keys()).values(
+                'token', 'name', 'description', 'image_small', 'image_big', 'section', 'order'
+            )
+            db_map = {a['token']: a for a in db_achs}
+            enriched = []
+            for token, count in ach_counts.items():
+                if count and count > 0 and token in db_map:
+                    a = db_map[token]
+                    enriched.append({
+                        'token': token,
+                        'count': count,
+                        'name': a['name'],
+                        'description': a['description'],
+                        'image_small': a['image_small'],
+                        'image_big': a['image_big'],
+                        'section': a['section'],
+                        'order': a['order'] or 0,
+                    })
+            enriched.sort(key=lambda x: x['order'])
+        else:
+            enriched = []
+
+        response_data = {
+            "info": results["info"],
+            "tanks": results.get("tanks"),
+            "achievements": enriched,
+            "clan": clan_data,
+        }
+
+        cache.set(cache_key, response_data, self.CACHE_TIMEOUT)
+        return JsonResponse(response_data)
+
+
+class VehicleEncyclopediaAPIView(View):
+    """API endpoint для справочника танков (кешируется на 24 часа)."""
+
+    CACHE_TIMEOUT = 86400  # 24 часа
+
+    def get(self, request):
+        from django.core.cache import cache
+        import requests
+
+        cache_key = "vehicle_encyclopedia"
+        cached = cache.get(cache_key)
+        if cached:
+            return JsonResponse(cached, safe=False)
+
+        app_id = settings.LESTA_APPLICATION_ID
+        if not app_id:
+            return JsonResponse({"error": "Lesta API не настроен"}, status=500)
+
+        url = (
+            f"https://api.tanki.su/wot/encyclopedia/vehicles/"
+            f"?application_id={app_id}&fields=tank_id,name,tier,type,nation&limit=1000"
+        )
+
+        try:
+            resp = requests.get(url, timeout=15)
+            resp.raise_for_status()
+            data = resp.json()
+            if data.get("status") == "ok":
+                result = data["data"]
+                cache.set(cache_key, result, self.CACHE_TIMEOUT)
+                return JsonResponse(result)
+        except Exception as e:
+            logger.warning(f"Lesta encyclopedia API error: {e}")
+
+        return JsonResponse({"error": "Не удалось загрузить справочник"}, status=502)

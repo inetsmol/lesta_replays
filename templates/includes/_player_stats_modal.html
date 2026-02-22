@@ -1,0 +1,148 @@
+{# templates/includes/_player_stats_modal.html #}
+<div id="player-stats-modal" class="modal" aria-hidden="true">
+  <div class="modal-overlay" data-close="player-stats"></div>
+  <div class="modal-content player-stats-modal-content" role="dialog" aria-modal="true" aria-labelledby="player-stats-title">
+    <div class="modal-header">
+      <h2 id="player-stats-title">Статистика игрока</h2>
+      <button class="modal-close" type="button" data-close="player-stats" aria-label="Закрыть">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body" id="player-stats-body">
+      <div id="player-stats-loading" class="ps-loading">
+        <div class="ps-spinner"></div>
+        <p>Загрузка статистики...</p>
+      </div>
+      <div id="player-stats-error" class="ps-error" style="display:none">
+        <p>Не удалось загрузить статистику игрока.</p>
+      </div>
+      <div id="player-stats-content" style="display:none"></div>
+      
+      <!-- Шаблоны для JS -->
+      <template id="tpl-battles-selector">
+        <div class="select-list_wrapper js-selector-wrapper">
+          <ul class="select-list js-battle-selector-summary">
+            <li class="select-list_item select-list_item__active">Случайные бои</li>
+          </ul>
+        </div>
+      </template>
+
+      <template id="tpl-achievement">
+        <div class="achiev-item">
+            <img class="achiev-item_img" src="" draggable="false">
+            <div class="achiev-item_counter" style="display:none"></div>
+            <div class="small-tooltip small-tooltip__light small-tooltip__size-2">
+                <div class="small-tooltip_inner">
+                    <p class="small-tooltip_title"></p>
+                    <p class="small-tooltip_text ps-ach-desc"></p>
+                    <p class="small-tooltip_text small-tooltip_text__indent-top ps-ach-cond"></p>
+                </div>
+            </div>
+        </div>
+      </template>
+
+      <template id="tpl-diagram-tier">
+        <div class="diagram_item">
+            <div class="diagram_body">
+                <div class="diagram_bar js-tooltip">
+                    <div class="diagram_value"></div>
+                    <div class="diagram_info">
+                        <span class="ps-tier-name"></span>
+                        <div class="small-tooltip small-tooltip__light small-tooltip__size-1">
+                            <div class="small-tooltip_inner">
+                                <p class="small-tooltip_title">Уровень техники: <span class="ps-tier-name"></span></p>
+                                <p class="small-tooltip_text">Бои: <span class="ps-tier-battles"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </template>
+
+      <!-- Template for Nation bar -->
+      <template id="tpl-diagram-nation">
+        <div class="diagram_item">
+            <div class="diagram_body">
+                <div class="diagram_bar js-tooltip">
+                    <div class="diagram_value"></div>
+                    <div class="diagram_info">
+                        <span class="rastr-flag rastr-flag__small"></span>
+                        <div class="small-tooltip small-tooltip__light small-tooltip__size-1">
+                            <div class="small-tooltip_inner">
+                                <p class="small-tooltip_title">Нация техники: <span class="ps-nation-name"></span></p>
+                                <p class="small-tooltip_text">Бои: <span class="ps-nation-battles"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </template>
+
+      <!-- Template for Type bar -->
+      <template id="tpl-diagram-type">
+        <div class="diagram_item">
+            <div class="diagram_body">
+                <div class="diagram_bar js-tooltip">
+                    <div class="diagram_value"></div>
+                    <div class="diagram_info">
+                        <span class="ico-vehicle-type"></span>
+                        <div class="small-tooltip small-tooltip__light small-tooltip__size-1">
+                            <div class="small-tooltip_inner">
+                                <p class="small-tooltip_title">Тип техники: <span class="ps-type-name"></span></p>
+                                <p class="small-tooltip_text">Бои: <span class="ps-type-battles"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </template>
+
+      <template id="tpl-vehicle-row">
+        <div class="table_row table_row__pointer">
+            <div class="table_td table_td__size-1 table_td__mobile-padding">
+                <span class="rastr-flag"></span> <!-- nation -->
+            </div>
+            <div class="table_td table_td__size-2">
+                <span class="ico-vehicle-type"></span> <!-- type -->
+            </div>
+            <div class="table_td table_td__size-3 table_td__prem">
+                <span class="ps-tier-roman"></span> <!-- tier -->
+            </div>
+            <div class="table_td table_td__size-wide table_td__align-left table_td__left-padding table_td__right-padding table_td__prem">
+                <span class="table_truncated-text ps-vehicle-name"></span> <!-- name -->
+            </div>
+            <div class="table_td table_td__size-role table_td__mobile-padding">
+                <span class="ico-vehicle-role"></span> <!-- role -->
+            </div>
+            <div class="table_td table_td__size-4">
+                <span class="ps-battles"></span> <!-- battles -->
+            </div>
+            <div class="table_td table_td__size-4">
+                <span class="ps-winrate"></span><!-- wins ratio -->
+            </div>
+            <div class="table_td table_td__size-4">
+                <span class="ico-ranks ps-mastery"></span><!-- mastery -->
+            </div>
+            <div class="table_td table_td__size-4">
+                <img class="table_img table_img__no-maxheight ps-marks" src=""> <!-- marks -->
+            </div>
+            <div class="table_td table_td__size-4">
+                <span class="ps-dmg"></span><!-- dmg -->
+            </div>
+            <div class="table_td table_td__size-4">
+                <span class="ps-xp"></span><!-- exp -->
+            </div>
+            <div class="table_td table_td__size-4">
+                <span class="ps-kd"></span><!-- kd -->
+            </div>
+        </div>
+      </template>
+
+    </div>
+  </div>
+</div>

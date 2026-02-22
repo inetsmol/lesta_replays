@@ -13,7 +13,22 @@
 {% block content_mod %}content--solo{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/replay-detail.css' %}">
+<link rel="stylesheet" href="{% static 'css/replay-detail.css' %}?v=2">
+<link rel="stylesheet" href="{% static 'css/tanki-su-profile.css' %}?v=2">
+{% if request.path|slice:":8" == "/replays" %}
+<link rel="stylesheet" href="{% static 'css/player-stats-modal.css' %}?v=2">
+{% endif %}
+<style>
+.map-stat .stat .stat-text .name a.player-stats-link:hover,
+.team-score .personal-data .header .name a.player-stats-link:hover {
+  text-decoration: underline;
+}
+/* TODO: убрать когда окно статистики будет готово */
+a.player-stats-link {
+  pointer-events: none;
+  cursor: default;
+}
+</style>
 
 {% if show_anti_abuse_banner %}
 <div id="anti-abuse-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px);">
@@ -266,8 +281,7 @@
 
                   <div class="stat-text" >
                     <div class="name">
-                      {{ details.playerName }}
-                      {% if details.clanAbbrev %} [{{ details.clanAbbrev }}]{% endif %}
+                      {% if details.accountId %}<a href="#" class="player-stats-link" data-account-id="{{ details.accountId }}" data-player-name="{{ details.playerName }}">{{ details.playerName }}{% if details.clanAbbrev %} [{{ details.clanAbbrev }}]{% endif %}</a>{% else %}{{ details.playerName }}{% if details.clanAbbrev %} [{{ details.clanAbbrev }}]{% endif %}{% endif %}
                     </div>
                     {{ replay.battle_date }}
                     <div class="death-reason">{{ death_reason_text }}</div>
@@ -481,7 +495,7 @@
               </div>
               <div class="info">
                 <div class="name">
-                  <a href="profile/{{ player.avatar_id }}/{{ player.player_name }}" target="_blank">{{ player.display_name }}</a>
+                  {% if player.account_id %}<a href="#" class="player-stats-link" data-account-id="{{ player.account_id }}" data-player-name="{{ player.player_name }}">{{ player.display_name }}</a>{% else %}{{ player.display_name }}{% endif %}
                 </div>
                 <span>{{ player.vehicle_display_name }}</span>
                 <div>{{ player.death_text }}</div>
@@ -540,7 +554,7 @@
               {% for player in team_results.allies_players %}
               <tr{% if player.is_current_player or not player.is_alive %} class="{% if player.is_current_player %}current-player{% endif %}{% if player.is_current_player and not player.is_alive %} {% endif %}{% if not player.is_alive %}dead{% endif %}"{% endif %} data-player="{{ player.avatar_id }}">
                 <td class="player-platoon" data-sort-value="{{ player.platoon_id|default_if_none:'' }}">{% if player.platoon_id %}<div class="number{% if player.is_own_platoon %} own-platoon{% endif %}">{{ player.platoon_id }}</div>{% endif %}</td>
-                <td class="player-names" data-sort-value="{{ player.display_name|default_if_none:'' }}">{{ player.display_name }}</td>
+                <td class="player-names" data-sort-value="{{ player.display_name|default_if_none:'' }}">{% if player.account_id %}<a href="#" class="player-stats-link" data-account-id="{{ player.account_id }}" data-player-name="{{ player.player_name }}">{{ player.display_name }}</a>{% else %}{{ player.display_name }}{% endif %}</td>
                 <td class="tanks-name" data-sort-value="{{ player.vehicle_display_name|default_if_none:'' }}">
                   <picture>
                     <source srcset="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ player.vehicle_tag }}.webp" type="image/webp">
@@ -586,7 +600,7 @@
               </div>
               <div class="info">
                 <div class="name">
-                  <a href="profile/{{ player.avatar_id }}/{{ player.player_name }}" target="_blank">{{ player.display_name }}</a>
+                  {% if player.account_id %}<a href="#" class="player-stats-link" data-account-id="{{ player.account_id }}" data-player-name="{{ player.player_name }}">{{ player.display_name }}</a>{% else %}{{ player.display_name }}{% endif %}
                 </div>
                 <span>{{ player.vehicle_display_name }}</span>
                 {% if player.medals.has_medals %}
@@ -650,7 +664,7 @@
               {% for player in team_results.enemies_players %}
               <tr{% if not player.is_alive %} class="dead"{% endif %} data-player="{{ player.avatar_id }}">
                 <td class="player-platoon" data-sort-value="{{ player.platoon_id|default_if_none:'' }}">{% if player.platoon_id %}<div class="number{% if player.is_own_platoon %} own-platoon{% endif %}">{{ player.platoon_id }}</div>{% endif %}</td>
-                <td class="player-names" data-sort-value="{{ player.display_name|default_if_none:'' }}">{{ player.display_name }}</td>
+                <td class="player-names" data-sort-value="{{ player.display_name|default_if_none:'' }}">{% if player.account_id %}<a href="#" class="player-stats-link" data-account-id="{{ player.account_id }}" data-player-name="{{ player.player_name }}">{{ player.display_name }}</a>{% else %}{{ player.display_name }}{% endif %}</td>
                 <td class="tanks-name" data-sort-value="{{ player.vehicle_display_name|default_if_none:'' }}">
                   <picture>
                     <source srcset="{% static 'style/images/wot/shop/vehicles/180x135/' %}{{ player.vehicle_tag }}.webp" type="image/webp">
@@ -1615,5 +1629,8 @@ function initPlayerDataToggle() {
   }
 })();
 </script>
+
+{% include "includes/_player_stats_modal.html" %}
+<script src="{% static 'js/player-stats.js' %}?v=4"></script>
 
 {% endblock %}

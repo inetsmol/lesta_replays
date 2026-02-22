@@ -342,6 +342,15 @@ class ExtractorV2:
         if not personal_data:
             raise ValueError(f"Не найдены персональные данные для игрока {player_name} (id={player_id}).")
 
+        # 3.5) Извлекаем common и players данные
+        common_data = {}
+        players_data = {}
+        if isinstance(personal_array, (list, tuple)) and len(personal_array) > 0:
+            first_result = personal_array[0]
+            if isinstance(first_result, dict):
+                common_data = first_result.get('common', {})
+                players_data = first_result.get('players', {})
+
         # 4) Сформировать результат
         fields: Dict[str, Any] = {
             "file_name": file_name,
@@ -359,6 +368,9 @@ class ExtractorV2:
             "damage": personal_data.get("damageDealt", 0),
             "assist": ExtractorV2._calculate_total_assist(personal_data),
             "block": personal_data.get("damageBlockedByArmor", 0),
+            "is_alive": int(personal_data.get("deathReason", -1)) == -1,
+            "battle_duration": int(common_data.get("duration", 0)) or None,
+            "is_platoon": ExtractorV2._is_owner_in_platoon(player_id, players_data),
             "player_id": player_id,
         }
         return fields
@@ -808,7 +820,8 @@ class ExtractorV2:
             'battleModeLabel': ExtractorV2.get_battle_mode_label(cache),
             'clientVersion': first_block.get('clientVersionFromExe'),
             'playerName': first_block.get('playerName'),
-            'clanAbbrev': clan_abbrev
+            'clanAbbrev': clan_abbrev,
+            'accountId': player_id
         }
         return details_data
 
@@ -1933,6 +1946,7 @@ class ExtractorV2:
 
         return {
             "avatar_id": avatar_id,
+            "account_id": int(account_id) if account_id else 0,
             "player_name": player_name,
             "display_name": display_name,
             "clan_tag": clan_tag,
@@ -1981,6 +1995,26 @@ class ExtractorV2:
             # Взвод
             "platoon_id": ExtractorV2._get_platoon_id(avatar_id, cache),
         }
+
+    @staticmethod
+    def _is_owner_in_platoon(player_id, players_data: dict) -> bool:
+        """
+        Определяет, был ли владелец реплея во взводе.
+
+        Args:
+            player_id: accountDBID владельца
+            players_data: словарь players из battle_results
+
+        Returns:
+            True если во взводе, False если соло
+        """
+        if not players_data or not player_id:
+            return False
+        player_info = players_data.get(str(player_id)) or players_data.get(player_id, {})
+        if not isinstance(player_info, dict):
+            return False
+        prebattle_id = player_info.get("prebattleID", 0)
+        return prebattle_id != 0
 
     @staticmethod
     def _get_platoon_id(avatar_id: str, cache: 'ReplayDataCache') -> Optional[int]:

@@ -1,0 +1,749 @@
+/* Стили модалки статистики игрока — дополнение к tanki-su-profile.css */
+
+/* === Модалка === */
+.player-stats-modal-content {
+  max-width: 1200px;
+  width: 95vw;
+  max-height: 90vh;
+  background: #1c1c1e;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.player-stats-modal-content .modal-body {
+  max-height: calc(90vh - 60px);
+  overflow-y: auto;
+  padding: 0;
+  background: #1c1c1e;
+  color: #b8b8a2;
+}
+
+/* === Спиннер загрузки === */
+.ps-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #888;
+}
+
+.ps-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #e59400;
+  border-radius: 50%;
+  animation: ps-spin 0.8s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes ps-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ps-error {
+  padding: 40px 20px;
+  text-align: center;
+  color: #ef4444;
+}
+
+/* === Шапка игрока (стиль tanki.su) === */
+.ps-header {
+  background: linear-gradient(180deg, #2a2a2a 0%, #1c1c1e 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ps-header-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 24px 24px 16px;
+}
+
+/* Левая часть: ник + даты */
+.ps-header-left {
+  flex: 1;
+  min-width: 0;
+  padding-top: 16px;
+}
+
+.ps-user-name {
+  font-size: 32px;
+  font-weight: 700;
+  color: #f9f5e1;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.ps-user-info-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ps-user-info-item {
+  font-size: 13px;
+  color: #a29e87;
+}
+
+.ps-user-info-value {
+  color: #f9f5e1;
+  font-weight: 500;
+}
+
+/* Правая часть: клан */
+.ps-header-right {
+  flex-shrink: 0;
+}
+
+.ps-clan-box {
+  text-align: center;
+}
+
+.ps-clan-heading {
+  font-size: 11px;
+  font-weight: 400;
+  color: #a29e87;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin: 0 0 10px;
+}
+
+.ps-clan-holder {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ps-clan-img {
+  display: block;
+  width: 64px;
+  height: 64px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  flex-shrink: 0;
+}
+
+.ps-clan-name {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ps-clan-tag {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.ps-clan-fullname {
+  font-size: 16px;
+  color: #f9f5e1;
+  font-weight: 400;
+}
+
+/* Должность и дни в клане */
+.ps-clan-member-info {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: #a29e87;
+}
+
+/* Ссылки под шапкой */
+.ps-header-links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ps-tanki-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #a29e87;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: color 0.2s;
+}
+
+.ps-tanki-link:hover {
+  color: #f9f5e1;
+}
+
+.ps-tanki-link svg {
+  opacity: 0.6;
+}
+
+/* === Заголовок секции с dropdown (стиль tanki.su) === */
+.player-stats-modal-content .profile-grid_header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  margin: 0;
+  padding: 20px 24px 0;
+}
+
+.player-stats-modal-content .profile-grid_heading {
+  display: inline-block;
+  vertical-align: baseline;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 21px;
+  color: #e9e2bf;
+  text-transform: uppercase;
+  margin: 0 15px 0 0;
+}
+
+.player-stats-modal-content .profile-grid_sub-info {
+  display: inline-block;
+  vertical-align: baseline;
+  color: #a29e87;
+  font-size: 14px;
+  line-height: 14px;
+  text-transform: uppercase;
+  font-weight: 700;
+  position: relative;
+}
+
+.player-stats-modal-content .profile-grid_info-link {
+  color: #a29e87;
+  border-bottom: 1px dashed;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.15s;
+  position: relative;
+  padding-right: 20px;
+}
+
+.player-stats-modal-content .profile-grid_info-link:hover,
+.player-stats-modal-content .profile-grid_info-link.profile-grid_info-link__opened {
+  color: #fffbed;
+}
+
+/* Стрелочка dropdown */
+.player-stats-modal-content .profile-grid_info-link::after {
+  content: '';
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+  transition: transform 0.15s;
+}
+
+.player-stats-modal-content .profile-grid_info-link.profile-grid_info-link__opened::after {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* Dropdown список */
+.ps-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 100;
+  min-width: 240px;
+  background: #2a2a2a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.ps-dropdown-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+}
+
+.ps-dropdown-item {
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #a29e87;
+  text-transform: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.ps-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fffbed;
+}
+
+.ps-dropdown-item.ps-dropdown-item__active {
+  color: #e59400;
+}
+
+/* === Адаптация tanki.su стилей для модалки === */
+.player-stats-modal-content .profile-grid {
+  padding: 0;
+}
+
+.player-stats-modal-content .stats_inner {
+  max-width: 100%;
+  margin: 0;
+  padding: 20px 24px;
+}
+
+.player-stats-modal-content .all-stats-grid_inner {
+  max-width: 100%;
+  margin: 0;
+  padding: 0 24px 20px;
+}
+
+.player-stats-modal-content .achievements_inner {
+    padding: 20px 24px;
+}
+
+/* === Скроллбар === */
+.player-stats-modal-content .modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.player-stats-modal-content .modal-body::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.player-stats-modal-content .modal-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+.player-stats-modal-content .modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* === Кликабельные имена игроков === */
+.player-name-link {
+  color: #e59400;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.player-name-link.ps-anon-name {
+    color: #ce87b1;
+}
+
+.player-name-link:hover, .player-name-link.ps-anon-name:hover {
+  color: #ffb12b;
+}
+
+.player-stats-modal-content {
+    --white-tr: rgba(255, 255, 255, 0.2);
+}
+
+/* Fix CSS for table rendering inside modal */
+.player-stats-modal-content .table_td__show-tablet, .player-stats-modal-content .table_td {
+    display: inline-flex;
+}
+
+/* === Блок достижений === */
+
+/* Свёрнутый вид — тёмно-красная лента */
+.player-stats-modal-content .achievements__has-ribbon {
+  background: linear-gradient(180deg, #1a0505 0%, #2d0a0a 50%, #1a0505 100%);
+}
+
+.player-stats-modal-content .achievements_inner {
+  padding: 8px 16px;
+}
+
+.player-stats-modal-content .achievements_list {
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.player-stats-modal-content .achievements_list .achievements_item {
+  margin: 4px;
+}
+
+/* Кнопки показать/свернуть */
+.player-stats-modal-content .show-more.show-more__has-margins {
+  text-align: center;
+  padding: 8px 24px 16px;
+}
+
+.player-stats-modal-content .js-ps-ach-show-all,
+.player-stats-modal-content .js-ps-ach-hide {
+  background: none;
+  border: none;
+  color: #e59400;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  padding: 0;
+  text-transform: uppercase;
+}
+
+.player-stats-modal-content .js-ps-ach-show-all:hover,
+.player-stats-modal-content .js-ps-ach-hide:hover {
+  text-decoration: underline;
+}
+
+/* Секция в развёрнутом виде */
+.player-stats-modal-content .ps-ach-section {
+  padding: 0 24px 16px;
+}
+
+.player-stats-modal-content .achievements_heading {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #888;
+  text-transform: uppercase;
+  margin: 16px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.player-stats-modal-content .achievements_info {
+  color: #e59400;
+}
+
+/* Список в секции развёрнутого вида */
+.player-stats-modal-content .ps-ach-section-list {
+  flex-wrap: wrap;
+}
+
+/* Карточка достижения */
+.player-stats-modal-content .achiev-item {
+  position: relative;
+  width: 67px;
+  height: 71px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.player-stats-modal-content .achiev-item_img {
+  width: 67px;
+  height: 71px;
+  object-fit: contain;
+}
+
+.player-stats-modal-content .achiev-item_img__disabled {
+  opacity: 0.3;
+  filter: grayscale(1);
+}
+
+.player-stats-modal-content .achiev-item_empty {
+  opacity: 0.3;
+  filter: grayscale(1);
+}
+
+/* === График боёв на технике === */
+.player-stats-modal-content .diagram-grid {
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+    height: 293px;
+}
+.player-stats-modal-content .diagram-grid_holder {
+    font-size: 0;
+    line-height: 0;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+    overflow-x: scroll;
+    padding-bottom: 30px;
+    text-align: center;
+}
+.player-stats-modal-content .diagram-grid_inner {
+    display: inline-block;
+    white-space: nowrap;
+    will-change: transform;
+    padding: 0 16px;
+}
+@media all and (min-width: 720px) {
+    .player-stats-modal-content .diagram-grid_inner { padding: 0 28px; }
+}
+.player-stats-modal-content .diagram-grid_item {
+    display: inline-block;
+    vertical-align: top;
+    box-sizing: border-box;
+}
+.player-stats-modal-content .diagram-grid_shadow {
+    content: "";
+    width: 94px;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    z-index: 1;
+    background-image: linear-gradient(to right,transparent 0%,#1c1c1e 100%);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .15s ease-out,visibility .15s ease-out;
+}
+.player-stats-modal-content .diagram-grid_shadow__right {
+    right: 0;
+    background-image: linear-gradient(to right,transparent 0%,rgba(28,28,30,.7) 60%,#1c1c1e 100%);
+}
+.player-stats-modal-content .diagram-grid_shadow__left {
+    left: 0;
+    background-image: linear-gradient(to left,transparent 0%,rgba(28,28,30,.7) 60%,#1c1c1e 100%);
+}
+.player-stats-modal-content .diagram-grid_shadow__active {
+    opacity: 1;
+    visibility: visible;
+}
+@media all and (min-width: 1100px) {
+    .player-stats-modal-content .diagram-grid_shadow__active { opacity: 0; visibility: hidden; }
+}
+.player-stats-modal-content .diagram-grid_arrow {
+    width: 42px;
+    height: 70px;
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    transform: translateY(-50%);
+    opacity: 0;
+    visibility: hidden;
+    background-color: rgba(71,71,71,.6);
+    cursor: pointer;
+    transition: opacity .15s ease-out,visibility .15s ease-out,background-color .15s ease-out;
+}
+.player-stats-modal-content .diagram-grid_arrow:hover {
+    background-color: rgba(71,71,71,.85);
+}
+.player-stats-modal-content .diagram-grid_arrow__right {
+    right: 0;
+}
+@media all and (min-width: 720px) {
+    .player-stats-modal-content .diagram-grid_arrow__right { right: 28px; }
+}
+.player-stats-modal-content .diagram-grid_arrow__right:before {
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxMCAxNiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNS45MzYgNy45OThMLjE4MyAyLjMzM2EuNi42IDAgMCAxIDAtLjg2MkwxLjQ5Ni4xNzhhLjYyNy42MjcgMCAwIDEgLjg3NiAwbDcuNDQ1IDcuMzNhLjYuNiAwIDAgMSAuMTguNDkuNi42IDAgMCAxLS4xOC40OWwtNy40NDUgNy4zM2EuNjI3LjYyNyAwIDAgMS0uODc2IDBMLjE4MyAxNC41MjNhLjYuNiAwIDAgMSAwLS44NjJsNS43NTMtNS42NjR6IiBmaWxsPSIjQjhCMzk3IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiLz48L3N2Zz4=);
+}
+.player-stats-modal-content .diagram-grid_arrow__left {
+    left: 0;
+}
+@media all and (min-width: 720px) {
+    .player-stats-modal-content .diagram-grid_arrow__left { left: 28px; }
+}
+.player-stats-modal-content .diagram-grid_arrow__left:before {
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxMCAxNiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNC4wNjQgNy45OThsNS43NTMtNS42NjVhLjYuNiAwIDAgMCAwLS44NjJMOC41MDQuMTc4YS42MjcuNjI3IDAgMCAwLS44NzYgMEwuMTgzIDcuNTA4YS42Lj6gMCAwIDAtLjE4LjQ5LjYuNiAwIDAgMCAuMTguNDlsNy40NDUgNy4zM2EuNjI3LjYyNyAwIDAgMCAuODc2IDBsMS4zMTMtMS4yOTRhLjYuNiAwIDAgMCAwLS44NjJMNC4wNjQgNy45OTh6IiBmaWxsPSIjQjhCMzk3IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiLz48L3N2Zz4=);
+}
+.player-stats-modal-content .diagram-grid_arrow__active {
+    opacity: 1;
+    visibility: visible;
+}
+@media all and (min-width: 1100px) {
+    .player-stats-modal-content .diagram-grid_arrow__active { opacity: 0; visibility: hidden; }
+}
+.player-stats-modal-content .diagram-grid_arrow:before {
+    width: 10px;
+    height: 16px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    content: "";
+}
+.player-stats-modal-content .diagram {
+    line-height: 30px;
+}
+.player-stats-modal-content .diagram_inner {
+    display: flex;
+    justify-content: flex-start;
+    padding: 0 3px;
+    margin: 0 auto;
+}
+@media all and (min-width: 720px) {
+    .player-stats-modal-content .diagram_inner { padding: 0 9px; }
+}
+@media all and (min-width: 1100px) {
+    .player-stats-modal-content .diagram_inner { padding: 0 12px; }
+}
+.player-stats-modal-content .diagram_item {
+    position: relative;
+    padding: 30px 0;
+}
+.player-stats-modal-content .diagram_item:not(:last-child) {
+    margin-right: 10px;
+}
+@media all and (min-width: 720px) {
+    .player-stats-modal-content .diagram_item:not(:last-child) { margin-right: 16px; }
+}
+@media all and (min-width: 1100px) {
+    .player-stats-modal-content .diagram_item:not(:last-child) { margin-right: 14px; }
+}
+@media all and (min-width: 1440px) {
+    .player-stats-modal-content .diagram_item:not(:last-child) { margin-right: 15px; }
+}
+.player-stats-modal-content .diagram_body {
+    height: 200px;
+    width: 14px;
+    position: relative;
+}
+.player-stats-modal-content .diagram_bar {
+    width: 100%;
+    min-height: 2px;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 0;
+    background: linear-gradient(to bottom,#fab81b 0%,#bc2515 100%) left bottom repeat-x;
+    background-size: auto 200px;
+    font-size: 12px;
+    color: #e9e2bf;
+    cursor: pointer;
+    transition: color .15s ease-out,height .15s ease-out;
+}
+.player-stats-modal-content .diagram_bar:before {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    content: "";
+    background-color: #fffbed;
+    opacity: 0;
+    transition: opacity .15s ease-out;
+}
+.player-stats-modal-content .diagram__empty .diagram_bar:before {
+    display: none;
+}
+.player-stats-modal-content .diagram_bar:hover {
+    color: #fffbed;
+}
+.player-stats-modal-content .diagram_bar:hover:before {
+    opacity: 1;
+}
+.player-stats-modal-content .diagram_value {
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    white-space: nowrap;
+}
+@media all and (min-width: 1260px) {
+    .player-stats-modal-content .diagram_value { font-size: 12px; }
+}
+.player-stats-modal-content .diagram__empty .diagram_value {
+    display: none;
+}
+.player-stats-modal-content .diagram_info {
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    transform: translateX(-50%);
+    font-weight: 700;
+    font-size: 12px;
+}
+
+/* Tooltips CSS Override */
+.player-stats-modal-content .diagram_bar .small-tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 15px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+}
+.player-stats-modal-content .diagram_bar:hover .small-tooltip {
+    display: block;
+}
+
+.player-stats-modal-content .achiev-item_counter {
+  position: absolute;
+  bottom: 2px;
+  right: 0;
+  background: linear-gradient(rgb(88, 12, 12) 0%, rgb(78, 23, 23) 100%);
+  color: #f9f5e1;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0 5px;
+}
+
+/* Тултип внутри достижения */
+.player-stats-modal-content .achiev-item .small-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  min-width: 200px;
+  max-width: 260px;
+  pointer-events: none;
+}
+
+.player-stats-modal-content .achiev-item:hover .small-tooltip {
+  display: block;
+}
+
+.player-stats-modal-content .small-tooltip__light .small-tooltip_inner {
+  background: #fff;
+  border: 1px solid #d0d0c8;
+  border-radius: 2px;
+  padding: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.player-stats-modal-content .small-tooltip_img-holder {
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.player-stats-modal-content .small-tooltip_img {
+  width: 50px;
+  height: 53px;
+  object-fit: contain;
+}
+
+.player-stats-modal-content .small-tooltip_title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2b2b2b;
+  margin: 0 0 4px;
+}
+
+.player-stats-modal-content .small-tooltip_text {
+  font-size: 12px;
+  color: #555;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.player-stats-modal-content .profile-grid_sub-info {
+  font-size: 13px;
+  color: #888;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+

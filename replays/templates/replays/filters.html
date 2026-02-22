@@ -219,6 +219,80 @@
                             {% endwith %}
                             <div class="help-text">По умолчанию для подписчиков показывается только «Стандартный бой»</div>
                         </div>
+
+                    </div>
+
+                    <div class="filter-grid grid-2">
+                        <!-- Выжил / Уничтожен -->
+                        {% with sv=current_filters.survived.0 %}
+                        <div class="field-group">
+                            <label>Статус выживания</label>
+                            <div class="chip-group">
+                                <label class="chip-radio">
+                                    <input type="radio" name="survived" value=""
+                                           {% if not can_use_advanced_filters %}disabled{% endif %}
+                                           {% if not sv %}checked{% endif %}>
+                                    <span>Любой</span>
+                                </label>
+                                <label class="chip-radio win">
+                                    <input type="radio" name="survived" value="alive"
+                                           {% if not can_use_advanced_filters %}disabled{% endif %}
+                                           {% if sv == 'alive' %}checked{% endif %}>
+                                    <span><i class="fas fa-heart"></i>&nbsp;Выжил</span>
+                                </label>
+                                <label class="chip-radio loss">
+                                    <input type="radio" name="survived" value="dead"
+                                           {% if not can_use_advanced_filters %}disabled{% endif %}
+                                           {% if sv == 'dead' %}checked{% endif %}>
+                                    <span><i class="fas fa-skull-crossbones"></i>&nbsp;Уничтожен</span>
+                                </label>
+                            </div>
+                        </div>
+                        {% endwith %}
+
+                        <!-- Продолжительность боя -->
+                        <div class="field-group">
+                            <label>Продолжительность боя (мин.)</label>
+                            <div class="range-inputs">
+                                <input type="number" name="duration_min" placeholder="От"
+                                       min="0" max="15" step="1"
+                                       {% if not can_use_advanced_filters %}disabled{% endif %}
+                                       value="{{ current_filters.duration_min.0|default_if_none:'' }}">
+                                <span class="separator">—</span>
+                                <input type="number" name="duration_max" placeholder="До"
+                                       min="0" max="15" step="1"
+                                       {% if not can_use_advanced_filters %}disabled{% endif %}
+                                       value="{{ current_filters.duration_max.0|default_if_none:'' }}">
+                            </div>
+                            <div class="help-text">Обычный бой длится до 15 минут</div>
+                        </div>
+
+                        <!-- Соло / Взвод -->
+                        {% with pt=current_filters.platoon.0 %}
+                        <div class="field-group">
+                            <label>Тип боя</label>
+                            <div class="chip-group">
+                                <label class="chip-radio">
+                                    <input type="radio" name="platoon" value=""
+                                           {% if not can_use_advanced_filters %}disabled{% endif %}
+                                           {% if not pt %}checked{% endif %}>
+                                    <span>Любой</span>
+                                </label>
+                                <label class="chip-radio">
+                                    <input type="radio" name="platoon" value="solo"
+                                           {% if not can_use_advanced_filters %}disabled{% endif %}
+                                           {% if pt == 'solo' %}checked{% endif %}>
+                                    <span><i class="fas fa-user"></i>&nbsp;Соло</span>
+                                </label>
+                                <label class="chip-radio">
+                                    <input type="radio" name="platoon" value="platoon"
+                                           {% if not can_use_advanced_filters %}disabled{% endif %}
+                                           {% if pt == 'platoon' %}checked{% endif %}>
+                                    <span><i class="fas fa-users"></i>&nbsp;Взвод</span>
+                                </label>
+                            </div>
+                        </div>
+                        {% endwith %}
                     </div>
                     </div>
             </div>
