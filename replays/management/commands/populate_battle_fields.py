@@ -1,16 +1,4 @@
 # replays/management/commands/populate_battle_fields.py
-"""
-Management-команда для заполнения полей:
-- battle_duration
-- is_alive
-- is_platoon
-
-Корректно обрабатывает payload, если он хранится как:
-- JSONField (dict/list)
-- строка JSON (TextField)
-
-Использует bulk_update для производительности.
-"""
 
 import json
 from typing import Any
@@ -22,45 +10,20 @@ from replays.parser.extractor import ExtractorV2
 
 
 class Command(BaseCommand):
-    help = "Заполняет battle поля из payload существующих реплеев"
+    help = "Заполняет battle поля из payload (логика как в миграции)"
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            "--batch-size",
-            type=int,
-            default=100,
-            help="Размер батча (по умолчанию 100)",
-        )
-        parser.add_argument(
-            "--dry-run",
-            action="store_true",
-            help="Тестовый режим без сохранения",
-        )
-        parser.add_argument(
-            "--limit",
-            type=int,
-            default=None,
-            help="Ограничить количество записей",
-        )
-        parser.add_argument(
-            "--force",
-            action="store_true",
-            help="Обновить все записи",
-        )
+        parser.add_argument("--batch-size", type=int, default=200)
+        parser.add_argument("--dry-run", action="store_true")
+        parser.add_argument("--limit", type=int, default=None)
+        parser.add_argument("--force", action="store_true")
 
     def handle(self, *args, **options):
-        batch_size: int = options["batch_size"]
-        dry_run: bool = options["dry_run"]
-        limit: int | None = options["limit"]
-        force: bool = options["force"]
+        batch_size = options["batch_size"]
+        dry_run = options["dry_run"]
+        limit = options["limit"]
+        force = options["force"]
 
-        self.stdout.write(
-            self.style.WARNING(
-                f"Режим: {'ТЕСТОВЫЙ' if dry_run else 'БОЕВОЙ'}"
-            )
-        )
-
-        # --- Формируем queryset ---
         if force:
             queryset = Replay.objects.all()
         else:
@@ -74,18 +37,16 @@ class Command(BaseCommand):
 
         if limit:
             queryset = queryset[:limit]
-            self.stdout.write(f"Ограничение: {limit}")
 
-        total_count = queryset.count()
-        self.stdout.write(f"Реплеев для обработки: {total_count}")
+        total = queryset.count()
+        self.stdout.write(f"Найдено реплеев: {total}")
+
+        replay_ids = list(queryset.values_list("pk", flat=True))
 
         updated_count = 0
         skipped_count = 0
         error_count = 0
 
-        replay_ids = list(queryset.values_list("pk", flat=True))
-
-        # --- Батч-обработка ---
         for offset in range(0, len(replay_ids), batch_size):
             batch_ids = replay_ids[offset:offset + batch_size]
             batch = Replay.objects.filter(pk__in=batch_ids)
@@ -95,84 +56,88 @@ class Command(BaseCommand):
             for replay in batch:
                 try:
                     payload: Any = replay.payload
-
                     if not payload:
                         skipped_count += 1
                         continue
 
-                    # --- Если payload строка → парсим JSON ---
+                    # Если строка — парсим
                     if isinstance(payload, str):
-                        try:
-                            payload = json.loads(payload)
-                        except json.JSONDecodeError:
-                            self.stdout.write(
-                                self.style.ERROR(
-                                    f"[PK={replay.pk}] payload невалидный JSON"
-                                )
-                            )
-                            skipped_count += 1
-                            continue
+                        payload = json.loads(payload)
 
-                    # --- Проверяем структуру ---
-                    if not isinstance(payload, (list, tuple)):
+                    if not isinstance(payload, (list, tuple)) or len(payload) < 2:
                         skipped_count += 1
                         continue
 
-                    metadata = payload[0] if len(payload) > 0 else {}
-
-                    battle_results = None
-                    if len(payload) > 1:
-                        second_block = payload[1]
-                        if (
-                            isinstance(second_block, (list, tuple))
-                            and len(second_block) > 0
-                        ):
-                            battle_results = second_block[0]
-
-                    if not isinstance(battle_results, dict):
-                        skipped_count += 1
-                        continue
-
-                    common_data = battle_results.get("common", {})
-                    personal_data = battle_results.get("personal", {})
-                    players_data = battle_results.get("players", {})
+                    metadata = payload[0] if isinstance(payload[0], dict) else {}
                     player_id = metadata.get("playerID")
 
-                    changed = False
+                    second_block = payload[1]
+                    if not isinstance(second_block, (list, tuple)) or not second_block:
+                        skipped_count += 1
+                        continue
 
-                    # --- battle_duration ---
-                    raw_duration = common_data.get("duration")
+                    first_result = second_block[0]
+                    if not isinstance(first_result, dict):
+                        skipped_count += 1
+                        continue
+
+                    # -----------------------------
+                    # 1. battle_duration
+                    # -----------------------------
+                    common = first_result.get("common", {})
+                    raw_duration = common.get("duration")
 
                     try:
-                        duration = (
-                            int(raw_duration)
-                            if raw_duration is not None
-                            else None
-                        )
+                        duration = int(raw_duration) if raw_duration is not None else None
                     except (TypeError, ValueError):
                         duration = None
 
-                    if replay.battle_duration != duration:
-                        replay.battle_duration = duration
-                        changed = True
+                    # -----------------------------
+                    # 2. is_alive (логика миграции)
+                    # -----------------------------
+                    personal = first_result.get("personal", {})
 
-                    # --- is_alive ---
-                    death_reason = personal_data.get("deathReason")
+                    personal_data = None
 
-                    try:
-                        is_alive = (
-                            int(death_reason) == -1
-                            if death_reason is not None
-                            else None
-                        )
-                    except (TypeError, ValueError):
+                    if isinstance(personal, dict):
+
+                        if player_id == 0:
+                            for key, value in personal.items():
+                                if key == "avatar":
+                                    continue
+                                if isinstance(value, dict) and "accountDBID" in value:
+                                    personal_data = value
+                                    break
+
+                        elif player_id is not None:
+                            if (
+                                personal.get("accountDBID") == player_id
+                            ):
+                                personal_data = personal
+                            else:
+                                for value in personal.values():
+                                    if (
+                                        isinstance(value, dict)
+                                        and value.get("accountDBID") == player_id
+                                    ):
+                                        personal_data = value
+                                        break
+
+                    if personal_data:
+                        try:
+                            death_reason = int(
+                                personal_data.get("deathReason", -1)
+                            )
+                            is_alive = death_reason == -1
+                        except (TypeError, ValueError):
+                            is_alive = None
+                    else:
                         is_alive = None
 
-                    if replay.is_alive != is_alive:
-                        replay.is_alive = is_alive
-                        changed = True
-
-                    # --- is_platoon ---
+                    # -----------------------------
+                    # 3. is_platoon
+                    # -----------------------------
+                    players_data = first_result.get("players", {})
                     try:
                         is_platoon = ExtractorV2._is_owner_in_platoon(
                             player_id,
@@ -180,6 +145,19 @@ class Command(BaseCommand):
                         )
                     except Exception:
                         is_platoon = None
+
+                    # -----------------------------
+                    # Проверка изменений
+                    # -----------------------------
+                    changed = False
+
+                    if replay.battle_duration != duration:
+                        replay.battle_duration = duration
+                        changed = True
+
+                    if replay.is_alive != is_alive:
+                        replay.is_alive = is_alive
+                        changed = True
 
                     if replay.is_platoon != is_platoon:
                         replay.is_platoon = is_platoon
@@ -194,12 +172,9 @@ class Command(BaseCommand):
                 except Exception as e:
                     error_count += 1
                     self.stdout.write(
-                        self.style.ERROR(
-                            f"[ERROR] PK={replay.pk}: {e}"
-                        )
+                        self.style.ERROR(f"PK={replay.pk} ERROR: {e}")
                     )
 
-            # --- bulk_update ---
             if to_update and not dry_run:
                 Replay.objects.bulk_update(
                     to_update,
@@ -209,29 +184,13 @@ class Command(BaseCommand):
 
             processed = min(offset + batch_size, len(replay_ids))
             self.stdout.write(
-                f"Обработано: {processed}/{total_count} "
+                f"{processed}/{total} "
                 f"(обновлено: {updated_count}, "
                 f"пропущено: {skipped_count}, "
                 f"ошибок: {error_count})"
             )
 
-        # --- Финальный отчёт ---
-        self.stdout.write("\n" + "=" * 60)
-        self.stdout.write(self.style.SUCCESS("ЗАВЕРШЕНО"))
-        self.stdout.write(f"Всего: {total_count}")
-        self.stdout.write(self.style.SUCCESS(f"Обновлено: {updated_count}"))
-        self.stdout.write(self.style.WARNING(f"Пропущено: {skipped_count}"))
-
-        if error_count:
-            self.stdout.write(
-                self.style.ERROR(f"Ошибок: {error_count}")
-            )
-
-        if dry_run:
-            self.stdout.write(
-                self.style.WARNING("DRY RUN — изменения не сохранены")
-            )
-        else:
-            self.stdout.write(
-                self.style.SUCCESS("Изменения сохранены")
-            )
+        self.stdout.write("\nЗАВЕРШЕНО")
+        self.stdout.write(f"Обновлено: {updated_count}")
+        self.stdout.write(f"Пропущено: {skipped_count}")
+        self.stdout.write(f"Ошибок: {error_count}")
