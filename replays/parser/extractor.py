@@ -1659,17 +1659,20 @@ class ExtractorV2:
             return {}
 
         # ОДИН запрос для ВСЕХ достижений ВСЕХ игроков!
-        # Включаем все боевые достижения: battle, epic, class (но исключаем mastery - он добавляется отдельно)
+        # Исключаем markOfMastery (79), он отображается отдельно.
         achievements = Achievement.objects.filter(
             achievement_id__in=all_achievement_ids,
             is_active=True,
-            achievement_type__in=['battle', 'epic', 'class']
-        ).values('achievement_id', 'name', 'image_big', 'description', 'condition').order_by('name')
+            section__in=['battle', 'epic', 'class']
+        ).exclude(achievement_id=79).values(
+            'achievement_id', 'name', 'image_small', 'image_big', 'description', 'condition'
+        ).order_by('name')
 
         # Создаём lookup таблицу с полными данными
         ach_lookup = {
             ach['achievement_id']: {
                 'name': ach['name'],
+                'image_small': ach.get('image_small', ''),
                 'image_big': ach['image_big'],
                 'description': ach.get('description', ''),
                 'condition': ach.get('condition', '')
@@ -1677,27 +1680,19 @@ class ExtractorV2:
             for ach in achievements
         }
 
-        # Римские цифры для степеней медалей
-        roman_numerals = {1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V'}
+        from replays.models import AchievementOption
 
-        # ID медалей со степенями
-        RANKED_MEDALS = {
-            41, 42, 43, 44, 45, 46, 47, 48,       # Именные медали (Кея, Абрамса и т.д.)
-            538, 539, 540, 541, 542,               # readyForBattle (ЛТ, СТ, ТТ, САУ, ПТ-САУ)
-            1215, 1216, 1217, 1218,                # readyForBattle Alliance
-        }
+        options_lookup = {}
+        options_rows = AchievementOption.objects.filter(
+            achievement_id__in=ach_lookup.keys()
+        ).values(
+            'achievement_id', 'rank', 'name', 'description', 'image_small', 'image_big'
+        )
+        for opt in options_rows:
+            options_lookup.setdefault(opt['achievement_id'], {})[opt['rank']] = opt
 
-        # Словарь для замены имён файлов изображений
-        RANKED_MEDAL_NAMES = {
-            41: 'medalKay', 42: 'medalSamokhin', 43: 'medalGudz',
-            44: 'medalPoppel', 45: 'medalAbrams', 46: 'medalLeClerc',
-            47: 'medalLavrinenko', 48: 'medalEkins',
-            538: 'readyForBattleLT', 539: 'readyForBattleMT',
-            540: 'readyForBattleHT', 541: 'readyForBattleSPG',
-            542: 'readyForBattleATSPG',
-            1215: 'readyForBattleAllianceUSSR', 1216: 'readyForBattleAllianceGermany',
-            1217: 'readyForBattleAllianceUSA', 1218: 'readyForBattleAllianceFrance',
-        }
+        def to_roman(value: int) -> str:
+            return {1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V'}.get(value, str(value))
 
         # Формируем результат для каждого игрока
         result = {}
@@ -1714,27 +1709,23 @@ class ExtractorV2:
                     if aid_int in ach_lookup:
                         medal_data = ach_lookup[aid_int].copy()
 
-                        # Если у медали есть степень (rank)
+                        # Если у достижения есть степень (rank)
                         rank = ach_values.get(aid_int)
-                        if rank is not None and isinstance(rank, int) and rank > 0:
+                        if isinstance(rank, int) and not isinstance(rank, bool) and rank > 0:
                             medal_data['rank'] = rank
 
-                            # Обновляем имя медали, если есть %(rank)s
-                            if '%(rank)s' in medal_data['name']:
-                                roman = roman_numerals.get(rank, str(rank))
-                                medal_data['name'] = medal_data['name'].replace('%(rank)s', f'{roman} степени')
-
-                            # Обновляем путь к изображению для медалей со степенями
-                            if aid_int in RANKED_MEDAL_NAMES:
-                                base_name = RANKED_MEDAL_NAMES[aid_int]
-                                image_big = medal_data['image_big']
-                                # Заменяем базовое имя на имя со степенью
-                                # Например: medalKay.png -> medalKay4.png
-                                # readyForBattleHT.png -> readyForBattleHT3.png
-                                if base_name in image_big:
-                                    medal_data['image_big'] = image_big.replace(
-                                        f'{base_name}.png', f'{base_name}{rank}.png'
-                                    )
+                            option = options_lookup.get(aid_int, {}).get(rank)
+                            if option:
+                                if option.get('name'):
+                                    medal_data['name'] = option['name']
+                                if option.get('description'):
+                                    medal_data['description'] = option['description']
+                                if option.get('image_small'):
+                                    medal_data['image_small'] = option['image_small']
+                                if option.get('image_big'):
+                                    medal_data['image_big'] = option['image_big']
+                            elif '%(rank)s' in medal_data['name']:
+                                medal_data['name'] = medal_data['name'].replace('%(rank)s', f'{to_roman(rank)} степени')
 
                         valid_medals.append(medal_data)
                         valid_names.append(medal_data['name'])
@@ -1798,7 +1789,7 @@ class ExtractorV2:
             achievements = Achievement.objects.filter(
                 achievement_id__in=ids,
                 is_active=True,
-                achievement_type__in=['battle', 'epic']
+                section__in=['battle', 'epic']
             ).values('name').order_by('name')
 
             count = len(achievements)

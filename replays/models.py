@@ -553,14 +553,6 @@ class Achievement(models.Model):
     image_big = models.CharField(max_length=500, blank=True, verbose_name="Большое изображение")
     image_small = models.CharField(max_length=500, blank=True, verbose_name="Маленькое изображение")
 
-    # Тип для ваших отображений/фильтров
-    achievement_type = models.CharField(max_length=50, choices=[
-        ('battle', 'Боевое'),
-        ('mastery', 'Мастерство'),
-        ('epic', 'Эпическое'),
-        ('special', 'Специальное'),
-    ], default='battle')
-
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -571,6 +563,79 @@ class Achievement(models.Model):
 
     def __str__(self):
         return f"{self.name} (ID: {self.achievement_id}, section: {self.section})"
+
+    @staticmethod
+    def _to_roman(value: int) -> str:
+        """Преобразует число степени в римское число."""
+        return {
+            1: "I",
+            2: "II",
+            3: "III",
+            4: "IV",
+            5: "V",
+        }.get(value, str(value))
+
+    def get_option_for_rank(self, rank: int):
+        """
+        Возвращает вариант достижения для указанной степени (если есть).
+        """
+        if not isinstance(rank, int) or rank < 1:
+            return None
+
+        prefetched = getattr(self, "_prefetched_objects_cache", {})
+        if "options" in prefetched:
+            for option in prefetched["options"]:
+                if option.rank == rank:
+                    return option
+            return None
+
+        return self.options.filter(rank=rank).first()
+
+    def resolve_display(self, rank: int = None) -> dict:
+        """
+        Возвращает отображаемые поля достижения с учётом степени.
+        """
+        option = self.get_option_for_rank(rank)
+        name = option.name if option and option.name else self.name
+        if isinstance(rank, int) and rank > 0 and "%(rank)s" in name:
+            name = name.replace("%(rank)s", f"{self._to_roman(rank)} степени")
+
+        return {
+            "name": name,
+            "description": option.description if option and option.description else self.description,
+            "image_small": option.image_small if option and option.image_small else self.image_small,
+            "image_big": option.image_big if option and option.image_big else self.image_big,
+            "rank": rank if isinstance(rank, int) and rank > 0 else None,
+            "option": option,
+        }
+
+
+class AchievementOption(models.Model):
+    """
+    Вариант достижения со степенью (I/II/III/IV и т.п.) из API поля `options`.
+    """
+
+    achievement = models.ForeignKey(
+        Achievement,
+        on_delete=models.CASCADE,
+        related_name="options",
+        verbose_name="Достижение",
+    )
+    rank = models.PositiveSmallIntegerField(verbose_name="Степень", help_text="Порядковый номер опции (1..N)")
+    name = models.CharField(max_length=200, blank=True, verbose_name="Название степени")
+    description = models.TextField(blank=True, verbose_name="Описание степени")
+    image_small = models.CharField(max_length=500, blank=True, verbose_name="Маленькое изображение степени")
+    image_big = models.CharField(max_length=500, blank=True, verbose_name="Большое изображение степени")
+    nation_images = models.JSONField(default=dict, blank=True, verbose_name="Изображения по нациям")
+
+    class Meta:
+        verbose_name = "Степень достижения"
+        verbose_name_plural = "Степени достижений"
+        ordering = ["achievement_id", "rank"]
+        unique_together = [("achievement", "rank")]
+
+    def __str__(self) -> str:
+        return f"{self.achievement.token or self.achievement_id} | степень {self.rank}"
 
 
 class MarksOnGun(models.Model):

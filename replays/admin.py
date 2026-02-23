@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.utils import timezone
 
 from .models import (
-    Tank, Player, Replay, Map, UserProfile, Achievement, MarksOnGun, APIUsageLog,
+    Tank, Player, Replay, Map, UserProfile, Achievement, AchievementOption, MarksOnGun, APIUsageLog,
     SubscriptionPlan, UserSubscription, DailyUsage, ReplayVideoLink, ReplayStatBattle, ReplayStatPlayer,
 )
 
@@ -43,14 +43,22 @@ class UserProfileAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
 
+class AchievementOptionInline(admin.TabularInline):
+    model = AchievementOption
+    extra = 0
+    fields = ("rank", "name", "image_small", "image_big")
+    ordering = ("rank",)
+
+
 @admin.register(Achievement)
 class AchievementAdmin(admin.ModelAdmin):
-    list_display = ("achievement_id", "name", "achievement_type", "section", "outdated")
+    list_display = ("achievement_id", "name", "section", "outdated")
     list_display_links = ("achievement_id", "name")
     search_fields = ("name", "token", "description")
-    list_filter = ("achievement_type", "section", "outdated")
+    list_filter = ("section", "outdated")
     ordering = ("section_order", "order", "name")
     readonly_fields = ("achievement_id",)
+    inlines = (AchievementOptionInline,)
 
 
 @admin.register(MarksOnGun)

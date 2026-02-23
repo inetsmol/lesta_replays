@@ -325,7 +325,7 @@ class ReplayListView(ListView):
                         'achievements',
                         queryset=Achievement.objects.filter(
                             section__in=('battle', 'epic', 'class')
-                        ).exclude(achievement_id=79),
+                        ).exclude(achievement_id=79).prefetch_related('options'),
                         to_attr='battle_achievements',
                     )
                 )
@@ -691,21 +691,6 @@ class ReplayListView(ListView):
             logger.exception(f"Ошибка в get_context_data: {e}")
             raise
 
-
-    # Медали со степенями: ID -> базовое имя файла (из AchievementWithRank)
-    RANKED_MEDALS = {
-        41: 'medalKay', 42: 'medalSamokhin', 43: 'medalGudz',
-        44: 'medalPoppel', 45: 'medalAbrams', 46: 'medalLeClerc',
-        47: 'medalLavrinenko', 48: 'medalEkins',
-        538: 'readyForBattleLT', 539: 'readyForBattleMT',
-        540: 'readyForBattleHT', 541: 'readyForBattleSPG',
-        542: 'readyForBattleATSPG',
-        1215: 'readyForBattleAllianceUSSR', 1216: 'readyForBattleAllianceGermany',
-        1217: 'readyForBattleAllianceUSA', 1218: 'readyForBattleAllianceFrance',
-    }
-    # ID, для которых степень 1 тоже значима
-    ALWAYS_RANKED_IDS = {538, 539, 540, 541, 542, 1215, 1216, 1217, 1218}
-
     def _resolve_achievement_images(self, page):
         """Подставляет правильные пути к картинкам для медалей со степенями."""
         if not page:
@@ -714,34 +699,19 @@ class ReplayListView(ListView):
         for replay in page:
             if not hasattr(replay, 'battle_achievements') or not replay.battle_achievements:
                 continue
-            # Проверяем есть ли медали со степенями
-            ranked_ids = {a.achievement_id for a in replay.battle_achievements} & set(self.RANKED_MEDALS)
-            # Достаём степени из payload если есть медали со степенями
             awv = {}
-            if ranked_ids:
-                try:
-                    cache = ReplayDataCache(replay.payload)
-                    awv = cache.get_achievements_with_values()
-                except Exception:
-                    pass
+            try:
+                cache = ReplayDataCache(replay.payload)
+                awv = cache.get_achievements_with_values()
+            except Exception:
+                pass
             for ach in replay.battle_achievements:
-                # По умолчанию — обычный путь
                 ach.resolved_image = ach.image_big
-                if ach.achievement_id not in ranked_ids:
-                    continue
                 value = awv.get(ach.achievement_id)
-                if not isinstance(value, int):
+                if isinstance(value, bool) or not isinstance(value, int) or value < 1:
                     continue
-                if ach.achievement_id in self.ALWAYS_RANKED_IDS:
-                    rank = value if value >= 1 else None
-                else:
-                    rank = value if value > 1 else None
-                if rank is not None:
-                    base_name = self.RANKED_MEDALS[ach.achievement_id]
-                    if base_name in ach.image_big:
-                        ach.resolved_image = ach.image_big.replace(
-                            f'{base_name}.png', f'{base_name}{rank}.png'
-                        )
+                resolved = ach.resolve_display(rank=value)
+                ach.resolved_image = resolved.get("image_big") or ach.image_big
 
 
 class MyReplaysView(LoginRequiredMixin, ReplayListView):
@@ -1067,108 +1037,56 @@ class ReplayDetailView(DetailView):
         # Получаем ID достижений
         ids = list(achievements_with_values.keys())
 
-        # Загружаем ВСЕ достижения одним запросом
-        achievements = Achievement.objects.filter(
-            achievement_id__in=ids,
-            is_active=True
-        ).annotate(
-            weight=Coalesce(
-                Cast('order', FloatField()),
-                Value(0.0),
-                output_field=FloatField(),
+        # Загружаем ВСЕ достижения одним запросом (включая options для степеней)
+        achievements = (
+            Achievement.objects.filter(
+                achievement_id__in=ids,
+                is_active=True,
+            )
+            .prefetch_related("options")
+            .annotate(
+                weight=Coalesce(
+                    Cast('order', FloatField()),
+                    Value(0.0),
+                    output_field=FloatField(),
+                )
             )
         )
 
         # Создаём словарь achievement_id -> Achievement для быстрого доступа
         achievements_dict = {a.achievement_id: a for a in achievements}
 
-        # Класс-обёртка для Achievement с дополнительными атрибутами
+        # Класс-обёртка для Achievement с отображением по степени из AchievementOption
         class AchievementWithRank:
-            """Обёртка для Achievement с поддержкой степени медали."""
+            """Обёртка для Achievement с поддержкой степени."""
+
             def __init__(self, achievement, rank=None):
                 self.achievement = achievement
                 self.rank = rank if isinstance(rank, int) and rank > 0 else None
-                # Словарь для перевода римских цифр
-                self._roman_numerals = {1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V'}
+                self._resolved = achievement.resolve_display(rank=self.rank)
 
             def __getattr__(self, name):
-                # Проксируем все атрибуты на базовый Achievement
-                # Исключаем name, чтобы обработать его отдельно
-                if name == 'name':
-                    return self.name_with_rank
+                if name in {"name", "description", "image_small", "image_big"}:
+                    return self._resolved[name]
                 return getattr(self.achievement, name)
 
             @property
             def name_with_rank(self):
-                """Возвращает название медали с подставленной степенью."""
-                base_name = self.achievement.name
-                if self.rank is not None and '%(rank)s' in base_name:
-                    # Преобразуем число в римскую цифру
-                    roman = self._roman_numerals.get(self.rank, str(self.rank))
-                    # Заменяем %(rank)s на "римская_цифра степени"
-                    return base_name.replace('%(rank)s', f'{roman} степени')
-                return base_name
+                return self._resolved["name"]
 
             @property
             def image_big_with_rank(self):
-                """Возвращает путь к изображению с учётом степени медали."""
-                if self.rank is None:
-                    return self.achievement.image_big
-
-                # Словарь медалей со степенями: ID -> базовое имя файла
-                RANKED_MEDALS = {
-                    41: 'medalKay',      # Медаль Кея
-                    42: 'medalSamokhin', # Медаль Самохина
-                    43: 'medalGudz',     # Медаль Гудзя
-                    44: 'medalPoppel',   # Медаль Попеля
-                    45: 'medalAbrams',   # Медаль Абрамса
-                    46: 'medalLeClerc',  # Медаль Леклерка
-                    47: 'medalLavrinenko', # Медаль Лавриненко
-                    48: 'medalEkins',    # Медаль Экинса
-                    538: 'readyForBattleLT',             # Образцовое выполнение: ЛТ
-                    539: 'readyForBattleMT',             # Образцовое выполнение: СТ
-                    540: 'readyForBattleHT',             # Образцовое выполнение: ТТ
-                    541: 'readyForBattleSPG',            # Образцовое выполнение: САУ
-                    542: 'readyForBattleATSPG',          # Образцовое выполнение: ПТ-САУ
-                    1215: 'readyForBattleAllianceUSSR',  # Образцовое выполнение: Союз
-                    1216: 'readyForBattleAllianceGermany',  # Образцовое выполнение: Блок
-                    1217: 'readyForBattleAllianceUSA',   # Образцовое выполнение: Альянс
-                    1218: 'readyForBattleAllianceFrance', # Образцовое выполнение: Коалиция
-                }
-
-                medal_id = self.achievement.achievement_id
-                if medal_id in RANKED_MEDALS:
-                    base_name = RANKED_MEDALS[medal_id]
-                    base_path = self.achievement.image_big
-                    # Заменяем базовое имя на имя со степенью
-                    # medalKay.png -> medalKay4.png
-                    # readyForBattleHT.png -> readyForBattleHT3.png
-                    if base_name in base_path:
-                        return base_path.replace(f'{base_name}.png', f'{base_name}{self.rank}.png')
-
-                return self.achievement.image_big
+                return self._resolved["image_big"]
 
         # Знак классности (ID 79) добавляется отдельно в шаблоне, исключаем его из списков
         MASTERY_BADGE_ID = 79
-
-        # ID медалей, у которых степень 1 тоже имеет значение (отдельный файл картинки)
-        # Для остальных value=1 означает просто "получено", а не степень
-        ALWAYS_RANKED_IDS = {
-            538, 539, 540, 541, 542,           # readyForBattle (ЛТ, СТ, ТТ, САУ, ПТ-САУ)
-            1215, 1216, 1217, 1218,            # readyForBattle Alliance
-        }
 
         # Создаём обёрнутые достижения (исключая знак классности)
         wrapped_achievements = []
         for aid, value in achievements_with_values.items():
             if aid in achievements_dict and aid != MASTERY_BADGE_ID:
                 ach = achievements_dict[aid]
-                # Для readyForBattle степень >= 1 значима (отдельные файлы для каждой степени)
-                # Для остальных медалей степень значима только если > 1
-                if isinstance(value, int) and aid in ALWAYS_RANKED_IDS:
-                    rank = value if value >= 1 else None
-                else:
-                    rank = value if isinstance(value, int) and value > 1 else None
+                rank = value if isinstance(value, int) and not isinstance(value, bool) and value > 0 else None
                 wrapped_achievements.append(AchievementWithRank(ach, rank))
 
         # Разделяем на battle и nonbattle
@@ -2535,15 +2453,43 @@ class PlayerStatsAPIView(View):
         raw_achievements = results.get("achievements") or {}
         ach_counts = raw_achievements.get("achievements") or {}
         if ach_counts:
-            from replays.models import Achievement as AchModel
+            from replays.models import Achievement as AchModel, AchievementOption as AchOption
+
+            def to_roman(value: int) -> str:
+                return {1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V'}.get(value, str(value))
+
             db_achs = AchModel.objects.filter(token__in=ach_counts.keys()).values(
-                'token', 'name', 'description', 'image_small', 'image_big', 'section', 'order'
+                'achievement_id', 'token', 'name', 'description', 'image_small', 'image_big', 'section', 'order'
             )
             db_map = {a['token']: a for a in db_achs}
+
+            option_map = {}
+            ach_ids = [a['achievement_id'] for a in db_map.values()]
+            if ach_ids:
+                option_rows = AchOption.objects.filter(achievement_id__in=ach_ids).values(
+                    'achievement_id', 'rank', 'name', 'description', 'image_small', 'image_big'
+                )
+                for opt in option_rows:
+                    option_map.setdefault(opt['achievement_id'], {})[opt['rank']] = opt
+
             enriched = []
             for token, count in ach_counts.items():
                 if count and count > 0 and token in db_map:
-                    a = db_map[token]
+                    a = dict(db_map[token])
+                    rank = count if isinstance(count, int) and not isinstance(count, bool) and count > 0 else None
+                    if rank is not None:
+                        option = option_map.get(a['achievement_id'], {}).get(rank)
+                        if option:
+                            if option.get('name'):
+                                a['name'] = option['name']
+                            if option.get('description'):
+                                a['description'] = option['description']
+                            if option.get('image_small'):
+                                a['image_small'] = option['image_small']
+                            if option.get('image_big'):
+                                a['image_big'] = option['image_big']
+                        elif '%(rank)s' in a['name']:
+                            a['name'] = a['name'].replace('%(rank)s', f'{to_roman(rank)} степени')
                     enriched.append({
                         'token': token,
                         'count': count,
