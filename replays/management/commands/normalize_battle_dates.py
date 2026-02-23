@@ -2,6 +2,7 @@ import json
 from datetime import timedelta
 
 from django.core.management.base import BaseCommand
+from django.db import IntegrityError
 
 from replays.models import Replay
 from replays.parser.extractor import ParserUtils
@@ -37,7 +38,7 @@ class Command(BaseCommand):
         threshold_minutes = max(int(options["threshold_minutes"]), 0)
         limit = max(int(options["limit"]), 0)
 
-        qs = Replay.objects.only("id", "payload", "battle_date").order_by("id")
+        qs = Replay.objects.only("id", "payload", "battle_date", "owner_id", "tank_id").order_by("id")
         if limit:
             qs = qs[:limit]
 
@@ -93,18 +94,43 @@ class Command(BaseCommand):
             else:
                 skipped += 1
 
-        if to_update:
-            if not dry_run:
-                update_instances = []
-                for replay, _, corrected_dt, _ in to_update:
-                    replay.battle_date = corrected_dt
-                    update_instances.append(replay)
-                Replay.objects.bulk_update(update_instances, ["battle_date"], batch_size=500)
+        updated_count = 0
+        conflict_entries = []
+        if to_update and not dry_run:
+            pending = list(to_update)
+
+            # Ретраи нужны для сценариев, когда одна запись временно блокируется
+            # другой, которая сама тоже должна быть смещена в этой же команде.
+            while pending:
+                next_pending = []
+                progress = False
+
+                for replay, current_dt, corrected_dt, delta in pending:
+                    try:
+                        changed = Replay.objects.filter(pk=replay.pk).exclude(battle_date=corrected_dt).update(
+                            battle_date=corrected_dt
+                        )
+                        if changed:
+                            updated_count += 1
+                            progress = True
+                        else:
+                            # Уже в нужном состоянии (например, изменено другой командой).
+                            progress = True
+                    except IntegrityError:
+                        next_pending.append((replay, current_dt, corrected_dt, delta))
+
+                if not progress:
+                    # Оставшиеся записи не удалось обновить из-за реальных конфликтов уникальности.
+                    conflict_entries = next_pending
+                    break
+                pending = next_pending
 
         self.stdout.write(f"Processed: {total}")
         self.stdout.write(f"Will update: {len(to_update)}")
+        self.stdout.write(f"Updated: {len(to_update) if dry_run else updated_count}")
         self.stdout.write(f"Skipped: {skipped}")
         self.stdout.write(f"Parse errors: {parse_errors}")
+        self.stdout.write(f"Conflicts: {0 if dry_run else len(conflict_entries)}")
         self.stdout.write(f"Mode: {'dry-run' if dry_run else 'apply'}")
 
         if to_update:
@@ -114,4 +140,20 @@ class Command(BaseCommand):
                 self.stdout.write(
                     f"  Replay #{replay.id}: {current_dt} -> {corrected_dt} "
                     f"(shift={delta})"
+                )
+
+        if conflict_entries:
+            self.stdout.write("")
+            self.stdout.write("Conflicting records (skipped):")
+            for replay, _, corrected_dt, _ in conflict_entries:
+                conflict_ids = list(
+                    Replay.objects.filter(
+                        owner_id=replay.owner_id,
+                        tank_id=replay.tank_id,
+                        battle_date=corrected_dt,
+                    ).values_list("id", flat=True)[:20]
+                )
+                self.stdout.write(
+                    f"  Replay #{replay.id} -> {corrected_dt} conflicts with IDs: "
+                    f"{', '.join(str(cid) for cid in conflict_ids) if conflict_ids else '(not found)'}"
                 )
