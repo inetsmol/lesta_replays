@@ -258,44 +258,18 @@
 
                         <div class="details">
                             <div class="flex flex-col gap-1 leading-snug">
-                                {% if replay.short_description %}
-                                    <div class="title text-lg font-semibold text-white">{{ replay.short_description }}</div>
-                                {% else %}
-                                    <div class="title text-lg font-semibold text-white">
-                                        {{ replay.tank.name|default:'Неизвестный танк' }} • {{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}
-                                    </div>
-                                {% endif %}
                                 {% get_comment_count for replay as comment_count %}
-                                <div class="flex flex-wrap items-baseline justify-between gap-2">
-                                    <div class="upload-info text-sm leading-5 font-semibold text-[#ddd]">
-                                        <span>{{ replay.battle_date|default_if_none:replay.created_at|localtime|date:"d.m.Y H:i" }}</span>
-                                        {% if replay.get_combined_battle_display %}
-                                            <span class="text-[#999] font-normal">
-                                                • {{ replay.get_combined_battle_display }}
-                                            </span>
-                                        {% endif %}
-                                        {% if replay.user %}
-                                            <span class="text-[#999] font-normal">•</span>
-                                            {% with sub=replay.user.subscription %}
-                                                {% if sub.plan.name == 'pro' %}
-                                                    {% if replay.user.profile.avatar %}
-                                                        <img src="{{ replay.user.profile.avatar.url }}" alt="" class="inline-block w-5 h-5 rounded-full object-cover align-middle ring-1 ring-amber-500/50">
-                                                    {% endif %}
-                                                    <span class="text-amber-400 font-normal text-lg md:text-xl">{{ replay.user.username }}</span>
-                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold leading-none bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm align-middle">PRO</span>
-                                                {% elif sub.plan.name == 'premium' %}
-                                                    {% if replay.user.profile.avatar %}
-                                                        <img src="{{ replay.user.profile.avatar.url }}" alt="" class="inline-block w-5 h-5 rounded-full object-cover align-middle ring-1 ring-blue-500/50">
-                                                    {% endif %}
-                                                    <span class="text-blue-400 font-normal text-lg md:text-xl">{{ replay.user.username }}</span>
-                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold leading-none bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm align-middle">PREMIUM</span>
-                                                {% else %}
-                                                    <span class="text-[#bbb] font-normal">{{ replay.user.username }}</span>
-                                                {% endif %}
-                                            {% endwith %}
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="min-w-0">
+                                        {% if replay.short_description %}
+                                            <div class="title text-lg font-semibold text-white">{{ replay.short_description }}</div>
+                                        {% else %}
+                                            <div class="title text-lg font-semibold text-white">
+                                                {{ replay.tank.name|default:'Неизвестный танк' }} • {{ replay.map.map_display_name|default:replay.map_name|default:'Неизвестная карта' }}
+                                            </div>
                                         {% endif %}
                                     </div>
-                                    <div class="text-sm leading-5 text-[#ddd] space-x-3">
+                                    <div class="text-sm leading-5 text-[#ddd] space-x-3 flex-shrink-0 whitespace-nowrap">
                                         <span class="like-toggle cursor-pointer select-none hover:opacity-80 transition-opacity"
                                               data-replay-id="{{ replay.id }}"
                                               data-liked="{% if replay.user_liked %}true{% else %}false{% endif %}"
@@ -318,6 +292,34 @@
                                             {{ replay.download_count|intcomma }}
                                         </span>
                                     </div>
+                                </div>
+                                <div class="upload-info text-sm leading-5 font-semibold text-[#ddd]">
+                                    <span>{{ replay.battle_date|default_if_none:replay.created_at|localtime|date:"d.m.Y H:i" }}</span>
+                                    {% if replay.get_combined_battle_display %}
+                                        <span class="text-[#999] font-normal">
+                                            • {{ replay.get_combined_battle_display }}
+                                        </span>
+                                    {% endif %}
+                                    {% if replay.user %}
+                                        <span class="text-[#999] font-normal">•</span>
+                                        {% with sub=replay.user.subscription %}
+                                            {% if sub.plan.name == 'pro' %}
+                                                {% if replay.user.profile.avatar %}
+                                                    <img src="{{ replay.user.profile.avatar.url }}" alt="" class="inline-block w-5 h-5 rounded-full object-cover align-middle ring-1 ring-amber-500/50">
+                                                {% endif %}
+                                                <span class="text-amber-400 font-normal text-lg md:text-xl">{{ replay.user.username }}</span>
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold leading-none bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm align-middle">PRO</span>
+                                            {% elif sub.plan.name == 'premium' %}
+                                                {% if replay.user.profile.avatar %}
+                                                    <img src="{{ replay.user.profile.avatar.url }}" alt="" class="inline-block w-5 h-5 rounded-full object-cover align-middle ring-1 ring-blue-500/50">
+                                                {% endif %}
+                                                <span class="text-blue-400 font-normal text-lg md:text-xl">{{ replay.user.username }}</span>
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold leading-none bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm align-middle">PREMIUM</span>
+                                            {% else %}
+                                                <span class="text-[#bbb] font-normal">{{ replay.user.username }}</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% endif %}
                                 </div>
                             </div>
 
