@@ -129,6 +129,31 @@ docker compose pull
 docker compose up -d
 ```
 
+## Сборка Tailwind после изменений
+
+Если вы меняли шаблоны или `static/css/input.css`, пересоберите CSS:
+
+```bash
+# один раз собрать (minified)
+npm run build:css
+
+# режим разработки: автопересборка при изменениях
+npm run watch:css
+```
+
+Если запускаете проект локально без Docker и хотите обновить Django staticfiles:
+
+```bash
+python manage.py collectstatic --noinput
+```
+
+Если работаете через Docker, Tailwind собирается на этапе сборки образа,
+поэтому после изменений достаточно пересобрать контейнер:
+
+```bash
+docker compose up -d --build
+```
+
 ## Полезные команды
 
 ```bash

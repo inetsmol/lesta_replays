@@ -24,17 +24,32 @@ logger = logging.getLogger(__name__)
 
 class ParserUtils:
     @staticmethod
-    def _parse_battle_datetime(dt_str: str) -> _dt.datetime:
+    def _parse_battle_datetime(dt_str: str, arena_create_time: Any = None) -> _dt.datetime:
         """
-        Парсит дату боя формата 'DD.MM.YYYYHH:MM:SS' в объект datetime с timezone.
-        Пример: '25.08.2025 15:57:56' и '25.08.202515:57:56' (без пробела) — поддерживаем оба.
+        Возвращает дату боя как timezone-aware datetime.
+
+        Приоритет:
+        1) common.arenaCreateTime (unix timestamp, абсолютное серверное время),
+        2) строковое поле dateTime из метаданных реплея.
         """
+        # arenaCreateTime - более надежный источник, чем dateTime (которое может быть локальным временем клиента).
+        if arena_create_time not in (None, "", 0, "0"):
+            try:
+                arena_ts = int(arena_create_time)
+                # Иногда timestamp приходит в миллисекундах.
+                if arena_ts > 10_000_000_000:
+                    arena_ts //= 1000
+
+                dt_utc = _dt.datetime.fromtimestamp(arena_ts, tz=_dt.timezone.utc)
+                return timezone.localtime(dt_utc, timezone.get_default_timezone())
+            except (TypeError, ValueError, OverflowError, OSError):
+                pass
+
         # ⚠ В некоторых реплеях между датой и временем нет пробела.
         if " " not in dt_str and len(dt_str) == 19:
             dt_str = f"{dt_str[:10]} {dt_str[10:]}"
         naive_dt = _dt.datetime.strptime(dt_str, "%d.%m.%Y %H:%M:%S")
-        # Делаем datetime aware (используем текущий timezone из Django настроек)
-        return timezone.make_aware(naive_dt)
+        return timezone.make_aware(naive_dt, timezone.get_default_timezone())
 
     @staticmethod
     def _extract_tank_tag(player_vehicle: Any) -> str | None:
@@ -324,7 +339,20 @@ class ExtractorV2:
         dt_raw = root.get("dateTime")
         if not isinstance(dt_raw, str):
             raise ValueError("В метаданных отсутствует строковое поле 'dateTime'.")
-        battle_date = ParserUtils._parse_battle_datetime(dt_raw)
+        arena_create_time = None
+        if (
+            isinstance(personal_array, Sequence)
+            and personal_array
+            and isinstance(personal_array[0], dict)
+        ):
+            common = personal_array[0].get("common", {})
+            if isinstance(common, dict):
+                arena_create_time = common.get("arenaCreateTime")
+
+        battle_date = ParserUtils._parse_battle_datetime(
+            dt_raw,
+            arena_create_time=arena_create_time,
+        )
 
         map_name = root.get("mapName")
         map_display_name = root.get("mapDisplayName")
@@ -2421,10 +2449,13 @@ class ExtractorV2:
 
         if arena_create_time:
             try:
-                from datetime import datetime
-                battle_start_datetime = datetime.fromtimestamp(arena_create_time)
+                arena_ts = int(arena_create_time)
+                if arena_ts > 10_000_000_000:
+                    arena_ts //= 1000
+                dt_utc = _dt.datetime.fromtimestamp(arena_ts, tz=_dt.timezone.utc)
+                battle_start_datetime = timezone.localtime(dt_utc, timezone.get_default_timezone())
                 battle_start_formatted = battle_start_datetime.strftime("%d.%m.%Y %H:%M:%S")
-            except (ValueError, OSError):
+            except (TypeError, ValueError, OverflowError, OSError):
                 battle_start_formatted = ""
 
         # Также можно получить из dateTime если arenaCreateTime недоступно
@@ -2433,7 +2464,7 @@ class ExtractorV2:
             if date_time_str:
                 try:
                     # Формат: "25.08.2025 15:57:56"
-                    battle_start_datetime = datetime.strptime(date_time_str, '%d.%m.%Y %H:%M:%S')
+                    battle_start_datetime = _dt.datetime.strptime(date_time_str, '%d.%m.%Y %H:%M:%S')
                     battle_start_formatted = date_time_str
                 except ValueError:
                     battle_start_formatted = date_time_str
