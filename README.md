@@ -170,6 +170,31 @@ docker compose exec lesta-app python manage.py showmigrations
 curl http://localhost:8001/health/
 ```
 
+## Синхронизация достижений
+
+Синхронизация выполняется management-командой:
+`sync_achievements_from_api`.
+
+Локально (из venv):
+
+```bash
+python manage.py sync_achievements_from_api --application-id <LESTA_APP_ID> --dry-run
+python manage.py sync_achievements_from_api --application-id <LESTA_APP_ID>
+```
+
+Через Docker:
+
+```bash
+docker compose exec lesta-app python manage.py sync_achievements_from_api --application-id <LESTA_APP_ID> --dry-run
+docker compose exec lesta-app python manage.py sync_achievements_from_api --application-id <LESTA_APP_ID>
+```
+
+Полезные флаги:
+
+- `--exclude-mastery` — не импортировать `markOfMastery` (ID `79`).
+- `--keep-missing-active` — не деактивировать достижения, которых нет в текущем API-ответе.
+- `--records-path` — путь к `records.py` с `RECORD_DB_IDS` (по умолчанию `tools/achievements/records.py`).
+
 ## Важные нюансы
 
 - Админка доступна по пути `/adminn/` (не `/admin/`).

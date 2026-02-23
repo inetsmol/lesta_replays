@@ -242,6 +242,22 @@ class ReplayProcessingService:
         self.player_service = PlayerService()
         self.map_service = MapService()
 
+    @staticmethod
+    def _normalize_payload_for_storage(payload: Any) -> Any:
+        """Convert payload text into a parsed JSON object before JSONField save."""
+        if isinstance(payload, (str, bytes, bytearray)):
+            try:
+                payload = json.loads(payload)
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                raise ValueError(f"Некорректный JSON payload: {exc}") from exc
+
+        if not isinstance(payload, (list, tuple)):
+            raise ValueError(
+                f"Некорректная структура payload: ожидается list/tuple, получен {type(payload).__name__}"
+            )
+
+        return list(payload)
+
     @transaction.atomic
     def process_replay(self, uploaded_file, description: str = '', user=None) -> Replay:
         """
@@ -272,7 +288,8 @@ class ReplayProcessingService:
             replay_fields = ExtractorV2.extract_replay_fields_v2(data, uploaded_file.name)
 
             # Шаг 4: Извлечение метаданных
-            payload = replay_fields.get('payload')
+            payload = self._normalize_payload_for_storage(replay_fields.get('payload'))
+            replay_fields['payload'] = payload
             game_version = self.game_version_extractor.extract(payload)
 
             # Шаг 5: Получение связанных объектов
