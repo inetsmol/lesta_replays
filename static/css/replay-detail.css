@@ -2212,7 +2212,8 @@ table.tank-list.score th.xp div {
 
 .down-info {
     color: rgb(70, 70, 70);
-    font-size: 11px
+    font-size: 11px;
+    margin-right: 12px
 }
 
 .down-info a {
