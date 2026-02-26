@@ -1857,15 +1857,13 @@ class ProfileStatsView(LoginRequiredMixin, ListView):
         context['date_from'] = self.request.GET.get('date_from', '')
         context['date_to'] = self.request.GET.get('date_to', '')
 
-        export_q = self.request.GET.copy()
+        allies_q = self.request.GET.copy()
         for key in ('page', 'per_page', 'sort', 'dir'):
-            export_q.pop(key, None)
-        export_qs = export_q.urlencode()
-        context['export_url'] = reverse('profile_stats_export')
+            allies_q.pop(key, None)
+        allies_qs = allies_q.urlencode()
         context['allies_stats_url'] = reverse('profile_stats_allies')
-        if export_qs:
-            context['export_url'] += f'?{export_qs}'
-            context['allies_stats_url'] += f'?{export_qs}'
+        if allies_qs:
+            context['allies_stats_url'] += f'?{allies_qs}'
 
         return context
 
@@ -2222,10 +2220,8 @@ class ReplayStatsAlliesView(ReplayStatsExportView):
 
         query_qs = request.GET.urlencode()
         back_to_stats_url = reverse('profile_stats')
-        export_url = reverse('profile_stats_export')
         if query_qs:
             back_to_stats_url = f'{back_to_stats_url}?{query_qs}'
-            export_url = f'{export_url}?{query_qs}'
 
         context = {
             'active_tab': 'stats',
@@ -2236,7 +2232,6 @@ class ReplayStatsAlliesView(ReplayStatsExportView):
             'summary_label': summary_row[0] if summary_row else '',
             'summary_tail_colspan': max(1, len(header_cells) - 1),
             'back_to_stats_url': back_to_stats_url,
-            'export_url': export_url,
         }
         return render(request, self.template_name, context)
 

@@ -74,7 +74,7 @@
         </a>
       </form>
 
-      <div class="flex items-center justify-between mb-4 gap-3 flex-wrap" id="stats-export-actions" data-export-url="{{ export_url }}">
+      <div class="flex items-center justify-between mb-4 gap-3 flex-wrap" id="stats-allies-actions" data-allies-url="{{ allies_stats_url }}">
         <h2 class="text-lg font-semibold text-white flex items-center gap-2">
           <i class="fas fa-table text-gray-400"></i>
           Бои в статистике
@@ -82,19 +82,10 @@
         </h2>
         <div class="flex items-center gap-2 flex-wrap">
           <span id="stats-selected-counter" class="text-xs text-gray-400 hidden">Выбрано: <span id="stats-selected-count">0</span></span>
-          <button id="stats-export-selected-btn"
-                  type="button"
-                  disabled
-                  class="px-3 py-2 text-sm bg-emerald-700/80 text-gray-300 rounded-lg cursor-not-allowed transition-colors disabled:opacity-60">
-            <i class="fas fa-file-export mr-1"></i> Экспорт выбранных
-          </button>
-          <a href="{{ allies_stats_url }}"
+          <a id="stats-allies-btn"
+             href="{{ allies_stats_url }}"
              class="px-3 py-2 text-sm bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg transition-colors">
             <i class="fas fa-users mr-1"></i> статистика союзников
-          </a>
-          <a href="{{ export_url }}"
-             class="px-3 py-2 text-sm bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors">
-            <i class="fas fa-file-export mr-1"></i> Экспорт всех
           </a>
           <form method="get" class="flex items-center gap-2 text-sm">
             <input type="hidden" name="sort" value="{{ current_sort }}">
@@ -223,18 +214,31 @@
       (function() {
         var selectAll = document.getElementById("stats-select-all");
         var rowCheckboxes = Array.from(document.querySelectorAll(".stats-battle-checkbox"));
-        var selectedBtn = document.getElementById("stats-export-selected-btn");
+        var alliesBtn = document.getElementById("stats-allies-btn");
         var selectedCounter = document.getElementById("stats-selected-counter");
         var selectedCount = document.getElementById("stats-selected-count");
-        var exportActions = document.getElementById("stats-export-actions");
-        if (!selectAll || !selectedBtn || !exportActions || rowCheckboxes.length === 0) {
+        var alliesActions = document.getElementById("stats-allies-actions");
+        if (!selectAll || !alliesBtn || !alliesActions) {
           return;
         }
 
-        var baseExportUrl = exportActions.getAttribute("data-export-url") || "";
+        var baseAlliesUrl = alliesActions.getAttribute("data-allies-url") || alliesBtn.getAttribute("href") || "";
 
         function getSelectedValues() {
           return rowCheckboxes.filter(function(cb) { return cb.checked; }).map(function(cb) { return cb.value; });
+        }
+
+        function buildAlliesUrl(selected) {
+          if (!baseAlliesUrl) {
+            return "";
+          }
+
+          var url = new URL(baseAlliesUrl, window.location.origin);
+          url.searchParams.delete("battle_signature");
+          selected.forEach(function(signature) {
+            url.searchParams.append("battle_signature", signature);
+          });
+          return url.pathname + url.search;
         }
 
         function syncSelectAllState() {
@@ -246,16 +250,9 @@
 
         function updateSelectedState() {
           var selected = getSelectedValues();
-          var enabled = selected.length > 0;
-          selectedBtn.disabled = !enabled;
-          selectedBtn.classList.toggle("cursor-not-allowed", !enabled);
-          selectedBtn.classList.toggle("bg-emerald-700/80", !enabled);
-          selectedBtn.classList.toggle("text-gray-300", !enabled);
-          selectedBtn.classList.toggle("bg-emerald-600", enabled);
-          selectedBtn.classList.toggle("hover:bg-emerald-500", enabled);
-          selectedBtn.classList.toggle("text-white", enabled);
-          selectedCounter.classList.toggle("hidden", !enabled);
+          selectedCounter.classList.toggle("hidden", selected.length === 0);
           selectedCount.textContent = String(selected.length);
+          alliesBtn.href = buildAlliesUrl(selected) || baseAlliesUrl;
           syncSelectAllState();
         }
 
@@ -266,20 +263,6 @@
 
         rowCheckboxes.forEach(function(cb) {
           cb.addEventListener("change", updateSelectedState);
-        });
-
-        selectedBtn.addEventListener("click", function() {
-          var selected = getSelectedValues();
-          if (!selected.length || !baseExportUrl) {
-            return;
-          }
-
-          var exportUrl = new URL(baseExportUrl, window.location.origin);
-          selected.forEach(function(signature) {
-            exportUrl.searchParams.append("battle_signature", signature);
-          });
-
-          window.location.href = exportUrl.pathname + exportUrl.search;
         });
 
         updateSelectedState();

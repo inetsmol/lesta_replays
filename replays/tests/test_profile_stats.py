@@ -475,6 +475,8 @@ class ProfileStatsTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "статистика союзников")
+        self.assertNotContains(response, "Экспорт выбранных")
+        self.assertNotContains(response, "Экспорт всех")
         self.assertEqual(
             response.context["allies_stats_url"],
             f'{reverse("profile_stats_allies")}?date_from=2026-02-20&date_to=2026-02-22',
