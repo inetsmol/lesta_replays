@@ -2222,6 +2222,9 @@ class ReplayStatsAlliesView(ReplayStatsExportView):
         back_to_stats_url = reverse('profile_stats')
         if query_qs:
             back_to_stats_url = f'{back_to_stats_url}?{query_qs}'
+        export_url = reverse('profile_stats_export')
+        if query_qs:
+            export_url = f'{export_url}?{query_qs}'
 
         context = {
             'active_tab': 'stats',
@@ -2232,6 +2235,7 @@ class ReplayStatsAlliesView(ReplayStatsExportView):
             'summary_label': summary_row[0] if summary_row else '',
             'summary_tail_colspan': max(1, len(header_cells) - 1),
             'back_to_stats_url': back_to_stats_url,
+            'export_url': export_url,
         }
         return render(request, self.template_name, context)
 

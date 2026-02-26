@@ -5,6 +5,7 @@ import tempfile
 import zipfile
 from datetime import datetime
 from io import BytesIO
+from urllib.parse import parse_qs, urlparse
 import xml.etree.ElementTree as ET
 
 from django.contrib.auth import get_user_model
@@ -740,6 +741,50 @@ class ProfileStatsTests(TestCase):
         self.assertEqual(
             response.context["header_cells"][1]["title"],
             "22.02.2026 10:00\nТестовая карта\nПобеда",
+        )
+
+    def test_profile_stats_allies_page_contains_export_url_with_filters(self):
+        tz = timezone.get_current_timezone()
+        battle_1 = self._create_battle(
+            signature="allies-export-1",
+            battle_date=timezone.make_aware(datetime(2026, 2, 22, 10, 0, 0), tz),
+        )
+        battle_2 = self._create_battle(
+            signature="allies-export-2",
+            battle_date=timezone.make_aware(datetime(2026, 2, 22, 10, 10, 0), tz),
+        )
+
+        for battle in (battle_1, battle_2):
+            ReplayStatPlayer.objects.create(
+                battle=battle,
+                player_account_id=11,
+                player_name="Ник 1",
+                damage=2000,
+                xp=1,
+                kills=1,
+                assist=1,
+                block=1,
+            )
+
+        response = self.client.get(
+            reverse("profile_stats_allies"),
+            {
+                "date_from": "2026-02-22",
+                "date_to": "2026-02-22",
+                "battle_signature": ["allies-export-2", "allies-export-1"],
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("export_url", response.context)
+
+        parsed = urlparse(response.context["export_url"])
+        self.assertEqual(parsed.path, reverse("profile_stats_export"))
+        query = parse_qs(parsed.query)
+        self.assertEqual(query.get("date_from"), ["2026-02-22"])
+        self.assertEqual(query.get("date_to"), ["2026-02-22"])
+        self.assertCountEqual(
+            query.get("battle_signature", []),
+            ["allies-export-2", "allies-export-1"],
         )
 
     def test_profile_stats_export_selected_battles_only(self):
