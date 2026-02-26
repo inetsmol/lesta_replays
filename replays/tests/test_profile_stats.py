@@ -468,6 +468,27 @@ class ProfileStatsTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse("subscription_info"))
 
+    def test_profile_stats_page_contains_allies_button(self):
+        response = self.client.get(
+            reverse("profile_stats"),
+            {"date_from": "2026-02-20", "date_to": "2026-02-22", "sort": "battle_date"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "статистика союзников")
+        self.assertEqual(
+            response.context["allies_stats_url"],
+            f'{reverse("profile_stats_allies")}?date_from=2026-02-20&date_to=2026-02-22',
+        )
+
+    def test_profile_stats_allies_redirects_for_non_pro(self):
+        free_user = User.objects.create_user(username="free_user_allies", password="test-pass-123")
+        self.client.logout()
+        self.client.login(username="free_user_allies", password="test-pass-123")
+
+        response = self.client.get(reverse("profile_stats_allies"))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("subscription_info"))
+
     def test_profile_stats_page_shows_replay_rows_not_player_rows(self):
         battle = self._create_battle(
             signature="row-sig-1",
@@ -660,6 +681,64 @@ class ProfileStatsTests(TestCase):
         self.assertEqual(rows[0], ['', '22.02.2026 10:00\nТестовая карта\nПобеда', 'Средний урон'])
         self.assertEqual(rows[1], ['Ник 1', '3000', '3000'])
         self.assertEqual(rows[2], ['Итог: побед 1 из 1 боев'])
+
+    def test_profile_stats_allies_page_returns_matrix(self):
+        tz = timezone.get_current_timezone()
+        battle_1 = self._create_battle(
+            signature="allies-sig-1",
+            battle_date=timezone.make_aware(datetime(2026, 2, 22, 10, 0, 0), tz),
+        )
+        battle_2 = self._create_battle(
+            signature="allies-sig-2",
+            battle_date=timezone.make_aware(datetime(2026, 2, 22, 10, 10, 0), tz),
+        )
+
+        ReplayStatPlayer.objects.create(
+            battle=battle_1,
+            player_account_id=11,
+            player_name="Ник 1",
+            damage=2000,
+            xp=1,
+            kills=1,
+            assist=1,
+            block=1,
+        )
+        ReplayStatPlayer.objects.create(
+            battle=battle_2,
+            player_account_id=11,
+            player_name="Ник 1",
+            damage=3000,
+            xp=1,
+            kills=1,
+            assist=1,
+            block=1,
+        )
+        ReplayStatPlayer.objects.create(
+            battle=battle_1,
+            player_account_id=22,
+            player_name="Ник 2",
+            damage=1000,
+            xp=1,
+            kills=1,
+            assist=1,
+            block=1,
+        )
+
+        response = self.client.get(reverse("profile_stats_allies"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["summary_label"], "Итог: побед 2 из 2 боев")
+        self.assertEqual(
+            response.context["data_rows"][0],
+            ["Ник 1", 2000, 3000, 2500],
+        )
+        self.assertEqual(
+            response.context["data_rows"][1],
+            ["Ник 2", 1000, "", 1000],
+        )
+        self.assertEqual(
+            response.context["header_cells"][1]["title"],
+            "22.02.2026 10:00\nТестовая карта\nПобеда",
+        )
 
     def test_profile_stats_export_selected_battles_only(self):
         tz = timezone.get_current_timezone()

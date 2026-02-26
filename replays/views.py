@@ -1862,8 +1862,10 @@ class ProfileStatsView(LoginRequiredMixin, ListView):
             export_q.pop(key, None)
         export_qs = export_q.urlencode()
         context['export_url'] = reverse('profile_stats_export')
+        context['allies_stats_url'] = reverse('profile_stats_allies')
         if export_qs:
             context['export_url'] += f'?{export_qs}'
+            context['allies_stats_url'] += f'?{export_qs}'
 
         return context
 
@@ -2184,6 +2186,59 @@ class ReplayStatsExportView(LoginRequiredMixin, View):
         )
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
+
+
+class ReplayStatsAlliesView(ReplayStatsExportView):
+    """HTML-представление матрицы из Excel-выгрузки (Игрок x Бой)."""
+
+    template_name = 'replays/profile_stats_allies.html'
+    HEADER_CSS_BY_OUTCOME = {
+        ReplayStatBattle.OUTCOME_WIN: "bg-green-500/20 text-green-100",
+        ReplayStatBattle.OUTCOME_LOSS: "bg-red-500/20 text-red-100",
+        ReplayStatBattle.OUTCOME_DRAW: "bg-amber-500/20 text-amber-100",
+    }
+    HEADER_CSS_DEFAULT = "bg-slate-500/20 text-slate-100"
+
+    @classmethod
+    def _header_css_for_outcome(cls, outcome: str | None) -> str:
+        return cls.HEADER_CSS_BY_OUTCOME.get(outcome, cls.HEADER_CSS_DEFAULT)
+
+    def get(self, request):
+        if not SubscriptionService.is_pro(request.user):
+            return self._pro_required_response(request)
+
+        table, header_outcomes = self._build_export_table(request)
+        header_row = table[0] if table else []
+        data_rows = table[1:-1] if len(table) > 2 else []
+        summary_row = table[-1] if len(table) > 1 else []
+
+        header_cells = []
+        for index, title in enumerate(header_row):
+            outcome = header_outcomes[index] if index < len(header_outcomes) else None
+            header_cells.append({
+                "title": title,
+                "css_class": self._header_css_for_outcome(outcome),
+            })
+
+        query_qs = request.GET.urlencode()
+        back_to_stats_url = reverse('profile_stats')
+        export_url = reverse('profile_stats_export')
+        if query_qs:
+            back_to_stats_url = f'{back_to_stats_url}?{query_qs}'
+            export_url = f'{export_url}?{query_qs}'
+
+        context = {
+            'active_tab': 'stats',
+            'profile': getattr(request.user, 'profile', None),
+            'can_use_stats': True,
+            'header_cells': header_cells,
+            'data_rows': data_rows,
+            'summary_label': summary_row[0] if summary_row else '',
+            'summary_tail_colspan': max(1, len(header_cells) - 1),
+            'back_to_stats_url': back_to_stats_url,
+            'export_url': export_url,
+        }
+        return render(request, self.template_name, context)
 
 
 class ReplayStatsBatchUploadView(LoginRequiredMixin, View):

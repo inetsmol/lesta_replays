@@ -1,0 +1,78 @@
+{% extends "replays/profile_base.html" %}
+{% load humanize %}
+
+{% block title %}Статистика союзников - {{ user.username }}{% endblock %}
+
+{% block tab_content %}
+<section class="rounded-xl p-6 border border-gray-700 bg-gray-900/50">
+  <div class="flex items-center justify-between gap-3 flex-wrap mb-4">
+    <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+      <i class="fas fa-users text-gray-400"></i>
+      Статистика союзников
+    </h2>
+    <div class="flex items-center gap-2 flex-wrap">
+      <a href="{{ back_to_stats_url }}"
+         class="px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
+        <i class="fas fa-arrow-left mr-1"></i> К списку боев
+      </a>
+      <a href="{{ export_url }}"
+         class="px-3 py-2 text-sm bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors">
+        <i class="fas fa-file-export mr-1"></i> Экспорт в Excel
+      </a>
+    </div>
+  </div>
+
+  <p class="text-sm text-gray-400 mb-4">
+    Таблица повторяет матрицу из Excel: союзники по строкам, бои по колонкам.
+  </p>
+
+  <div class="overflow-auto rounded-xl border border-gray-700/80 bg-gradient-to-b from-gray-900/70 to-gray-900/40">
+    <table class="min-w-full text-sm">
+      <thead class="text-gray-300 border-b border-gray-700 bg-gray-900/85">
+        <tr>
+          {% for cell in header_cells %}
+            {% if forloop.first %}
+              <th class="text-left py-3 px-3 min-w-[220px] sticky left-0 z-20 bg-gray-900 border-r border-gray-700">
+                Игрок
+              </th>
+            {% elif forloop.last %}
+              <th class="text-right py-3 px-3 min-w-[130px] border-l border-gray-700 {{ cell.css_class }}">
+                {{ cell.title }}
+              </th>
+            {% else %}
+              <th class="text-center py-3 px-3 min-w-[210px] whitespace-pre-line border-l border-gray-700 {{ cell.css_class }}">
+                {{ cell.title|linebreaksbr }}
+              </th>
+            {% endif %}
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in data_rows %}
+          <tr class="border-b border-gray-800 text-gray-200 hover:bg-white/5 transition-colors">
+            {% for value in row %}
+              {% if forloop.first %}
+                <td class="py-2 px-3 font-medium text-gray-100 sticky left-0 bg-gray-900/95 border-r border-gray-700">
+                  {{ value|default:"—" }}
+                </td>
+              {% elif forloop.last %}
+                <td class="py-2 px-3 text-right tabular-nums font-semibold">
+                  {{ value|intcomma }}
+                </td>
+              {% elif value == '' %}
+                <td class="py-2 px-3 text-center text-gray-600">—</td>
+              {% else %}
+                <td class="py-2 px-3 text-center tabular-nums">{{ value|intcomma }}</td>
+              {% endif %}
+            {% endfor %}
+          </tr>
+        {% endfor %}
+        <tr class="border-t border-gray-700/80 bg-gray-900/85 text-gray-200">
+          <td class="py-2 px-3 font-semibold">{{ summary_label }}</td>
+          <td colspan="{{ summary_tail_colspan }}" class="py-2 px-3"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

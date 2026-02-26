@@ -11,7 +11,7 @@ from .views import (
     ReplayUpdateDescriptionView, SubscriptionInfoView, AddVideoLinkView, RemoveVideoLinkView,
     UploadAvatarView, DeleteAvatarView, ProfileReplaysView, ProfileSubscriptionView, ProfileSettingsView,
     PlayerStatsAPIView, VehicleEncyclopediaAPIView, ProfileStatsView, ReplayStatsBatchUploadView,
-    ReplayStatsExportView,
+    ReplayStatsExportView, ReplayStatsAlliesView,
 )
 
 urlpatterns = [
@@ -32,6 +32,7 @@ urlpatterns = [
     path('profile/stats/', ProfileStatsView.as_view(), name='profile_stats'),
     path('profile/stats/upload/', ReplayStatsBatchUploadView.as_view(), name='profile_stats_upload'),
     path('profile/stats/export/', ReplayStatsExportView.as_view(), name='profile_stats_export'),
+    path('profile/stats/allies/', ReplayStatsAlliesView.as_view(), name='profile_stats_allies'),
     path('profile/subscription/', ProfileSubscriptionView.as_view(), name='profile_subscription'),
     path('profile/settings/', ProfileSettingsView.as_view(), name='profile_settings'),
     path('profile/avatar/', UploadAvatarView.as_view(), name='upload_avatar'),

@@ -31,3 +31,4 @@ package-lock.json
 backups/
 tanki_su/
 replays/management/commands/output/
+tmp/
