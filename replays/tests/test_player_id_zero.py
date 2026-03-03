@@ -145,3 +145,49 @@ class TestPlayerIDZero(TestCase):
         # Verify personal data is correctly found
         self.assertIsNotNone(cache.personal)
         self.assertEqual(cache.personal.get("accountDBID"), 12345)
+
+    def test_get_personal_by_player_id_ignores_avatar_order(self):
+        payload = [
+            {
+                "playerID": 999,
+                "playerName": "Owner",
+                "playerVehicle": "ussr:R01_IS",
+                "dateTime": "20.12.2025 11:18:10",
+                "mapName": "map_name",
+                "mapDisplayName": "Map Name",
+                "gameplayID": "ctf",
+                "battleType": 1,
+            },
+            [
+                {
+                    "personal": {
+                        "avatar": {
+                            "accountDBID": 999,
+                            "xp": 1,
+                            "credits": 2,
+                        },
+                        "1234": {
+                            "accountDBID": 999,
+                            "xp": 2000,
+                            "credits": 50000,
+                            "damageDealt": 3000,
+                            "kills": 4,
+                            "details": {"(1,0)": {"damageDealt": 111}},
+                        },
+                    },
+                    "common": {},
+                    "players": {},
+                    "vehicles": {},
+                },
+                {},
+            ],
+        ]
+
+        personal = ExtractorV2.get_personal_by_player_id(payload)
+        self.assertIsNotNone(personal)
+        self.assertEqual(personal.get("accountDBID"), 999)
+        self.assertEqual(personal.get("damageDealt"), 3000)
+
+        fields = ExtractorV2.extract_replay_fields_v2(payload, "ordered.mtreplay")
+        self.assertEqual(fields["damage"], 3000)
+        self.assertEqual(fields["kills"], 4)

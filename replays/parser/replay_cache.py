@@ -108,6 +108,59 @@ class ReplayDataCache:
 
         logger.debug(f"ReplayDataCache инициализирован для игрока {self.player_id}")
 
+    @staticmethod
+    def _personal_candidate_score(data: Dict[str, Any]) -> tuple[int, int]:
+        """Prefer combat-rich personal blocks over avatar/account-only blocks."""
+        combat_keys = (
+            "details",
+            "damageDealt",
+            "kills",
+            "shots",
+            "deathReason",
+            "originalXP",
+            "originalCredits",
+            "markOfMastery",
+        )
+        score = sum(1 for key in combat_keys if data.get(key) not in (None, {}, []))
+        try:
+            account_id = int(data.get("accountDBID") or 0)
+        except (TypeError, ValueError):
+            account_id = 0
+        return score, account_id
+
+    @classmethod
+    def _select_personal_block(cls, personal: Dict[str, Any], player_id: Optional[int]) -> Optional[Dict[str, Any]]:
+        """Select personal block without relying on dict key order."""
+        if not isinstance(personal, dict) or not personal:
+            return None
+
+        # Flat structure: personal is already one player's data.
+        if "accountDBID" in personal:
+            if player_id in (None, 0) or personal.get("accountDBID") == player_id:
+                return personal
+
+        candidates = []
+        avatar_fallback = None
+
+        for key, value in personal.items():
+            if not isinstance(value, dict) or "accountDBID" not in value:
+                continue
+
+            account_id = value.get("accountDBID")
+            if player_id not in (None, 0) and account_id != player_id:
+                continue
+
+            if key == "avatar":
+                avatar_fallback = value
+                continue
+
+            candidates.append(value)
+
+        if candidates:
+            return max(candidates, key=cls._personal_candidate_score)
+
+        return avatar_fallback
+
     @property
     def player_id(self) -> Optional[int]:
         """
@@ -165,27 +218,9 @@ class ReplayDataCache:
                 if isinstance(first_result, dict):
                     personal = first_result.get('personal', {})
                     if isinstance(personal, dict):
-                        # Ищем данные текущего игрока
+                        # Ищем данные текущего игрока без зависимости от порядка ключей.
                         player_id = self.first_block.get("playerID")
-                        
-                        # Если playerID=0, берем первый доступный блок (кроме avatar)
-                        if player_id == 0:
-                            for key, value in personal.items():
-                                if key == 'avatar':
-                                    continue
-                                if isinstance(value, dict) and "accountDBID" in value:
-                                    self._personal = value
-                                    break
-                        elif player_id is not None:
-                            # Проверяем плоскую структуру
-                            if "accountDBID" in personal and personal.get("accountDBID") == player_id:
-                                self._personal = personal
-                            else:
-                                # Ищем по ключам (может быть typeCompDescr или строковый ID)
-                                for key, value in personal.items():
-                                    if isinstance(value, dict) and value.get("accountDBID") == player_id:
-                                        self._personal = value
-                                        break
+                        self._personal = self._select_personal_block(personal, player_id)
 
             if self._personal is None:
                 logger.warning(f"Не удалось найти персональные данные для игрока {self.player_id}")

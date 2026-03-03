@@ -83,7 +83,9 @@ class ParserUtils:
                     yield p
                 else:
                     # Случай 2: dict по typeCompDescr -> { ... }
-                    for v in p.values():
+                    for key, v in p.items():
+                        if key == "avatar":
+                            continue
                         if isinstance(v, dict) and "accountDBID" in v:
                             yield v
 
@@ -166,7 +168,9 @@ class ExtractorV2:
                     yield p
                 else:
                     # Случай b): map typeCompDescr -> { ... }
-                    for v in p.values():
+                    for key, v in p.items():
+                        if key == "avatar":
+                            continue
                         if isinstance(v, dict) and "accountDBID" in v:
                             yield v
 
@@ -278,36 +282,76 @@ class ExtractorV2:
         :param payload: Единый словарь реплея (payload).
         :return: dict с персональными данными игрока или None.
         """
-        battle_results = ExtractorV2.get_second_block(payload)
+        first_block = ExtractorV2.get_first_block(payload)
+        player_id = first_block.get("playerID") if isinstance(first_block, dict) else None
 
+        battle_results = ExtractorV2.get_second_block(payload)
         if not isinstance(battle_results, (list, tuple)) or len(battle_results) == 0:
             logger.warning("Второй элемент payload пустой или некорректный")
+            return None
 
-        # Получаем словарь игроков
         first_result = battle_results[0]
         if not isinstance(first_result, dict):
             logger.warning("Первый элемент battle_results не является словарем")
+            return None
 
         personal = first_result.get('personal')
         if not isinstance(personal, dict) or not personal:
             logger.warning("Ключ 'personal' отсутствует или не является словарем")
             return None
 
-            # Ищем первый числовой ключ в порядке следования
-        first_numeric_key = None
-        for k in personal.keys():
-            if isinstance(k, int):
-                first_numeric_key = k
-                break
-            if isinstance(k, str) and k.isdigit():
-                first_numeric_key = k
-                break
+        if "accountDBID" in personal:
+            if player_id in (None, 0) or personal.get("accountDBID") == player_id:
+                return personal
 
-        if first_numeric_key is None:
-            logger.warning("В 'personal' нет числовых ключей")
-            return None
+        def _score_personal(entry: Dict[str, Any]) -> tuple[int, int]:
+            combat_keys = (
+                "details",
+                "damageDealt",
+                "kills",
+                "shots",
+                "deathReason",
+                "originalXP",
+                "originalCredits",
+                "markOfMastery",
+            )
+            score = sum(1 for key in combat_keys if entry.get(key) not in (None, {}, []))
+            try:
+                account_id = int(entry.get("accountDBID") or 0)
+            except (TypeError, ValueError):
+                account_id = 0
+            return score, account_id
 
-        return personal[first_numeric_key]
+        candidates: List[Dict[str, Any]] = []
+        avatar_fallback: Optional[Dict[str, Any]] = None
+        all_non_avatar: List[Dict[str, Any]] = []
+
+        for key, value in personal.items():
+            if not isinstance(value, dict) or "accountDBID" not in value:
+                continue
+
+            if key != "avatar":
+                all_non_avatar.append(value)
+
+            if key == "avatar":
+                if player_id in (None, 0) or value.get("accountDBID") == player_id:
+                    avatar_fallback = value
+                continue
+
+            if player_id in (None, 0) or value.get("accountDBID") == player_id:
+                candidates.append(value)
+
+        if candidates:
+            return max(candidates, key=_score_personal)
+
+        if avatar_fallback is not None:
+            return avatar_fallback
+
+        if all_non_avatar:
+            return max(all_non_avatar, key=_score_personal)
+
+        logger.warning("В 'personal' не найдено подходящих блоков с accountDBID")
+        return None
 
     @staticmethod
     def extract_replay_fields_v2(replay_data: Any, file_name: str) -> Dict[str, Any]:
@@ -357,15 +401,11 @@ class ExtractorV2:
         map_name = root.get("mapName")
         map_display_name = root.get("mapDisplayName")
 
-        # 3) Ищем персональные данные текущего игрока во втором элементе
-        personal_data = None
-        for p in ExtractorV2._iter_personal_blocks(personal_array):
-            if player_id == 0 or p.get("accountDBID") == player_id:
-                personal_data = p
-                # Если ID игрока был 0, берем реальный ID из персональных данных
-                if player_id == 0:
-                    player_id = personal_data.get("accountDBID", 0)
-                break
+        # 3) Ищем персональные данные текущего игрока без зависимости от порядка ключей.
+        personal_data = ExtractorV2.get_personal_by_player_id(replay_data)
+        if personal_data and player_id == 0:
+            # Если ID игрока был 0, берем реальный ID из персональных данных.
+            player_id = personal_data.get("accountDBID", 0)
 
         if not personal_data:
             raise ValueError(f"Не найдены персональные данные для игрока {player_name} (id={player_id}).")

@@ -166,6 +166,43 @@ class TestReplayDataCache(TestCase):
         self.assertEqual(personal.get("xp"), 1000)
         self.assertEqual(personal.get("credits"), 50000)
 
+    def test_personal_prefers_non_avatar_block_for_same_account(self):
+        """Если avatar и боевой блок имеют одинаковый accountDBID, выбирается боевой блок."""
+        payload = [
+            {"playerID": 777},
+            [
+                {
+                    "personal": {
+                        "avatar": {
+                            "accountDBID": 777,
+                            "xp": 10,
+                            "credits": 20,
+                        },
+                        "123456": {
+                            "accountDBID": 777,
+                            "xp": 1500,
+                            "credits": 60000,
+                            "damageDealt": 3210,
+                            "kills": 3,
+                            "details": {"(1,0)": {"damageDealt": 321}},
+                        },
+                    },
+                    "common": {},
+                    "players": {},
+                    "vehicles": {},
+                    "avatars": {},
+                },
+                {},
+            ],
+        ]
+
+        cache = ReplayDataCache(payload)
+        personal = cache.personal
+
+        self.assertEqual(personal.get("accountDBID"), 777)
+        self.assertEqual(personal.get("damageDealt"), 3210)
+        self.assertIn("details", personal)
+
     def test_personal_property_caching(self):
         """Тест, что personal кешируется"""
         cache = ReplayDataCache(self.sample_payload)
