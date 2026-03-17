@@ -113,8 +113,9 @@ class UserSubscriptionAdmin(admin.ModelAdmin):
         for sub in queryset:
             base = sub.expires_at if sub.expires_at and sub.expires_at > now else now
             sub.expires_at = base + datetime.timedelta(days=30)
+            sub.expiry_reminder_sent_for_date = None
             sub.is_active = True
-            sub.save()
+            sub.save(update_fields=["expires_at", "expiry_reminder_sent_for_date", "is_active"])
         self.message_user(request, f"Продлено {queryset.count()} подписок на 30 дней.")
 
     @admin.action(description="Продлить на 90 дней")
@@ -124,8 +125,9 @@ class UserSubscriptionAdmin(admin.ModelAdmin):
         for sub in queryset:
             base = sub.expires_at if sub.expires_at and sub.expires_at > now else now
             sub.expires_at = base + datetime.timedelta(days=90)
+            sub.expiry_reminder_sent_for_date = None
             sub.is_active = True
-            sub.save()
+            sub.save(update_fields=["expires_at", "expiry_reminder_sent_for_date", "is_active"])
         self.message_user(request, f"Продлено {queryset.count()} подписок на 90 дней.")
 
     @admin.action(description="Деактивировать подписки")

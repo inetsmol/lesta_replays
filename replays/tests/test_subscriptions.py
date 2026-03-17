@@ -16,8 +16,9 @@ class SubscriptionServiceTests(TestCase):
         subscription = user.subscription
         subscription.plan = SubscriptionPlan.objects.get(name=SubscriptionPlan.PLAN_PREMIUM)
         subscription.expires_at = timezone.now() - timedelta(days=1)
+        subscription.expiry_reminder_sent_for_date = timezone.localdate() - timedelta(days=4)
         subscription.is_active = True
-        subscription.save(update_fields=["plan", "expires_at", "is_active"])
+        subscription.save(update_fields=["plan", "expires_at", "expiry_reminder_sent_for_date", "is_active"])
 
         plan = SubscriptionService.get_user_plan(user)
 
@@ -26,3 +27,4 @@ class SubscriptionServiceTests(TestCase):
         self.assertEqual(subscription.plan.name, SubscriptionPlan.PLAN_FREE)
         self.assertTrue(subscription.is_active)
         self.assertIsNone(subscription.expires_at)
+        self.assertIsNone(subscription.expiry_reminder_sent_for_date)

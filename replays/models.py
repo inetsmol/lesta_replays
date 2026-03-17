@@ -969,6 +969,12 @@ class UserSubscription(models.Model):
         null=True, blank=True,
         help_text="NULL = бессрочно (для бесплатного плана)",
     )
+    expiry_reminder_sent_for_date = models.DateField(
+        "Напоминание отправлено для даты истечения",
+        null=True,
+        blank=True,
+        help_text="Используется для одноразового email-напоминания перед истечением подписки",
+    )
     is_active = models.BooleanField("Активна", default=True)
     activated_by = models.CharField(
         "Активировано через",

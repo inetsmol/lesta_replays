@@ -1,0 +1,9 @@
+Здравствуйте, {{ user.username }}!
+
+Напоминаем, что ваша подписка "{{ plan.get_name_display }}" на {{ current_site.domain }} истекает {{ expires_at|date:"d.m.Y" }}.
+
+Если хотите сохранить доступ к возможностям подписки, продлите ее заранее:
+{{ renew_url }}
+
+С уважением,
+Команда {{ current_site.domain }}

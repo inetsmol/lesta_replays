@@ -14,8 +14,13 @@ from typing import Optional, Tuple
 from datetime import timezone as dt_timezone
 
 from django.conf import settings
+from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
+from django.core.mail import EmailMultiAlternatives
 from django.db import models, transaction
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils import timezone
 
 from replays.models import (
     Replay, Tank, Player, Map, Achievement,
@@ -965,8 +970,9 @@ class SubscriptionService:
         free_plan = SubscriptionService._get_free_plan()
         sub.plan = free_plan
         sub.expires_at = None
+        sub.expiry_reminder_sent_for_date = None
         sub.is_active = True
-        sub.save(update_fields=['plan', 'expires_at', 'is_active'])
+        sub.save(update_fields=['plan', 'expires_at', 'expiry_reminder_sent_for_date', 'is_active'])
         logger.info(
             "Auto-downgraded expired subscription to free plan",
             extra={"user_id": sub.user_id},
@@ -1004,8 +1010,6 @@ class SubscriptionService:
     @staticmethod
     def activate_subscription(user, plan_name: str, days: int = 30, activated_by: str = 'admin'):
         """Активировать подписку пользователю."""
-        from django.utils import timezone
-
         plan = SubscriptionPlan.objects.get(name=plan_name)
         expires_at = None
         if plan_name != SubscriptionPlan.PLAN_FREE:
@@ -1016,6 +1020,7 @@ class SubscriptionService:
             defaults={
                 'plan': plan,
                 'expires_at': expires_at,
+                'expiry_reminder_sent_for_date': None,
                 'is_active': True,
                 'activated_by': activated_by,
             },
@@ -1025,6 +1030,65 @@ class SubscriptionService:
     @staticmethod
     def _get_free_plan() -> SubscriptionPlan:
         return SubscriptionPlan.objects.get(name=SubscriptionPlan.PLAN_FREE)
+
+
+class SubscriptionReminderService:
+    """Сервис email-напоминаний о скором истечении подписки."""
+
+    @staticmethod
+    def get_due_subscriptions(days_before: int = 3):
+        target_date = timezone.localdate() + datetime.timedelta(days=days_before)
+        return (
+            UserSubscription.objects
+            .select_related("user", "plan")
+            .filter(
+                is_active=True,
+                user__is_active=True,
+                expires_at__date=target_date,
+            )
+            .exclude(plan__name=SubscriptionPlan.PLAN_FREE)
+            .exclude(user__email__isnull=True)
+            .exclude(user__email="")
+            .exclude(expiry_reminder_sent_for_date=target_date)
+            .order_by("expires_at", "user_id")
+        )
+
+    @staticmethod
+    def send_expiry_reminder(subscription: UserSubscription, days_before: int = 3) -> int:
+        if not subscription.expires_at:
+            return 0
+
+        current_site = Site.objects.get_current()
+        renew_url = f"https://{current_site.domain}{reverse('subscription_info')}"
+        expires_at = timezone.localtime(subscription.expires_at)
+        context = {
+            "current_site": current_site,
+            "subscription": subscription,
+            "user": subscription.user,
+            "plan": subscription.plan,
+            "days_before": days_before,
+            "expires_at": expires_at,
+            "renew_url": renew_url,
+        }
+
+        subject = f"Подписка Lesta Replays истекает через {days_before} дня"
+        text_body = render_to_string("emails/subscription_expiring.txt", context)
+        html_body = render_to_string("emails/subscription_expiring.html", context)
+
+        message = EmailMultiAlternatives(
+            subject=subject,
+            body=text_body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[subscription.user.email],
+        )
+        message.attach_alternative(html_body, "text/html")
+        sent_count = message.send(fail_silently=False)
+
+        if sent_count:
+            subscription.expiry_reminder_sent_for_date = expires_at.date()
+            subscription.save(update_fields=["expiry_reminder_sent_for_date"])
+
+        return sent_count
 
 
 class UsageLimitService:
