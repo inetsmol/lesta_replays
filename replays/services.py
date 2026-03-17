@@ -957,6 +957,23 @@ class SubscriptionService:
     """Сервис для работы с подписками."""
 
     @staticmethod
+    def _downgrade_to_free_if_expired(sub: UserSubscription) -> bool:
+        """Автоматически переводит истекшую подписку на бесплатный план."""
+        if not sub.is_active or not sub.is_expired:
+            return False
+
+        free_plan = SubscriptionService._get_free_plan()
+        sub.plan = free_plan
+        sub.expires_at = None
+        sub.is_active = True
+        sub.save(update_fields=['plan', 'expires_at', 'is_active'])
+        logger.info(
+            "Auto-downgraded expired subscription to free plan",
+            extra={"user_id": sub.user_id},
+        )
+        return True
+
+    @staticmethod
     def get_user_plan(user) -> SubscriptionPlan:
         """Получить текущий план пользователя (или бесплатный по умолчанию)."""
         if not user or not user.is_authenticated:
@@ -966,6 +983,7 @@ class SubscriptionService:
             sub = user.subscription
             if sub.is_valid:
                 return sub.plan
+            SubscriptionService._downgrade_to_free_if_expired(sub)
         except UserSubscription.DoesNotExist:
             pass
 

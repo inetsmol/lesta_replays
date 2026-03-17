@@ -303,13 +303,13 @@
                                     {% if replay.user %}
                                         <span class="text-[#999] font-normal">•</span>
                                         {% with sub=replay.user.subscription %}
-                                            {% if sub.plan.name == 'pro' %}
+                                            {% if sub.is_valid and sub.plan.name == 'pro' %}
                                                 {% if replay.user.profile.avatar %}
                                                     <img src="{{ replay.user.profile.avatar.url }}" alt="" class="inline-block w-5 h-5 rounded-full object-cover align-middle ring-1 ring-amber-500/50">
                                                 {% endif %}
                                                 <span class="text-amber-400 font-normal text-lg md:text-xl">{{ replay.user.username }}</span>
                                                 <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold leading-none bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm align-middle">PRO</span>
-                                            {% elif sub.plan.name == 'premium' %}
+                                            {% elif sub.is_valid and sub.plan.name == 'premium' %}
                                                 {% if replay.user.profile.avatar %}
                                                     <img src="{{ replay.user.profile.avatar.url }}" alt="" class="inline-block w-5 h-5 rounded-full object-cover align-middle ring-1 ring-blue-500/50">
                                                 {% endif %}
