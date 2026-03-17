@@ -54,7 +54,7 @@ class SubscriptionReminderCommandTests(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         email = mail.outbox[0]
         self.assertEqual(email.to, ["expiring@example.com"])
-        self.assertIn("истекает через 3 дня", email.subject)
+        self.assertIn("скоро истекает", email.subject)
         self.assertIn("https://lesta-replays.ru/subscription/", email.body)
 
         subscription.refresh_from_db()
@@ -75,7 +75,22 @@ class SubscriptionReminderCommandTests(TestCase):
         subscription.refresh_from_db()
         self.assertEqual(subscription.expiry_reminder_sent_for_date, subscription.expires_at.date())
 
-    def test_command_skips_free_without_email_and_wrong_date(self):
+    def test_command_sends_for_subscription_expiring_in_two_days_if_not_sent_before(self):
+        user = User.objects.create_user(
+            username="expiring_user_two_days",
+            email="expiring-two@example.com",
+            password="test-pass-123",
+        )
+        subscription = self._set_paid_subscription(user, expires_delta_days=2)
+
+        call_command("send_subscription_expiry_reminders")
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["expiring-two@example.com"])
+        subscription.refresh_from_db()
+        self.assertEqual(subscription.expiry_reminder_sent_for_date, subscription.expires_at.date())
+
+    def test_command_skips_free_without_email_and_date_outside_reminder_window(self):
         eligible_user = User.objects.create_user(
             username="eligible_user",
             email="eligible@example.com",
@@ -95,7 +110,7 @@ class SubscriptionReminderCommandTests(TestCase):
             email="wrong-date@example.com",
             password="test-pass-123",
         )
-        self._set_paid_subscription(wrong_date_user, expires_delta_days=2)
+        self._set_paid_subscription(wrong_date_user, expires_delta_days=4)
 
         free_user = User.objects.create_user(
             username="free_user",

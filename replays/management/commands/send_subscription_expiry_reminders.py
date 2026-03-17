@@ -4,14 +4,14 @@ from replays.services import SubscriptionReminderService
 
 
 class Command(BaseCommand):
-    help = "Отправляет одноразовые email-напоминания за несколько дней до истечения подписки"
+    help = "Отправляет одноразовые email-напоминания не позднее чем за несколько дней до истечения подписки"
 
     def add_arguments(self, parser):
         parser.add_argument(
             "--days-before",
             type=int,
             default=3,
-            help="За сколько дней до истечения отправлять письмо (по умолчанию: 3)",
+            help="Максимум за сколько дней до истечения отправлять письмо, если оно еще не отправлялось (по умолчанию: 3)",
         )
 
     def handle(self, *args, **options):

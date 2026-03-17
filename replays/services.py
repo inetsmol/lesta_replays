@@ -18,6 +18,7 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMultiAlternatives
 from django.db import models, transaction
+from django.db.models.functions import TruncDate
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
@@ -1037,19 +1038,22 @@ class SubscriptionReminderService:
 
     @staticmethod
     def get_due_subscriptions(days_before: int = 3):
-        target_date = timezone.localdate() + datetime.timedelta(days=days_before)
+        today = timezone.localdate()
+        target_date = today + datetime.timedelta(days=days_before)
         return (
             UserSubscription.objects
             .select_related("user", "plan")
+            .annotate(expires_date=TruncDate("expires_at"))
             .filter(
                 is_active=True,
                 user__is_active=True,
-                expires_at__date=target_date,
+                expires_date__gte=today,
+                expires_date__lte=target_date,
             )
             .exclude(plan__name=SubscriptionPlan.PLAN_FREE)
             .exclude(user__email__isnull=True)
             .exclude(user__email="")
-            .exclude(expiry_reminder_sent_for_date=target_date)
+            .exclude(expiry_reminder_sent_for_date=models.F("expires_date"))
             .order_by("expires_at", "user_id")
         )
 
@@ -1061,17 +1065,19 @@ class SubscriptionReminderService:
         current_site = Site.objects.get_current()
         renew_url = f"https://{current_site.domain}{reverse('subscription_info')}"
         expires_at = timezone.localtime(subscription.expires_at)
+        days_until_expiry = max(0, (expires_at.date() - timezone.localdate()).days)
         context = {
             "current_site": current_site,
             "subscription": subscription,
             "user": subscription.user,
             "plan": subscription.plan,
             "days_before": days_before,
+            "days_until_expiry": days_until_expiry,
             "expires_at": expires_at,
             "renew_url": renew_url,
         }
 
-        subject = f"Подписка Lesta Replays истекает через {days_before} дня"
+        subject = "Подписка Lesta Replays скоро истекает"
         text_body = render_to_string("emails/subscription_expiring.txt", context)
         html_body = render_to_string("emails/subscription_expiring.html", context)
 
