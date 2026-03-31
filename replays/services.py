@@ -249,6 +249,55 @@ class ReplayProcessingService:
         self.map_service = MapService()
 
     @staticmethod
+    def _strip_null_chars(value: Any) -> Tuple[Any, int]:
+        """
+        Рекурсивно удаляет NUL-символы из JSON-совместимой структуры.
+
+        PostgreSQL не поддерживает `\\u0000` внутри text/json/jsonb, поэтому перед
+        сохранением payload нужно убрать только этот символ, не меняя остальную
+        структуру данных.
+        """
+        if isinstance(value, str):
+            removed = value.count("\x00")
+            if not removed:
+                return value, 0
+            return value.replace("\x00", ""), removed
+
+        if isinstance(value, list):
+            cleaned_items = []
+            removed_total = 0
+            for item in value:
+                cleaned_item, removed = ReplayProcessingService._strip_null_chars(item)
+                cleaned_items.append(cleaned_item)
+                removed_total += removed
+            return cleaned_items, removed_total
+
+        if isinstance(value, tuple):
+            cleaned_items = []
+            removed_total = 0
+            for item in value:
+                cleaned_item, removed = ReplayProcessingService._strip_null_chars(item)
+                cleaned_items.append(cleaned_item)
+                removed_total += removed
+            return cleaned_items, removed_total
+
+        if isinstance(value, dict):
+            cleaned_dict = {}
+            removed_total = 0
+            for key, item in value.items():
+                cleaned_key = key
+                key_removed = 0
+                if isinstance(key, str):
+                    cleaned_key, key_removed = ReplayProcessingService._strip_null_chars(key)
+
+                cleaned_item, item_removed = ReplayProcessingService._strip_null_chars(item)
+                cleaned_dict[cleaned_key] = cleaned_item
+                removed_total += key_removed + item_removed
+            return cleaned_dict, removed_total
+
+        return value, 0
+
+    @staticmethod
     def _normalize_payload_for_storage(payload: Any) -> Any:
         """Convert payload text into a parsed JSON object before JSONField save."""
         if isinstance(payload, (str, bytes, bytearray)):
@@ -260,6 +309,13 @@ class ReplayProcessingService:
         if not isinstance(payload, (list, tuple)):
             raise ValueError(
                 f"Некорректная структура payload: ожидается list/tuple, получен {type(payload).__name__}"
+            )
+
+        payload, removed_nulls = ReplayProcessingService._strip_null_chars(payload)
+        if removed_nulls:
+            logger.warning(
+                "В payload реплея удалено %s NUL-символ(ов) перед сохранением в JSONField",
+                removed_nulls,
             )
 
         return list(payload)
