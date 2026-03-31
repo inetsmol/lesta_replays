@@ -62,6 +62,20 @@ curl http://localhost:8001/health/
 docker compose exec lesta-app python manage.py createsuperuser
 ```
 
+## Локальная разработка без Docker
+
+Если зависимости уже установлены в виртуальное окружение, для запуска Django используйте:
+
+```bash
+source .venv/bin/activate
+python manage.py migrate
+python manage.py runserver
+```
+
+Приложение будет доступно на `http://127.0.0.1:8000`.
+
+Если виртуальное окружение у вас называется не `.venv`, замените путь в команде активации.
+
 ## Развертывание в Docker (production)
 
 1. Используйте внешний PostgreSQL (`USE_POSTGRES=1`) и не храните production-данные в SQLite внутри контейнера.

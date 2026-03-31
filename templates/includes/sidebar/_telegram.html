@@ -1,86 +1,88 @@
 {# templates/includes/sidebar/_telegram.html #}
 {% load static %}
 
-<div class="relative overflow-hidden rounded-xl bg-[#141414] p-6 shadow-2xl border border-[#292929] w-full min-w-0">
+<div class="relative w-full min-w-0 overflow-hidden rounded-xl border border-[#292929] bg-[#141414] p-4 shadow-2xl">
   <!-- Декоративный фон -->
   <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_var(--tw-gradient-stops))] from-cyan-500/10 via-transparent to-transparent"></div>
 
   <!-- Контент -->
   <div class="relative z-10 min-w-0">
     <!-- Главный заголовок с иконкой -->
-    <div class="flex items-center gap-3 mb-3">
+    <div class="mb-3 flex items-center gap-2.5">
       <div class="relative">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="text-cyan-400">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" class="text-cyan-400">
           <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
         </svg>
         <div class="absolute inset-0 bg-cyan-400 blur-md opacity-30"></div>
       </div>
-      <h3 class="text-lg font-bold" style="color: #22d3ee;">
+      <h3 class="text-base font-bold leading-snug" style="color: #22d3ee;">
         Группа проекта Lesta Replays
       </h3>
     </div>
 
     <!-- Список преимуществ -->
-    <div class="mb-4 space-y-3">
-      <p class="text-xs font-semibold text-[#8c8c8c] uppercase tracking-wider mb-2">💡 Здесь можно:</p>
+    <div class="mb-3">
+      <p class="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8c8c8c]">Здесь можно</p>
 
-      <!-- Пункт 1 -->
-      <div class="flex items-start gap-3 group">
-        <div class="flex-shrink-0 mt-1">
-          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-cyan-400">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
+      <div class="space-y-1.5">
+        <!-- Пункт 1 -->
+        <div class="group flex items-start gap-2.5">
+          <div class="mt-0.5 flex-shrink-0">
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-cyan-400">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <p class="text-[13px] leading-4 text-[#b6b6b6] transition-colors group-hover:text-[#e6e6e6]">
+            Делиться <span class="font-medium text-cyan-400/90">идеями</span> и отзывами
+          </p>
         </div>
-        <p class="text-sm text-[#b6b6b6] group-hover:text-[#e6e6e6] transition-colors">
-          Делиться <span class="text-cyan-400/90 font-medium">идеями</span> и отзывами
-        </p>
-      </div>
 
-      <!-- Пункт 2 -->
-      <div class="flex items-start gap-3 group">
-        <div class="flex-shrink-0 mt-1">
-          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-cyan-400">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
+        <!-- Пункт 2 -->
+        <div class="group flex items-start gap-2.5">
+          <div class="mt-0.5 flex-shrink-0">
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-cyan-400">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <p class="text-[13px] leading-4 text-[#b6b6b6] transition-colors group-hover:text-[#e6e6e6]">
+            Помогать <span class="font-medium text-cyan-400/90">развивать</span> проект
+          </p>
         </div>
-        <p class="text-sm text-[#b6b6b6] group-hover:text-[#e6e6e6] transition-colors">
-          Помогать <span class="text-cyan-400/90 font-medium">развивать</span> проект
-        </p>
-      </div>
 
-      <!-- Пункт 3 -->
-      <div class="flex items-start gap-3 group">
-        <div class="flex-shrink-0 mt-1">
-          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-cyan-400">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
+        <!-- Пункт 3 -->
+        <div class="group flex items-start gap-2.5">
+          <div class="mt-0.5 flex-shrink-0">
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-cyan-400">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <p class="text-[13px] leading-4 text-[#b6b6b6] transition-colors group-hover:text-[#e6e6e6]">
+            Следить за <span class="font-medium text-cyan-400/90">обновлениями</span>
+          </p>
         </div>
-        <p class="text-sm text-[#b6b6b6] group-hover:text-[#e6e6e6] transition-colors">
-          Следить за <span class="text-cyan-400/90 font-medium">обновлениями</span>
-        </p>
-      </div>
 
-      <!-- Пункт 4 -->
-      <div class="flex items-start gap-3 group">
-        <div class="flex-shrink-0 mt-1">
-          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-cyan-400">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
+        <!-- Пункт 4 -->
+        <div class="group flex items-start gap-2.5">
+          <div class="mt-0.5 flex-shrink-0">
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-cyan-400">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <p class="text-[13px] leading-4 text-[#b6b6b6] transition-colors group-hover:text-[#e6e6e6]">
+            Просто <span class="font-medium text-cyan-400/90">общаться</span> с единомышленниками
+          </p>
         </div>
-        <p class="text-sm text-[#b6b6b6] group-hover:text-[#e6e6e6] transition-colors">
-          Просто <span class="text-cyan-400/90 font-medium">общаться</span> с единомышленниками
-        </p>
       </div>
     </div>
 
     <!-- Кнопка Telegram (стиль как у Support) -->
     <div class="flex justify-center">
-      <a href="https://t.me/lesta_replays" target="_blank" rel="noopener" class="shrink-0 inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-white bg-[#1d9bf0] hover:opacity-90 no-underline whitespace-nowrap" aria-label="Написать в Telegram">
+      <a href="https://t.me/lesta_replays" target="_blank" rel="noopener" class="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg bg-[#1d9bf0] px-4 py-2 text-sm text-white no-underline transition-opacity hover:opacity-90" aria-label="Написать в Telegram">
         <!-- Telegram paper-plane icon (inline SVG) -->
         <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M22 2L2 13l4.5 1.6L9 13l10 7 3-20z" fill="currentColor"/>
         </svg>
-        <span class="text-[13px] font-medium">Группа в Telegram</span>
+        <span class="font-medium">Группа в Telegram</span>
       </a>
     </div>
   </div>
